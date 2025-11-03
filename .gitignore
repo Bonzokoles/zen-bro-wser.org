@@ -1,0 +1,10 @@
+
+# Environment files (never commit secrets)
+.env
+.env.*
+ZENO_WEB_CORE_APP/.env
+ZENO_WEB_CORE_APP/.env.*
+
+#Ignore insiders AI rules
+.github\instructions\codacy.instructions.md
+node_modules
