@@ -1,6 +1,3 @@
-
-import { tavily } from '@tavily/core';
-
 export interface ToolResult {
   success: boolean;
   data: any;
@@ -35,6 +32,8 @@ class ToolExecutionService {
     }
 
     try {
+      // Lazy import tavily only when needed, to avoid bundling Node.js dependencies in browser
+      const { tavily } = await import('@tavily/core');
       const response = await tavily({
         apiKey: this.tavilyApiKey,
         query: args.query,
