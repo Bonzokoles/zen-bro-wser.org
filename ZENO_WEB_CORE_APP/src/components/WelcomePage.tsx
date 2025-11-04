@@ -6,9 +6,29 @@ const WelcomePage: React.FC = () => {
 
   return (
     <div className="page-content" style={{ height: '100%', overflow: 'auto' }}>
-      <div className="page-header">
-        <h1>🚀 ZENO Browser</h1>
-        <p>Advanced Web Browser with MCP Integration</p>
+      <div className="page-header" style={{
+        textAlign: 'center',
+        margin: '2rem 0 3rem 0'
+      }}>
+        <h1 style={{
+          fontSize: '3rem',
+          fontWeight: '800',
+          marginBottom: '1rem',
+          background: 'linear-gradient(135deg, #60a5fa, #a78bfa)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          backgroundClip: 'text'
+        }}>
+          ZENO_BRO_wser_CORE
+        </h1>
+        <p style={{
+          color: '#94a3b8',
+          fontSize: '1.2rem',
+          maxWidth: '600px',
+          margin: '0 auto'
+        }}>
+          Advanced_Web_IfrAME_BRO_wser_MCP_AGENTAMI_from_deep_side_of_net
+        </p>
       </div>
       
       <div style={{
@@ -58,6 +78,7 @@ const WelcomePage: React.FC = () => {
                 color: 'white',
                 padding: '12px',
                 border: 'none',
+                borderRadius: '0',
                 fontSize: '13px',
                 cursor: 'pointer',
                 textAlign: 'left',
@@ -79,6 +100,7 @@ const WelcomePage: React.FC = () => {
             color: 'white',
             padding: '14px',
             border: 'none',
+            borderRadius: '0',
             fontSize: '14px',
             fontWeight: '600',
             cursor: 'pointer',
@@ -116,7 +138,8 @@ const WelcomePage: React.FC = () => {
             display: 'flex',
             flexDirection: 'column',
             position: 'relative',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+            borderRadius: '0'
           }} onClick={(e) => e.stopPropagation()}>
             {/* Header - fixed */}
             <div style={{
@@ -140,6 +163,7 @@ const WelcomePage: React.FC = () => {
                   backgroundColor: '#ef4444',
                   color: 'white',
                   border: 'none',
+                  borderRadius: '0',
                   width: '36px',
                   height: '36px',
                   cursor: 'pointer',
@@ -172,6 +196,7 @@ const WelcomePage: React.FC = () => {
                   backgroundColor: '#3b82f6',
                   color: 'white',
                   padding: '12px 24px',
+                  borderRadius: '0',
                   textDecoration: 'none',
                   fontWeight: '600',
                   fontSize: '14px',
@@ -218,6 +243,7 @@ const WelcomePage: React.FC = () => {
                     backgroundColor: activeTab === 'popular' ? '#3b82f6' : 'transparent',
                     color: 'white',
                     border: 'none',
+                    borderRadius: '0',
                     padding: '12px 24px',
                     cursor: 'pointer',
                     fontSize: '14px',
@@ -233,6 +259,7 @@ const WelcomePage: React.FC = () => {
                     backgroundColor: activeTab === 'niche' ? '#3b82f6' : 'transparent',
                     color: 'white',
                     border: 'none',
+                    borderRadius: '0',
                     padding: '12px 24px',
                     cursor: 'pointer',
                     fontSize: '14px',
@@ -345,7 +372,7 @@ const WelcomePage: React.FC = () => {
                 <div key={category.cat} style={{
                   backgroundColor: '#334155',
                   padding: '16px',
-                  borderRadius: '8px'
+                  borderRadius: '0'
                 }}>
                   <h3 style={{
                     color: '#60a5fa',
@@ -369,6 +396,7 @@ const WelcomePage: React.FC = () => {
                         color: 'white',
                         padding: '10px',
                         border: 'none',
+                        borderRadius: '0',
                         fontSize: '12px',
                         cursor: 'pointer',
                         textAlign: 'left',
@@ -387,7 +415,7 @@ const WelcomePage: React.FC = () => {
             <div style={{
               backgroundColor: '#0f172a',
               padding: '16px',
-              borderRadius: '8px',
+              borderRadius: '0',
               marginTop: '24px',
               textAlign: 'center'
             }}>
