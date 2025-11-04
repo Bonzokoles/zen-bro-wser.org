@@ -56,9 +56,9 @@ const WebView: React.FC<WebViewProps> = ({ url, isLoading, title, topOffset = 80
 				top: `${topOffset}px`,
 				left: 0,
 				width: '100%',
-				height: `calc(100% - ${topOffset}px)`,
+				height: `calc(100% - ${topOffset}px - 70px)`,
 				backgroundColor: 'var(--bg-secondary)',
-				zIndex: 10,
+				zIndex: 50,
 				display: 'flex',
 				alignItems: 'center',
 				justifyContent: 'center'
@@ -80,9 +80,9 @@ const WebView: React.FC<WebViewProps> = ({ url, isLoading, title, topOffset = 80
 				top: `${topOffset}px`,
 				left: 0,
 				width: '100%',
-				height: `calc(100% - ${topOffset}px)`,
+				height: `calc(100% - ${topOffset}px - 70px)`,
 				backgroundColor: 'var(--bg-secondary)',
-				zIndex: 10,
+				zIndex: 50,
 				display: 'flex',
 				alignItems: 'center',
 				justifyContent: 'center'
@@ -106,9 +106,9 @@ const WebView: React.FC<WebViewProps> = ({ url, isLoading, title, topOffset = 80
 				top: `${topOffset}px`,
 				left: 0,
 				width: '100%',
-				height: `calc(100% - ${topOffset}px)`,
+				height: `calc(100% - ${topOffset}px - 70px)`,
 				backgroundColor: 'var(--bg-secondary)',
-				zIndex: 10,
+				zIndex: 50,
 				display: 'flex',
 				alignItems: 'center',
 				justifyContent: 'center'
@@ -160,9 +160,10 @@ const WebView: React.FC<WebViewProps> = ({ url, isLoading, title, topOffset = 80
 			top: `${topOffset}px`,
 			left: 0,
 			width: '100%',
-			height: `calc(100% - ${topOffset}px)`,
+			height: `calc(100% - ${topOffset}px - 70px)`,
 			backgroundColor: 'white',
-			overflow: 'auto'
+			overflow: 'auto',
+			zIndex: 50
 		}}>
 			{loadTimeout && !iframeError && (
 				<div className="timeout-banner">
