@@ -35,17 +35,7 @@ jobs:
         env:
           NODE_ENV: production
           VITE_ENVIRONMENT: production
-          VITE_API_URL: ${{ secrets.VITE_API_URL }}
-
-      - name: Deploy to Cloudflare Pages
-        uses: cloudflare/pages-action@v1
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: zeno-browser
-          directory: ZENO_WEB_CORE_APP/dist
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
-          branch: main
+          VITE_API_URL: https://zeno-browser-api.stolarnia-ams.workers.dev
 
       - name: Deploy Worker API
         uses: cloudflare/wrangler-action@v3
@@ -53,7 +43,14 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: .cloudflare
-          command: deploy
+          command: deploy --env=""
+
+      - name: Deploy to Cloudflare Pages (via Wrangler)
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy ZENO_WEB_CORE_APP/dist --project-name=zeno-browser --branch=main
 
       - name: Deployment Summary
         run: |
