@@ -61,24 +61,49 @@ const WelcomePage: React.FC = () => {
     <div className="page-content" style={{ height: '100%', overflow: 'auto', paddingTop: '120px' }}>
       <div className="page-header" style={{
         textAlign: 'center',
-        margin: '2rem 0 3rem 0'
+        margin: '2rem 0 3rem 0',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '1rem'
       }}>
-        <h1 style={{
-          fontSize: '3rem',
-          fontWeight: '800',
-          marginBottom: '1rem',
-          background: 'linear-gradient(135deg, #60a5fa, #a78bfa)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          backgroundClip: 'text'
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '1.5rem',
+          justifyContent: 'center'
         }}>
-          ZENO_BRO_wser_CORE
-        </h1>
+          <img
+            src="/apple-touch-icon.png"
+            alt="ZENO Browser Icon"
+            style={{
+              width: '80px',
+              height: '80px',
+              filter: 'drop-shadow(0 0 20px rgba(96, 165, 250, 0.5))',
+              animation: 'pulse 3s ease-in-out infinite'
+            }}
+          />
+          <h1 style={{
+            fontSize: '3rem',
+            fontWeight: '900',
+            marginBottom: '0',
+            background: 'linear-gradient(135deg, #60a5fa, #a78bfa)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+            fontFamily: "'Orbitron', sans-serif",
+            letterSpacing: '0.1em',
+            textTransform: 'uppercase'
+          }}>
+            ZENO_BRO_wser_CORE
+          </h1>
+        </div>
         <p style={{
           color: '#94a3b8',
           fontSize: '1.2rem',
           maxWidth: '600px',
-          margin: '0 auto'
+          margin: '0 auto',
+          fontStyle: 'italic'
         }}>
           Advanced_Web_IfrAME_BRO_wser_MCP_AGENTAMI_from_deep_side_of_net
         </p>
