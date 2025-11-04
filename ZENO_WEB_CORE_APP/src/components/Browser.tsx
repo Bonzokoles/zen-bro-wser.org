@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import WebView from './WebView';
 import ChatPanel from './ChatPanel';
 import ProviderSettings from './ProviderSettings';
+import FloatingWindow from './FloatingWindow';
 // import LocalChatbot from './LocalChatbot'; // Moved to NOT_IN_USE
 import { mcpService } from '../services/mcpService';
 
@@ -77,6 +78,14 @@ const Browser: React.FC = () => {
 	]);
 
 	const [history, setHistory] = useState<HistoryItem[]>([]);
+
+	// Floating windows state
+	interface FloatingWindowData {
+		id: string;
+		url: string;
+		title: string;
+	}
+	const [floatingWindows, setFloatingWindows] = useState<FloatingWindowData[]>([]);
 
 	// Listen for navigation events from WebView
 	useEffect(() => {
@@ -388,6 +397,20 @@ const Browser: React.FC = () => {
 		setShowTools(false);
 		setIsConsoleOpen(false);
 
+		// If it's an external URL (not about:), open in floating window
+		if (!finalUrl.startsWith('about:')) {
+			const windowId = Date.now().toString();
+			setFloatingWindows(prev => [...prev, {
+				id: windowId,
+				url: finalUrl,
+				title: pageTitle
+			}]);
+			addToHistory(finalUrl, pageTitle, getPageFavicon(finalUrl));
+			addConsoleMessage(`Opening in floating window: ${finalUrl}`);
+			return;
+		}
+
+		// For about: pages, use the traditional tab system
 		setCurrentUrl(finalUrl);
 		setInputUrl(finalUrl);
 		setTabs(prev => prev.map(tab => 
@@ -395,11 +418,6 @@ const Browser: React.FC = () => {
 				? { ...tab, url: finalUrl, isLoading: true, title: 'Loading...', favicon: getPageFavicon(finalUrl) }
 				: tab
 		));
-
-		// Add to history (skip for welcome page and blank tabs)
-		if (!finalUrl.startsWith('about:')) {
-			addToHistory(finalUrl, pageTitle, getPageFavicon(finalUrl));
-		}
 
 		// Simulate page load
 		setTimeout(() => {
@@ -1801,6 +1819,23 @@ const Browser: React.FC = () => {
 					}}
 				/>
 			)}
+
+			{/* Floating Windows */}
+			{floatingWindows.map(window => (
+				<FloatingWindow
+					key={window.id}
+					url={window.url}
+					title={window.title}
+					onClose={() => {
+						setFloatingWindows(prev => prev.filter(w => w.id !== window.id));
+						addConsoleMessage(`Closed window: ${window.title}`);
+					}}
+					initialWidth={900}
+					initialHeight={700}
+					initialX={100 + (floatingWindows.findIndex(w => w.id === window.id) * 30)}
+					initialY={120 + (floatingWindows.findIndex(w => w.id === window.id) * 30)}
+				/>
+			))}
 		</div>
 	);
 };
