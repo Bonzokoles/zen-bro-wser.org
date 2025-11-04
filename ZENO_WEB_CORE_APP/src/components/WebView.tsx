@@ -46,18 +46,21 @@ const WebView: React.FC<WebViewProps> = ({ url, isLoading, title }) => {
 		};
 	}, [url]);
 	
-	if (url === 'about:welcome') {
-		return (
-			<div style={{
-				position: 'fixed',
-				top: '60px',
-				left: 0,
-				width: '100%',
-				height: 'calc(100% - 60px)',
-				                backgroundColor: '#0f172a',
-				                zIndex: 2000,				overflow: 'auto',
-				padding: '20px'
-			}}>
+		if (url === 'about:welcome') {
+	
+			return (
+	
+				<div style={{
+	
+					backgroundColor: '#0f172a',
+	
+					overflow: 'auto',
+	
+					padding: '20px',
+	
+					height: '100%'
+	
+				}}>
 				<div style={{
 					maxWidth: '800px',
 					margin: '0 auto',
