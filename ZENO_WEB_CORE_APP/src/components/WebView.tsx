@@ -54,9 +54,8 @@ const WebView: React.FC<WebViewProps> = ({ url, isLoading, title }) => {
 				left: 0,
 				width: '100%',
 				height: 'calc(100% - 60px)',
-				backgroundColor: '#0f172a',
-				zIndex: 10,
-				overflow: 'auto',
+				                backgroundColor: '#0f172a',
+				                zIndex: 2000,				overflow: 'auto',
 				padding: '20px'
 			}}>
 				<div style={{

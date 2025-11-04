@@ -1,143 +1,32 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import SiteSearch from "../components/iframe/SiteSearch";
 ---
 
 <Layout
   title="ZENO - Site Search Demo"
   description="Advanced site search with React"
 >
-  <div id="search-demo-root"></div>
+  <div class="header" style="text-align: center; margin-bottom: 2rem;">
+    <h1
+      style="font-size: 3rem; font-weight: 800; margin-bottom: 1rem; background: linear-gradient(135deg, #60a5fa, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"
+    >
+      🔍 Advanced Site Search
+    </h1>
+    <p style="color: #94a3b8; font-size: 1.2rem;">
+      Find iframe-testable sites with powerful filters
+    </p>
+  </div>
+  <div class="search-container" style="padding: 0 2rem;">
+    <SiteSearch
+      client:load
+      onSelectSite={(site) => {
+        console.log("Selected site:", site);
+        alert(`Selected: ${site.name}\nURL: ${site.url}`);
+      }}
+      enableFavorites={true}
+      enableHistory={true}
+      pageSize={15}
+    />
+  </div>
 </Layout>
-
-<style is:global>
-  body {
-    margin: 0;
-    padding: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-      sans-serif;
-    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-    min-height: 100vh;
-    overflow-y: auto;
-    overflow-x: hidden;
-  }
-
-  #search-demo-root {
-    padding: 2rem;
-    max-width: 100%;
-    overflow-y: auto;
-  }
-
-  .header {
-    text-align: center;
-    margin-bottom: 3rem;
-  }
-
-  .header h1 {
-    font-size: 3rem;
-    font-weight: 800;
-    margin-bottom: 1rem;
-    background: linear-gradient(135deg, #60a5fa, #a78bfa);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-
-  .header p {
-    color: #94a3b8;
-    font-size: 1.2rem;
-  }
-
-  .demo-container {
-    background: white;
-    border-radius: 16px;
-    padding: 2rem;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
-    max-height: calc(100vh - 250px);
-    overflow-y: auto;
-    overflow-x: hidden;
-  }
-</style>
-
-<script>
-  import { createRoot } from "react-dom/client";
-  import { createElement } from "react";
-  import SiteSearch from "../components/iframe/SiteSearch";
-  import {
-    InstructionsPanel,
-    type Instruction,
-  } from "../components/InstructionsPanel";
-
-  document.addEventListener("DOMContentLoaded", () => {
-    const root = document.getElementById("search-demo-root");
-    if (!root) return;
-
-    // Create header
-    const header = document.createElement("div");
-    header.className = "header";
-    header.innerHTML = `
-      <h1>🔍 Advanced Site Search</h1>
-      <p>Find iframe-testable sites with powerful filters</p>
-    `;
-
-    // Create demo container
-    const container = document.createElement("div");
-    container.className = "demo-container";
-
-    root.appendChild(header);
-    root.appendChild(container);
-
-    // Render React component
-    const reactRoot = createRoot(container);
-    reactRoot.render(
-      createElement(SiteSearch, {
-        onSelectSite: (site) => {
-          console.log("Selected site:", site);
-          alert(`Selected: ${site.name}\nURL: ${site.url}`);
-        },
-        enableFavorites: true,
-        enableHistory: true,
-        pageSize: 15,
-      })
-    );
-
-    // Mount Instructions Panel
-    const instructions: Instruction[] = [
-      {
-        step: 1,
-        title: "Search Sites",
-        description:
-          "Type in the search box to find sites by name, URL, description, or tags. The search updates in real-time as you type.",
-        shortcut: "Ctrl+F",
-      },
-      {
-        step: 2,
-        title: "Apply Filters",
-        description:
-          "Use category filters to narrow results. Toggle 'Iframe Friendly' to show only sites that work in iframes without security restrictions.",
-      },
-      {
-        step: 3,
-        title: "Manage Favorites",
-        description:
-          "Click the star icon to add sites to your favorites. Access your favorite sites quickly from the favorites tab.",
-        shortcut: "Ctrl+B",
-      },
-      {
-        step: 4,
-        title: "View History",
-        description:
-          "Check your search history to revisit previously searched sites. History is saved locally in your browser for quick access.",
-      },
-    ];
-
-    const instructionsContainer = document.createElement("div");
-    document.body.appendChild(instructionsContainer);
-    const instructionsRoot = createRoot(instructionsContainer);
-    instructionsRoot.render(
-      createElement(InstructionsPanel, {
-        title: "Search Demo Guide",
-        instructions,
-        defaultOpen: false,
-      })
-    );
-  });
-</script>
