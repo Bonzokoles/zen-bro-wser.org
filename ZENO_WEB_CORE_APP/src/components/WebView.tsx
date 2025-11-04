@@ -179,84 +179,156 @@ const WebView: React.FC<WebViewProps> = ({ url, isLoading, title }) => {
 							left: 0,
 							width: '100%',
 							height: '100%',
-							backgroundColor: 'rgba(0,0,0,0.8)',
+							backgroundColor: 'rgba(0,0,0,0.95)',
 							zIndex: 9999,
 							display: 'flex',
 							alignItems: 'center',
 							justifyContent: 'center',
-							padding: '20px'
+							padding: '20px',
+							overflow: 'hidden'
 						}} onClick={() => setShowMoreSites(false)}>
 							<div style={{
 								backgroundColor: '#1e293b',
-								borderRadius: '12px',
-								padding: '32px',
-								maxWidth: '900px',
-								maxHeight: '80vh',
-								overflow: 'auto',
-								position: 'relative'
+								borderRadius: '16px',
+								padding: '0',
+								maxWidth: '1000px',
+								width: '100%',
+								maxHeight: '90vh',
+								display: 'flex',
+								flexDirection: 'column',
+								position: 'relative',
+								boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
 							}} onClick={(e) => e.stopPropagation()}>
-								<button
-									onClick={() => setShowMoreSites(false)}
-									style={{
-										position: 'absolute',
-										top: '16px',
-										right: '16px',
-										backgroundColor: '#374151',
-										color: 'white',
-										border: 'none',
-										borderRadius: '50%',
-										width: '32px',
-										height: '32px',
-										cursor: 'pointer',
-										fontSize: '18px'
-									}}
-								>
-									✕
-								</button>
-								<h2 style={{color: 'white', marginBottom: '16px', fontSize: '24px'}}>
-									📋 Sprawdzone strony bez X-Frame-Options
-								</h2>
-								
-								{/* Tabs */}
+								{/* Header - fixed */}
 								<div style={{
+									padding: '24px 32px',
+									borderBottom: '2px solid #334155',
 									display: 'flex',
-									gap: '8px',
-									marginBottom: '24px',
-									borderBottom: '2px solid #334155'
+									justifyContent: 'space-between',
+									alignItems: 'center'
 								}}>
+									<h2 style={{
+										color: 'white',
+										margin: 0,
+										fontSize: '24px',
+										fontWeight: '700'
+									}}>
+										📋 Sprawdzone strony bez X-Frame-Options
+									</h2>
 									<button
-										onClick={() => setActiveTab('popular')}
+										onClick={() => setShowMoreSites(false)}
 										style={{
-											backgroundColor: activeTab === 'popular' ? '#3b82f6' : 'transparent',
+											backgroundColor: '#ef4444',
 											color: 'white',
 											border: 'none',
-											padding: '12px 24px',
+											borderRadius: '50%',
+											width: '36px',
+											height: '36px',
 											cursor: 'pointer',
-											fontSize: '14px',
-											fontWeight: '600',
-											borderRadius: '8px 8px 0 0',
-											transition: 'all 0.2s'
+											fontSize: '20px',
+											display: 'flex',
+											alignItems: 'center',
+											justifyContent: 'center',
+											transition: 'all 0.2s',
+											fontWeight: 'bold'
 										}}
+										onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#dc2626'}
+										onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#ef4444'}
 									>
-										🔥 Popularne (28)
-									</button>
-									<button
-										onClick={() => setActiveTab('niche')}
-										style={{
-											backgroundColor: activeTab === 'niche' ? '#3b82f6' : 'transparent',
-											color: 'white',
-											border: 'none',
-											padding: '12px 24px',
-											cursor: 'pointer',
-											fontSize: '14px',
-											fontWeight: '600',
-											borderRadius: '8px 8px 0 0',
-											transition: 'all 0.2s'
-										}}
-									>
-										💎 Niszowe (30)
+										✕
 									</button>
 								</div>
+								
+								{/* Advanced Search Button */}
+								<div style={{
+									padding: '16px 32px',
+									borderBottom: '2px solid #334155',
+									backgroundColor: '#0f172a'
+								}}>
+									<a
+										href="/search-demo"
+										target="_blank"
+										style={{
+											display: 'inline-flex',
+											alignItems: 'center',
+											gap: '8px',
+											backgroundColor: '#3b82f6',
+											color: 'white',
+											padding: '12px 24px',
+											borderRadius: '8px',
+											textDecoration: 'none',
+											fontWeight: '600',
+											fontSize: '14px',
+											transition: 'all 0.2s',
+											border: 'none'
+										}}
+										onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#2563eb'}
+										onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#3b82f6'}
+									>
+										🔍 Advanced Site Search
+									</a>
+									<p style={{
+										color: '#94a3b8',
+										fontSize: '13px',
+										margin: '8px 0 0 0'
+									}}>
+										Szukaj, filtruj i sortuj strony z zaawansowanymi opcjami
+									</p>
+								</div>
+								
+								{/* Scrollable Content */}
+								<div style={{
+									flex: 1,
+									overflowY: 'auto',
+									overflowX: 'hidden',
+									padding: '24px 32px'
+								}}>
+									{/* Tabs */}
+									<div style={{
+										display: 'flex',
+										gap: '8px',
+										marginBottom: '24px',
+										borderBottom: '2px solid #334155',
+										position: 'sticky',
+										top: '-24px',
+										backgroundColor: '#1e293b',
+										zIndex: 10,
+										paddingTop: '8px',
+										marginTop: '-8px'
+									}}>
+										<button
+											onClick={() => setActiveTab('popular')}
+											style={{
+												backgroundColor: activeTab === 'popular' ? '#3b82f6' : 'transparent',
+												color: 'white',
+												border: 'none',
+												padding: '12px 24px',
+												cursor: 'pointer',
+												fontSize: '14px',
+												fontWeight: '600',
+												borderRadius: '8px 8px 0 0',
+												transition: 'all 0.2s'
+											}}
+										>
+											🔥 Popularne (28)
+										</button>
+										<button
+											onClick={() => setActiveTab('niche')}
+											style={{
+												backgroundColor: activeTab === 'niche' ? '#3b82f6' : 'transparent',
+												color: 'white',
+												border: 'none',
+												padding: '12px 24px',
+												cursor: 'pointer',
+												fontSize: '14px',
+												fontWeight: '600',
+												borderRadius: '8px 8px 0 0',
+												transition: 'all 0.2s'
+											}}
+										>
+											💎 Niszowe (30)
+										</button>
+									</div>
 								
 								<div style={{
 									display: 'grid',
@@ -404,6 +476,7 @@ const WebView: React.FC<WebViewProps> = ({ url, isLoading, title }) => {
 										<br />
 										<span style={{fontSize: '11px', color: '#64748b'}}>Źródło: Perplexity AI + ręczna weryfikacja iframe policies</span>
 									</p>
+								</div>
 								</div>
 							</div>
 						</div>
