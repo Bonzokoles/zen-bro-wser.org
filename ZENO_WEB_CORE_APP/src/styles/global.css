@@ -4,8 +4,9 @@
 
 /* Custom CSS Variables for ZENO Browser */
 :root {
-	--primary: #2563eb;
-	--primary-dark: #1d4ed8;
+	--primary: #3b82f6;
+	--primary-light: #60a5fa;
+	--primary-dark: #2563eb;
 	--secondary: #8b5cf6;
 	--accent: #06b6d4;
 	--background: #0f172a;
@@ -16,6 +17,15 @@
 	--success: #10b981;
 	--warning: #f59e0b;
 	--error: #ef4444;
+
+	/* Additional variables for WebView component */
+	--bg-primary: #0f172a;
+	--bg-secondary: #1e293b;
+	--bg-tertiary: #0f172a;
+	--bg-elevated: #334155;
+	--text-primary: #ffffff;
+	--text-secondary: #94a3b8;
+	--border-color: #475569;
 }
 
 /* Animations */
@@ -348,4 +358,232 @@ body::after {
 	border-bottom: 1px solid var(--border);
 	padding: 8px 16px;
 	backdrop-filter: blur(10px);
+}
+
+/* NEW: Global Page Layout Styles */
+.page-header {
+  text-align: center;
+  margin: 2rem 0 3rem 0;
+}
+
+.page-header h1 {
+  font-size: 3rem;
+  font-weight: 800;
+  margin-bottom: 1rem;
+  background: linear-gradient(135deg, #60a5fa, #a78bfa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.page-header p {
+  color: #94a3b8;
+  font-size: 1.2rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.page-content {
+  padding: 0 2rem 2rem 2rem;
+}
+
+/* ============================================
+   WebView Component Styles
+   ============================================ */
+
+/* Loading State */
+.loading-container,
+.blank-container,
+.error-container {
+	position: fixed;
+	top: 60px;
+	left: 0;
+	width: 100%;
+	height: calc(100% - 60px);
+	background-color: var(--bg-secondary);
+	z-index: 10;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.loading-content,
+.blank-content,
+.error-content {
+	text-align: center;
+	max-width: 600px;
+	padding: 20px;
+}
+
+/* Spinner Animation */
+.spinner {
+	width: 64px;
+	height: 64px;
+	border: 4px solid var(--border-color);
+	border-top: 4px solid var(--primary);
+	border-radius: 50%;
+	animation: spin 1s linear infinite;
+	margin: 0 auto 16px;
+}
+
+@keyframes spin {
+	0% { transform: rotate(0deg); }
+	100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+	color: var(--text-secondary);
+	font-size: 18px;
+	margin-bottom: 8px;
+}
+
+.loading-url {
+	color: var(--text-muted);
+	font-size: 14px;
+	margin-top: 4px;
+	word-break: break-all;
+}
+
+/* Blank Page */
+.blank-icon {
+	font-size: 60px;
+	margin-bottom: 16px;
+}
+
+.blank-title {
+	color: var(--text-secondary);
+	font-size: 18px;
+	margin-bottom: 8px;
+}
+
+.blank-subtitle {
+	color: var(--text-muted);
+	font-size: 14px;
+	margin-top: 8px;
+}
+
+/* Error State */
+.error-icon {
+	font-size: 48px;
+	margin-bottom: 20px;
+}
+
+.error-title {
+	color: var(--text-primary);
+	font-size: 24px;
+	margin-bottom: 16px;
+	font-weight: 600;
+}
+
+.error-url {
+	color: var(--text-secondary);
+	font-size: 16px;
+	margin-bottom: 16px;
+	word-break: break-all;
+}
+
+.error-info-box {
+	background-color: var(--bg-tertiary);
+	padding: 16px;
+	border-radius: 8px;
+	border-left: 4px solid var(--primary);
+	margin-bottom: 24px;
+	text-align: left;
+}
+
+.error-info-text {
+	color: var(--text-secondary);
+	font-size: 14px;
+	line-height: 1.6;
+	margin: 0;
+}
+
+.error-info-text strong {
+	color: var(--primary-light);
+}
+
+.error-actions {
+	display: flex;
+	gap: 12px;
+	justify-content: center;
+	margin-bottom: 24px;
+}
+
+.error-hint {
+	color: var(--text-muted);
+	font-size: 12px;
+	line-height: 1.5;
+}
+
+.error-hint strong {
+	font-weight: 600;
+}
+
+/* Iframe Container */
+.iframe-container {
+	position: fixed;
+	top: 60px;
+	left: 0;
+	width: 100%;
+	height: calc(100% - 60px);
+	background-color: white;
+	overflow: auto;
+}
+
+.timeout-banner {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	background: linear-gradient(135deg, #f59e0b, #d97706);
+	color: white;
+	padding: 8px 16px;
+	text-align: center;
+	font-size: 13px;
+	font-weight: 500;
+	z-index: 100;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.browser-iframe {
+	width: 100%;
+	height: 100%;
+	border: none;
+	display: block;
+}
+
+/* Buttons - reuse from global styles or add here */
+.btn-primary {
+	background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+	color: white;
+	padding: 12px 24px;
+	border-radius: 8px;
+	border: none;
+	font-size: 14px;
+	font-weight: 600;
+	cursor: pointer;
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	transition: all 0.2s;
+}
+
+.btn-primary:hover {
+	transform: translateY(-1px);
+	box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.btn-secondary {
+	background-color: var(--bg-elevated);
+	color: var(--text-primary);
+	padding: 12px 24px;
+	border-radius: 8px;
+	border: none;
+	font-size: 14px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+	background-color: var(--border-color);
 }

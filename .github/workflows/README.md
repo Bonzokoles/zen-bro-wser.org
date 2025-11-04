@@ -184,3 +184,48 @@ Common modifications:
 - Add testing steps
 - Add deployment notifications
 - Configure caching strategies
+
+---
+
+## 🤖 TODO: Integracja BIELIK_THE_whitie
+
+**Plik instrukcji:** `V:\PROTO_TYpy\ZENO_web_CORE\BIELIK_INTEGRATION_INSTRUCTIONS.md`
+
+**Polecenie dla Gemini:**
+```
+Przeczytaj i zaimplementuj instrukcje z pliku:
+V:\PROTO_TYpy\ZENO_web_CORE\BIELIK_INTEGRATION_INSTRUCTIONS.md
+
+Kontekst:
+- Projekt: ZENO Browser (Astro + React + TypeScript)
+- Lokalizacja: V:\PROTO_TYpy\ZENO_web_CORE\ZENO_WEB_CORE_APP\
+- Deployment: Cloudflare Pages
+
+Zadania (w kolejności):
+1. Utwórz Cloudflare Worker AI Proxy (functions/ai-proxy.ts)
+2. Zmodyfikuj aiProviders (gemini.ts, openrouter.ts) - zastąp localStorage
+3. Utwórz Agent Manager (services/agentManager.ts)
+4. Dodaj tracking do mcpService.ts
+5. Utwórz AgentStatusPanel.tsx
+6. Dodaj panel do Browser.tsx
+7. Utwórz dashboardService.ts
+8. Dodaj tracking do ChatPanel.tsx i Browser.tsx
+
+Wszystkie szczegóły w pliku instrukcji.
+```
+
+**Co integrujemy:**
+- 🔒 **Cloudflare Worker AI Proxy** - ukrycie kluczy API (PRIORYTET 1)
+- 🤖 **Agent Manager** - system zarządzania 6 agentami MCP (PRIORYTET 2)
+- 📊 **Dashboard Service** - statystyki w czasie rzeczywistym (PRIORYTET 3)
+
+**Componenty z Bielik:**
+- `cloudflareWorkerAdapter.ts` → AI Proxy
+- `agents_polaczek_dyrektor.ts` → Agent Manager
+- `agents_polaczek_d1.ts` → Dashboard Keeper
+
+**Po implementacji:**
+- Dodaj `GEMINI_API_KEY` do GitHub Secrets
+- Dodaj `OPENROUTER_API_KEY` do GitHub Secrets
+- Dodaj `CLAUDE_API_KEY` do GitHub Secrets (opcjonalnie)
+- Deploy przez GitHub Actions

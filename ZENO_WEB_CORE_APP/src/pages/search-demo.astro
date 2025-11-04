@@ -7,17 +7,11 @@ import SiteSearch from "../components/iframe/SiteSearch";
   title="ZENO - Site Search Demo"
   description="Advanced site search with React"
 >
-  <div class="header" style="text-align: center; margin-bottom: 2rem;">
-    <h1
-      style="font-size: 3rem; font-weight: 800; margin-bottom: 1rem; background: linear-gradient(135deg, #60a5fa, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"
-    >
-      🔍 Advanced Site Search
-    </h1>
-    <p style="color: #94a3b8; font-size: 1.2rem;">
-      Find iframe-testable sites with powerful filters
-    </p>
-  </div>
-  <div class="search-container" style="padding: 0 2rem;">
+  <main class="page-content">
+    <div class="page-header">
+      <h1>🔍 Advanced Site Search</h1>
+      <p>Find iframe-testable sites with powerful filters</p>
+    </div>
     <SiteSearch
       client:load
       onSelectSite={(site) => {
@@ -28,5 +22,5 @@ import SiteSearch from "../components/iframe/SiteSearch";
       enableHistory={true}
       pageSize={15}
     />
-  </div>
+  </main>
 </Layout>
