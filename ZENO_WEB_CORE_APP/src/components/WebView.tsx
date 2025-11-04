@@ -5,10 +5,11 @@ interface WebViewProps {
 	url: string;
 	isLoading: boolean;
 	title: string;
+	topOffset?: number;
 }
 
-const WebView: React.FC<WebViewProps> = ({ url, isLoading, title }) => {
-	console.log('WebView props:', { url, isLoading, title });
+const WebView: React.FC<WebViewProps> = ({ url, isLoading, title, topOffset = 80 }) => {
+	console.log('WebView props:', { url, isLoading, title, topOffset });
 	const [iframeError, setIframeError] = useState(false);
 	const [loadTimeout, setLoadTimeout] = useState(false);
 	const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -50,7 +51,18 @@ const WebView: React.FC<WebViewProps> = ({ url, isLoading, title }) => {
 	// TYLKO TEN JEDEN BLOK dla isLoading
 	if (isLoading) {
 		return (
-			<div className="loading-container">
+			<div style={{
+				position: 'fixed',
+				top: `${topOffset}px`,
+				left: 0,
+				width: '100%',
+				height: `calc(100% - ${topOffset}px)`,
+				backgroundColor: 'var(--bg-secondary)',
+				zIndex: 10,
+				display: 'flex',
+				alignItems: 'center',
+				justifyContent: 'center'
+			}}>
 				<div className="loading-content">
 					<div className="spinner"></div>
 					<p className="loading-text">Loading...</p>
@@ -63,7 +75,18 @@ const WebView: React.FC<WebViewProps> = ({ url, isLoading, title }) => {
 	// TYLKO TEN JEDEN BLOK dla about:blank
 	if (url === 'about:blank') {
 		return (
-			<div className="blank-container">
+			<div style={{
+				position: 'fixed',
+				top: `${topOffset}px`,
+				left: 0,
+				width: '100%',
+				height: `calc(100% - ${topOffset}px)`,
+				backgroundColor: 'var(--bg-secondary)',
+				zIndex: 10,
+				display: 'flex',
+				alignItems: 'center',
+				justifyContent: 'center'
+			}}>
 				<div className="blank-content">
 					<div className="blank-icon">📄</div>
 					<p className="blank-title">New Tab</p>
@@ -78,7 +101,18 @@ const WebView: React.FC<WebViewProps> = ({ url, isLoading, title }) => {
 	// TYLKO TEN JEDEN BLOK dla error handling
 	if (iframeError || loadTimeout) {
 		return (
-			<div className="error-container">
+			<div style={{
+				position: 'fixed',
+				top: `${topOffset}px`,
+				left: 0,
+				width: '100%',
+				height: `calc(100% - ${topOffset}px)`,
+				backgroundColor: 'var(--bg-secondary)',
+				zIndex: 10,
+				display: 'flex',
+				alignItems: 'center',
+				justifyContent: 'center'
+			}}>
 				<div className="error-content">
 					<div className="error-icon">⚠️</div>
 					<h3 className="error-title">Nie można wyświetlić tej strony</h3>
@@ -121,7 +155,15 @@ const WebView: React.FC<WebViewProps> = ({ url, isLoading, title }) => {
 
 	// TYLKO TEN JEDEN return dla iframe
 	return (
-		<div className="iframe-container">
+		<div style={{
+			position: 'fixed',
+			top: `${topOffset}px`,
+			left: 0,
+			width: '100%',
+			height: `calc(100% - ${topOffset}px)`,
+			backgroundColor: 'white',
+			overflow: 'auto'
+		}}>
 			{loadTimeout && !iframeError && (
 				<div className="timeout-banner">
 					⏱️ Strona ładuje się dłużej niż zwykle...

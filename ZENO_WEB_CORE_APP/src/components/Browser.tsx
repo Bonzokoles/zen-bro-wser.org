@@ -1401,47 +1401,43 @@ const Browser: React.FC = () => {
 				</div>
 			)}
 
-			<div style={{
-				marginTop: showBookmarks || showHistory || showTools ? (showTools ? '420px' : '260px') : '60px',
-				marginBottom: '70px', // Space for bottom navigation
-				minHeight: 'calc(100vh - 130px)' // Ensure proper height
-			}}>
-				<WebView
-					url={currentUrl}
-					isLoading={activeTab?.isLoading || false}
-					title={activeTab?.title || ''}
-				/>
-				
-				{isConsoleOpen && (
+			{/* WebView renders with position: fixed, no wrapper needed */}
+			<WebView
+				url={currentUrl}
+				isLoading={activeTab?.isLoading || false}
+				title={activeTab?.title || ''}
+				topOffset={showTools ? 480 : (showBookmarks || showHistory ? 320 : 80)}
+			/>
+
+			{isConsoleOpen && (
+				<div style={{
+					position: 'fixed',
+					bottom: 0,
+					left: 0,
+					right: 0,
+					height: '200px',
+					backgroundColor: '#0f172a',
+					borderTop: '1px solid #334155',
+					zIndex: 101,
+					color: 'white',
+					padding: '16px',
+					overflow: 'auto'
+				}}>
+					<h3>MCP Console</h3>
 					<div style={{
-						position: 'fixed',
-						bottom: 0,
-						left: 0,
-						right: 0,
-						height: '200px',
-						backgroundColor: '#0f172a',
-						borderTop: '1px solid #334155',
-						zIndex: 101,
-						color: 'white',
-						padding: '16px',
-						overflow: 'auto'
+						backgroundColor: '#1e293b',
+						padding: '8px',
+						borderRadius: '4px',
+						fontFamily: 'monospace',
+						fontSize: '12px',
+						marginTop: '8px'
 					}}>
-						<h3>MCP Console</h3>
-						<div style={{
-							backgroundColor: '#1e293b',
-							padding: '8px',
-							borderRadius: '4px',
-							fontFamily: 'monospace',
-							fontSize: '12px',
-							marginTop: '8px'
-						}}>
-							{consoleOutput.map((line, i) => (
-								<div key={i}>{line}</div>
-							))}
-						</div>
+						{consoleOutput.map((line, i) => (
+							<div key={i}>{line}</div>
+						))}
 					</div>
-				)}
-			</div>
+				</div>
+			)}
 
 			{/* Bottom Navigation Bar */}
 			<div style={{

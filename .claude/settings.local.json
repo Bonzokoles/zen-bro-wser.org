@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run build:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nfix: Refactor WebView component and unify styles with global CSS\n\nMajor refactoring of WebView.tsx to remove duplicate code, extract WelcomePage component, \nand replace inline styles with global CSS classes for consistency and maintainability.\n\nChanges:\n- WebView.tsx: Remove 700+ lines of duplicate welcome page code\n- WebView.tsx: Replace all inline styles with CSS classes\n- WebView.tsx: Simplify component structure to single blocks for each state\n- WelcomePage.tsx: Extract welcome page to separate component (413 lines)\n- global.css: Add complete WebView component styles (loading, error, iframe containers)\n- global.css: Add CSS variables for consistent theming\n- Add favicon and apple-touch-icon for better branding\n- Update Layout.astro and search-demo.astro for improved consistency\n\nBuild verified: npm run build completes successfully without errors.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git push)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nstyle: Update branding and fix modal styling with sharp corners\n\nMajor styling improvements to WelcomePage component and global CSS:\n\nChanges to WelcomePage.tsx:\n- Updated main title from \"🚀 ZENO Browser\" to \"ZENO_BRO_wser_CORE\"\n- Updated subtitle to \"Advanced_Web_IfrAME_BRO_wser_MCP_AGENTAMI_from_deep_side_of_net\"\n- Added gradient styling (blue-purple) to header matching search-demo style\n- Applied borderRadius: 0 (sharp corners) to all buttons and modal elements\n- Enhanced modal display with proper styling for tabs, categories, and site buttons\n- Improved visual consistency across all interactive elements\n\nChanges to global.css:\n- Added background-clip: text property to .page-header h1 for better cross-browser gradient support\n- Verified sharp corners CSS rule exists (borderRadius: 0 !important)\n- Ensured gradient styles work globally for all page headers\n\nBuild verified: npm run build completes successfully in 5.53s\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(powershell -Command \"Push-Location ''V:\\PROTO_TYpy\\ZENO_web_CORE\\ZENO_WEB_CORE_APP''; npm run build 2>&1 | Select-Object -Last 30; Pop-Location\")",
+      "Bash(git commit:*)",
+      "Bash(cat:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
