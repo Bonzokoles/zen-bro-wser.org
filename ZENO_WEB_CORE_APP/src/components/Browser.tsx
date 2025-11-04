@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import WebView from './WebView';
 import ChatPanel from './ChatPanel';
 import ProviderSettings from './ProviderSettings';
-import LocalChatbot from './LocalChatbot';
+// import LocalChatbot from './LocalChatbot'; // Moved to NOT_IN_USE
 import { mcpService } from '../services/mcpService';
 
 export interface Tab {

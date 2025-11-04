@@ -9,6 +9,17 @@ import { chatWithAssistant } from '../../../services/orchestrator/aiAssistantSer
 
 const orchestrator = getOrchestrator();
 
+// Static paths for build
+export function getStaticPaths() {
+  return [
+    { params: { action: 'stats' } },
+    { params: { action: 'processed' } },
+    { params: { action: 'failed' } },
+    { params: { action: 'pending' } },
+    { params: { action: 'ai-chat' } }
+  ];
+}
+
 export const GET: APIRoute = async ({ params, request }) => {
   const action = params.action;
 

@@ -4,10 +4,10 @@
 name = "zeno-browser-api"
 main = "src/index.ts"
 compatibility_date = "2024-11-01"
-node_compat = true
+compatibility_flags = ["nodejs_compat"]
 
 # Account details (replace with your own)
-account_id = "YOUR_CLOUDFLARE_ACCOUNT_ID"  # Get from: wrangler whoami
+account_id = "7f490d58a478c6baccb0ae01ea1d87c3"  # Get from: wrangler whoami
 workers_dev = true  # Use workers.dev subdomain for testing
 
 # Routes for production (uncomment when ready)
@@ -21,7 +21,7 @@ workers_dev = true  # Use workers.dev subdomain for testing
 [[d1_databases]]
 binding = "DB"  # Available as env.DB in code
 database_name = "zeno-browser-db"
-database_id = ""  # FILL THIS: Run 'wrangler d1 create zeno-browser-db' and paste ID here
+database_id = "dc8c73b9-1e19-411c-a447-109e68fd9568"  # FILL THIS: Run 'wrangler d1 create zeno-browser-db' and paste ID here
 
 # Preview database for development
 # [[d1_databases]]
@@ -33,8 +33,8 @@ database_id = ""  # FILL THIS: Run 'wrangler d1 create zeno-browser-db' and past
 # KV Namespace for caching
 [[kv_namespaces]]
 binding = "CACHE"  # Available as env.CACHE in code
-id = ""  # FILL THIS: Run 'wrangler kv:namespace create CACHE' and paste ID here
-preview_id = ""  # FILL THIS: Run 'wrangler kv:namespace create CACHE --preview' and paste ID here
+id = "cce469bb54d142ebbbce4287e450daec"  # FILL THIS: Run 'wrangler kv:namespace create CACHE' and paste ID here
+preview_id = "139be3a08d7940eea1de297b0ac22e59"  # FILL THIS: Run 'wrangler kv:namespace create CACHE --preview' and paste ID here
 
 # Durable Objects (optional - for real-time features)
 # [[durable_objects.bindings]]
@@ -68,27 +68,12 @@ head_sampling_rate = 1.0  # Sample 100% of requests (reduce in production)
 # [placement]
 # mode = "smart"  # Automatic optimal placement
 
-# Build configuration
-[build]
-command = "npm run build"
-cwd = "."
-watch_dirs = ["src"]
-
-# Upload rules (exclude unnecessary files)
-[build.upload]
-format = "service-worker"
-# dir = "dist"  # If you have a build step
-# main = "dist/index.js"
-
 # Development server settings
 [dev]
 ip = "0.0.0.0"
 port = 8787
 local_protocol = "http"
 upstream_protocol = "https"
-
-# Compatibility flags
-compatibility_flags = []
 
 # Secrets (use 'wrangler secret put <NAME>' to set these)
 # DO NOT commit actual secret values to Git!
