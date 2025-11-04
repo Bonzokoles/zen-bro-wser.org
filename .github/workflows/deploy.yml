@@ -1,0 +1,64 @@
+name: Deploy to Cloudflare
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy ZENO Browser
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: ZENO_WEB_CORE_APP/package-lock.json
+          
+      - name: Install dependencies
+        working-directory: ./ZENO_WEB_CORE_APP
+        run: npm ci
+        
+      - name: Build application
+        working-directory: ./ZENO_WEB_CORE_APP
+        run: npm run build
+        env:
+          NODE_ENV: production
+          VITE_ENVIRONMENT: production
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+          
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: zeno-browser
+          directory: ZENO_WEB_CORE_APP/dist
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          branch: main
+          
+      - name: Deploy Worker API
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: .cloudflare
+          command: deploy
+          
+      - name: Deployment Summary
+        run: |
+          echo "🎉 Deployment Complete!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Frontend: https://zeno-browser.pages.dev" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Worker API: https://zeno-browser-api.workers.dev" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Custom Domain: https://zenbrowsers.org" >> $GITHUB_STEP_SUMMARY
