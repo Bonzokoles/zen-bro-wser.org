@@ -305,7 +305,7 @@ const WelcomePage: React.FC = () => {
               gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
               gap: '12px'
             }}>
-              {activeTab === 'popular' ? [
+              {(activeTab === 'popular' ? [
                 { cat: '🇵🇱 Polskie strony', sites: [
                   { name: 'Onet.pl', url: 'https://www.onet.pl' },
                   { name: 'Interia.pl', url: 'https://www.interia.pl' },
@@ -397,7 +397,7 @@ const WelcomePage: React.FC = () => {
                   { name: 'Scratch MIT', url: 'https://scratch.mit.edu/projects/embed' },
                   { name: 'Amazon Honeycode', url: 'https://www.honeycode.aws/embed' }
                 ]}
-              ].map(category => (
+              ]).map(category => (
                 <div key={category.cat} style={{
                   backgroundColor: 'transparent',
                   border: '2px solid rgba(148, 163, 184, 0.3)',
