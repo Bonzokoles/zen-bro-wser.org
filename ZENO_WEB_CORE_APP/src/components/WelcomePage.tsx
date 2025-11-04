@@ -5,7 +5,7 @@ const WelcomePage: React.FC = () => {
 	const [activeTab, setActiveTab] = useState<'popular' | 'niche'>('popular');
 
   return (
-    <div className="page-content" style={{ height: '100%', overflow: 'auto' }}>
+    <div className="page-content" style={{ height: '100%', overflow: 'auto', paddingTop: '120px' }}>
       <div className="page-header" style={{
         textAlign: 'center',
         margin: '2rem 0 3rem 0'
