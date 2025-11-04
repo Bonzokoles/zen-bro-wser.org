@@ -44,13 +44,24 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: .cloudflare
           command: deploy
+          wranglerVersion: "3.90.0"
 
-      - name: Deploy to Cloudflare Pages (via Wrangler)
+      - name: Create Pages Project (if not exists)
+        uses: cloudflare/wrangler-action@v3
+        continue-on-error: true
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages project create zeno-browser --production-branch=main
+          wranglerVersion: "3.90.0"
+
+      - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy ZENO_WEB_CORE_APP/dist --project-name=zeno-browser --branch=main
+          wranglerVersion: "3.90.0"
 
       - name: Deployment Summary
         run: |
