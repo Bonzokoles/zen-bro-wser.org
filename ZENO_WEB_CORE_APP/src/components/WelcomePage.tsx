@@ -73,16 +73,37 @@ const WelcomePage: React.FC = () => {
           gap: '1.5rem',
           justifyContent: 'center'
         }}>
-          <img
-            src="/apple-touch-icon.png"
-            alt="ZENO Browser Icon"
-            style={{
-              width: '80px',
-              height: '80px',
-              filter: 'drop-shadow(0 0 20px rgba(96, 165, 250, 0.5))',
-              animation: 'pulse 3s ease-in-out infinite'
-            }}
-          />
+          <div style={{
+            position: 'relative',
+            display: 'inline-block'
+          }}>
+            {/* Backlight glow effect */}
+            <div style={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              width: '120px',
+              height: '120px',
+              background: 'radial-gradient(circle, rgba(96, 165, 250, 0.4) 0%, rgba(96, 165, 250, 0.2) 40%, transparent 70%)',
+              borderRadius: '50%',
+              filter: 'blur(20px)',
+              zIndex: -1,
+              animation: 'pulseGlow 3s ease-in-out infinite'
+            }}></div>
+            <img
+              src="/apple-touch-icon.png"
+              alt="ZENO Browser Icon"
+              style={{
+                width: '80px',
+                height: '80px',
+                filter: 'drop-shadow(0 0 20px rgba(96, 165, 250, 0.6))',
+                animation: 'pulse 3s ease-in-out infinite',
+                position: 'relative',
+                zIndex: 1
+              }}
+            />
+          </div>
           <h1 style={{
             fontSize: '3rem',
             fontWeight: '900',
