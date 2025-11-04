@@ -20,28 +20,32 @@ const { title, description = "ZENO Web Browser with MCP Integration" } =
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
   </head>
-  <body class="animated-background">
-    <div class="background-effects">
-      <div class="gradient-layer"></div>
-      <div class="particle-layer"></div>
-      <div class="stars-layer"></div>
-    </div>
+  <body class="zeno-background">
+    <div class="background-effects"></div>
     <slot />
     <Toaster client:load />
   </body>
 </html>
 
-<style>
-  @import "../styles/global.css";
+<style is:global>
+  /* Global Styles & Background */
+  :root {
+    --dark-blue: #030712;
+    --grid-line-color: rgba(59, 130, 246, 0.08);
+    --grid-line-bold-color: rgba(59, 130, 246, 0.15);
+  }
 
-  /* Static grid background system */
-  .animated-background {
+  body.zeno-background {
     margin: 0;
     padding: 0;
     height: 100vh;
-    overflow: visible;
+    overflow-x: hidden; /* Prevent horizontal scroll */
     position: relative;
-    background: #000000;
+    background-color: #000;
+    color: #f0f0f0;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+      Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue",
+      sans-serif;
   }
 
   .background-effects {
@@ -52,134 +56,72 @@ const { title, description = "ZENO Web Browser with MCP Integration" } =
     height: 100%;
     z-index: -1;
     pointer-events: none;
+    background-image:
+      /* 1. Vignette Effect */ radial-gradient(
+        ellipse at center,
+        rgba(0, 0, 0, 0) 50%,
+        rgba(0, 0, 0, 0.8) 100%
+      ),
+      /* 2. Subtle Grid Pattern */ repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 49px,
+        var(--grid-line-color) 49px,
+        var(--grid-line-color) 50px
+      ),
+      repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 49px,
+        var(--grid-line-color) 49px,
+        var(--grid-line-color) 50px
+      ),
+      /* 3. Abstract Diagonal Lines */ repeating-linear-gradient(
+        -45deg,
+        transparent,
+        transparent 5px,
+        rgba(24, 46, 82, 0.1) 5px,
+        rgba(24, 46, 82, 0.1) 10px
+      ),
+      /* 4. Base Gradient */ linear-gradient(
+        165deg,
+        #000000 0%,
+        var(--dark-blue) 100%
+      );
+    background-size:
+      100% 100%,
+      50px 50px,
+      50px 50px,
+      100% 100%,
+      100% 100%;
   }
 
-  /* Ensure content is above background */
+  /* Ensure content is above the background */
   body > :not(.background-effects) {
     position: relative;
     z-index: 1;
   }
 
-  /* Ensure all content and modals are above background */
-  main,
-  #root,
-  [data-astro-root] {
-    position: relative;
-    z-index: 1;
+  /* Remove rounded corners and add hover effect */
+  a,
+  button,
+  .card {
+    border-radius: 0 !important; /* No rounded corners */
+    transition:
+      background-color 0.3s ease,
+      box-shadow 0.3s ease,
+      transform 0.2s ease;
   }
 
-  /* Dark gradient layer - black to blue */
-  .gradient-layer {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(
-      135deg,
-      #000000 0%,
-      #0a0a1a 25%,
-      #0f1729 50%,
-      #1a1f3a 75%,
-      #1e3a5f 100%
-    );
-  }
-
-  /* Grid pattern layer */
-  .particle-layer {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-image: 
-      /* Vertical lines */
-      repeating-linear-gradient(
-        90deg,
-        transparent,
-        transparent 49px,
-        rgba(59, 130, 246, 0.15) 49px,
-        rgba(59, 130, 246, 0.15) 50px
-      ),
-      /* Horizontal lines */
-        repeating-linear-gradient(
-          0deg,
-          transparent,
-          transparent 49px,
-          rgba(59, 130, 246, 0.15) 49px,
-          rgba(59, 130, 246, 0.15) 50px
-        ),
-      /* Thicker vertical lines every 200px */
-        repeating-linear-gradient(
-          90deg,
-          transparent,
-          transparent 199px,
-          rgba(59, 130, 246, 0.3) 199px,
-          rgba(59, 130, 246, 0.3) 201px
-        ),
-      /* Thicker horizontal lines every 200px */
-        repeating-linear-gradient(
-          0deg,
-          transparent,
-          transparent 199px,
-          rgba(59, 130, 246, 0.3) 199px,
-          rgba(59, 130, 246, 0.3) 201px
-        );
-    background-size:
-      50px 50px,
-      50px 50px,
-      200px 200px,
-      200px 200px;
-  }
-
-  /* Diagonal lines and accent elements */
-  .stars-layer {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-image: 
-      /* Diagonal lines */
-      repeating-linear-gradient(
-        45deg,
-        transparent,
-        transparent 99px,
-        rgba(147, 197, 253, 0.08) 99px,
-        rgba(147, 197, 253, 0.08) 100px
-      ),
-      repeating-linear-gradient(
-        -45deg,
-        transparent,
-        transparent 99px,
-        rgba(147, 197, 253, 0.08) 99px,
-        rgba(147, 197, 253, 0.08) 100px
-      ),
-      /* Subtle dots at grid intersections */
-        radial-gradient(
-          circle at 0% 0%,
-          rgba(96, 165, 250, 0.4) 1px,
-          transparent 1px
-        );
-    background-size:
-      100px 100px,
-      100px 100px,
-      50px 50px;
-  }
-
-  /* Vignette effect */
-  .particle-layer::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(
-      ellipse at center,
-      transparent 0%,
-      transparent 50%,
-      rgba(0, 0, 0, 0.4) 100%
-    );
+  a:hover,
+  button:hover {
+    background-color: rgba(
+      59,
+      130,
+      246,
+      0.1
+    ); /* Subtle blue highlight */
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
+    transform: translateY(-2px);
   }
 </style>
