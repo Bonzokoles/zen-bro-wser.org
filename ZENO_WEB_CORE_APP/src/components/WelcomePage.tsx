@@ -1,8 +1,61 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 
 const WelcomePage: React.FC = () => {
   const [showMoreSites, setShowMoreSites] = useState(false);
 	const [activeTab, setActiveTab] = useState<'popular' | 'niche'>('popular');
+
+  // AI Assistant state
+  const [showQuickChat, setShowQuickChat] = useState(false);
+  const [chatInput, setChatInput] = useState('');
+  const [aiResponse, setAiResponse] = useState('');
+  const [isAiLoading, setIsAiLoading] = useState(false);
+  const [selectedModel, setSelectedModel] = useState('llama-3.2-3b');
+  const chatInputRef = useRef<HTMLTextAreaElement>(null);
+
+  // Function to send message to AI
+  const handleSendToAI = async () => {
+    if (!chatInput.trim() || isAiLoading) return;
+
+    setIsAiLoading(true);
+    setAiResponse('');
+
+    try {
+      // Use RAG to enhance prompt
+      const { getRAG } = await import('../services/simpleRagService');
+      const rag = getRAG();
+
+      // Initialize RAG if not already
+      await rag.init();
+
+      // Build prompt with context
+      const enhancedPrompt = rag.buildPrompt(chatInput);
+
+      // Call AI
+      const response = await fetch('/api/ai-assistant', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: enhancedPrompt,
+          model: selectedModel,
+          temperature: 0.7
+        })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'AI request failed');
+      }
+
+      const data = await response.json();
+      setAiResponse(data.response);
+
+    } catch (error: any) {
+      console.error('AI error:', error);
+      setAiResponse(`❌ Błąd: ${error.message}`);
+    } finally {
+      setIsAiLoading(false);
+    }
+  };
 
   return (
     <div className="page-content" style={{ height: '100%', overflow: 'auto', paddingTop: '120px' }}>
@@ -473,6 +526,197 @@ const WelcomePage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* ============ SIMPLE AI ASSISTANT ============ */}
+      {showQuickChat && (
+        <div style={{
+          position: 'fixed',
+          bottom: '80px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: '90%',
+          maxWidth: '700px',
+          zIndex: 9999,
+          backgroundColor: 'rgba(15, 23, 42, 0.98)',
+          backdropFilter: 'blur(12px)',
+          border: '2px solid',
+          borderImage: 'linear-gradient(135deg, #3b82f6, #8b5cf6) 1',
+          padding: '16px',
+          boxShadow: '0 20px 60px rgba(0,0,0,0.5)'
+        }}>
+          <div style={{
+            display: 'flex',
+            gap: '12px',
+            alignItems: 'flex-start'
+          }}>
+            <div style={{ fontSize: '28px', flexShrink: 0 }}>🤖</div>
+
+            <div style={{ flex: 1 }}>
+              <textarea
+                ref={chatInputRef}
+                placeholder="Zapytaj o funkcje aplikacji, dokumentację lub zasoby..."
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendToAI();
+                  }
+                }}
+                style={{
+                  width: '100%',
+                  minHeight: '60px',
+                  padding: '12px',
+                  backgroundColor: 'rgba(30, 41, 59, 0.5)',
+                  border: '1px solid rgba(148, 163, 184, 0.3)',
+                  borderRadius: '0',
+                  color: '#f8fafc',
+                  fontSize: '14px',
+                  fontFamily: 'inherit',
+                  resize: 'vertical',
+                  outline: 'none'
+                }}
+              />
+
+              {aiResponse && (
+                <div style={{
+                  marginTop: '12px',
+                  padding: '12px',
+                  backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                  border: '1px solid rgba(59, 130, 246, 0.3)',
+                  borderRadius: '4px',
+                  fontSize: '13px',
+                  lineHeight: '1.6',
+                  color: '#e2e8f0',
+                  maxHeight: '200px',
+                  overflowY: 'auto'
+                }}>
+                  <div style={{
+                    fontWeight: 600,
+                    marginBottom: '8px',
+                    color: '#60a5fa'
+                  }}>
+                    Odpowiedź AI ({selectedModel}):
+                  </div>
+                  {aiResponse}
+                </div>
+              )}
+            </div>
+
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '8px'
+            }}>
+              <button
+                onClick={handleSendToAI}
+                disabled={isAiLoading || !chatInput.trim()}
+                style={{
+                  padding: '12px 20px',
+                  backgroundColor: isAiLoading ? '#64748b' : '#3b82f6',
+                  border: 'none',
+                  color: 'white',
+                  cursor: isAiLoading ? 'not-allowed' : 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  transition: 'all 0.3s',
+                  opacity: !chatInput.trim() ? 0.5 : 1
+                }}
+                onMouseEnter={(e) => {
+                  if (!isAiLoading && chatInput.trim()) {
+                    e.currentTarget.style.backgroundColor = '#2563eb';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isAiLoading) {
+                    e.currentTarget.style.backgroundColor = '#3b82f6';
+                  }
+                }}
+              >
+                {isAiLoading ? '⟳' : '→'} Wyślij
+              </button>
+
+              <select
+                value={selectedModel}
+                onChange={(e) => setSelectedModel(e.target.value)}
+                style={{
+                  padding: '8px',
+                  backgroundColor: 'rgba(30, 41, 59, 0.8)',
+                  border: '1px solid rgba(148, 163, 184, 0.3)',
+                  color: '#f8fafc',
+                  fontSize: '11px',
+                  cursor: 'pointer'
+                }}
+              >
+                <option value="llama-3.2-1b">Llama 3.2 1B (szybki)</option>
+                <option value="llama-3.2-3b">Llama 3.2 3B (zbalansowany)</option>
+                <option value="gemma-7b">Gemma 7B (dobry)</option>
+                <option value="gemma-12b">Gemma 12B (najlepszy)</option>
+                <option value="qwen-7b">Qwen 7B (alternatywny)</option>
+              </select>
+
+              <button
+                onClick={() => setShowQuickChat(false)}
+                style={{
+                  padding: '8px',
+                  backgroundColor: 'transparent',
+                  border: '1px solid rgba(148, 163, 184, 0.3)',
+                  color: '#94a3b8',
+                  cursor: 'pointer',
+                  fontSize: '11px'
+                }}
+                title="Zamknij"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+
+          <div style={{
+            marginTop: '12px',
+            fontSize: '11px',
+            color: '#64748b',
+            textAlign: 'center'
+          }}>
+            Używa darmowych modeli Cloudflare Workers AI · Shift+Enter = nowa linia
+          </div>
+        </div>
+      )}
+
+      {/* Quick AI Button */}
+      {!showQuickChat && (
+        <button
+          onClick={() => setShowQuickChat(true)}
+          style={{
+            position: 'fixed',
+            bottom: '20px',
+            right: '20px',
+            width: '60px',
+            height: '60px',
+            borderRadius: '50%',
+            backgroundColor: '#3b82f6',
+            border: '2px solid #60a5fa',
+            color: 'white',
+            fontSize: '28px',
+            cursor: 'pointer',
+            boxShadow: '0 10px 30px rgba(59, 130, 246, 0.4)',
+            zIndex: 9998,
+            transition: 'all 0.3s'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'scale(1.1)';
+            e.currentTarget.style.boxShadow = '0 15px 40px rgba(59, 130, 246, 0.6)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'scale(1)';
+            e.currentTarget.style.boxShadow = '0 10px 30px rgba(59, 130, 246, 0.4)';
+          }}
+          title="Otwórz Asystenta AI"
+        >
+          🤖
+        </button>
+      )}
+      {/* ============ END AI ASSISTANT ============ */}
     </div>
   );
 }

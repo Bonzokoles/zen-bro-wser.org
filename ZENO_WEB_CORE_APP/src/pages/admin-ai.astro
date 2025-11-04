@@ -1,0 +1,28 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Admin - AI Assistant" description="Admin panel for AI configuration">
+  <div id="admin-root"></div>
+</Layout>
+
+<style>
+  #admin-root {
+    min-height: 100vh;
+    padding: 20px;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  }
+</style>
+
+<script>
+  import { createElement } from 'react';
+  import { createRoot } from 'react-dom/client';
+  import AdminPanel from '../components/AdminPanel';
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const root = document.getElementById('admin-root');
+    if (root) {
+      createRoot(root).render(createElement(AdminPanel));
+    }
+  });
+</script>
