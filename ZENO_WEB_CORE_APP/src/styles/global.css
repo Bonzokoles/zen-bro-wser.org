@@ -50,6 +50,16 @@
 	box-sizing: border-box;
 }
 
+/* NEW: Force sharp corners on all relevant elements */
+button, a, input, select, textarea, .card, [class*="rounded"] {
+    border-radius: 0 !important;
+}
+
+/* NEW: Make all scrollable areas transparent */
+::-webkit-scrollbar-track {
+    background: transparent !important;
+}
+
 html {
 	font-family: system-ui, sans-serif;
 	background: var(--background);

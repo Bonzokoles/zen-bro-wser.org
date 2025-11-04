@@ -310,7 +310,7 @@ const WebView: React.FC<WebViewProps> = ({ url, isLoading, title }) => {
 												transition: 'all 0.2s'
 											}}
 										>
-											🔥 Popularne (28)
+											🔥 Popularne (38)
 										</button>
 										<button
 											onClick={() => setActiveTab('niche')}
@@ -336,6 +336,18 @@ const WebView: React.FC<WebViewProps> = ({ url, isLoading, title }) => {
 									gap: '12px'
 								}}>
 									{activeTab === 'popular' ? [
+										{ cat: '🇵🇱 Polskie strony', sites: [
+											{ name: 'Onet.pl', url: 'https://www.onet.pl' },
+											{ name: 'Interia.pl', url: 'https://www.interia.pl' },
+											{ name: 'Wp.pl', url: 'https://www.wp.pl' },
+											{ name: 'Gazeta.pl', url: 'https://www.gazeta.pl' },
+											{ name: 'Allegro.pl', url: 'https://allegro.pl' },
+											{ name: 'OLX.pl', url: 'https://www.olx.pl' },
+											{ name: 'Filmweb.pl', url: 'https://www.filmweb.pl' },
+											{ name: 'Wykop.pl', url: 'https://www.wykop.pl' },
+											{ name: 'TVP VOD', url: 'https://vod.tvp.pl' },
+											{ name: 'Niebezpiecznik.pl', url: 'https://niebezpiecznik.pl' }
+										]},
 										{ cat: '⚡ Code Playgrounds', sites: [
 											{ name: 'CodeSandbox', url: 'https://codesandbox.io' },
 											{ name: 'StackBlitz', url: 'https://stackblitz.com' },
@@ -472,7 +484,7 @@ const WebView: React.FC<WebViewProps> = ({ url, isLoading, title }) => {
 										lineHeight: '1.6',
 										margin: 0
 									}}>
-										💡 <strong style={{color: '#60a5fa'}}>Razem 58 stron!</strong> Popularne playgrounds, API tools, edukacja, design, widgets i więcej.
+										💡 <strong style={{color: '#60a5fa'}}>Razem 68 stron!</strong> Popularne playgrounds, API tools, edukacja, design, widgets i więcej.
 										<br />
 										<span style={{fontSize: '11px', color: '#64748b'}}>Źródło: Perplexity AI + ręczna weryfikacja iframe policies</span>
 									</p>
