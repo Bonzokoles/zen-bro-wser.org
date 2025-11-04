@@ -246,8 +246,7 @@ const WebView: React.FC<WebViewProps> = ({ url, isLoading, title }) => {
 									backgroundColor: '#0f172a'
 								}}>
 									<a
-										href="/search-demo"
-										target="_blank"
+										href="/"
 										style={{
 											display: 'inline-flex',
 											alignItems: 'center',
@@ -265,7 +264,7 @@ const WebView: React.FC<WebViewProps> = ({ url, isLoading, title }) => {
 										onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#2563eb'}
 										onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#3b82f6'}
 									>
-										🔍 Advanced Site Search
+										🔍 Przejdź do wyszukiwarki
 									</a>
 									<p style={{
 										color: '#94a3b8',
