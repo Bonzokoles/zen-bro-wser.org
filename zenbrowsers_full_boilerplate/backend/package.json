@@ -1,0 +1,19 @@
+{
+  "name": "zeno-browser-backend",
+  "version": "1.0.0",
+  "description": "ZENO Browser - Cloudflare Worker Backend",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail",
+    "d1:create": "wrangler d1 create zeno-browser-db",
+    "d1:execute": "wrangler d1 execute zeno-browser-db --file=./schema.sql",
+    "kv:create": "wrangler kv:namespace create CACHE"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20241127.0",
+    "wrangler": "^3.87.0",
+    "typescript": "^5.7.2"
+  }
+}

@@ -61,3 +61,45 @@ import Layout from '../layouts/BlogPost.astro';
 		proin gravida. Egestas integer eget aliquet nibh praesent tristique magna.
 	</p>
 </Layout>
+
+<script>
+  import { createRoot } from "react-dom/client";
+  import { createElement } from "react";
+  import { InstructionsPanel, type Instruction } from "../components/InstructionsPanel";
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const instructions: Instruction[] = [
+      {
+        step: 1,
+        title: "About ZENO Browser",
+        description: "Learn about the ZENO Browser project, its mission to provide advanced iframe testing and site management capabilities."
+      },
+      {
+        step: 2,
+        title: "Project Features",
+        description: "Explore the comprehensive feature set including iframe testing, AI agent management, search functionality, and administrative tools."
+      },
+      {
+        step: 3,
+        title: "Development Team",
+        description: "Meet the team behind ZENO Browser and understand the development philosophy and technical approach."
+      },
+      {
+        step: 4,
+        title: "Get Involved",
+        description: "Learn how to contribute to the project, report issues, or suggest new features to enhance the platform."
+      }
+    ];
+
+    const instructionsContainer = document.createElement("div");
+    document.body.appendChild(instructionsContainer);
+    const instructionsRoot = createRoot(instructionsContainer);
+    instructionsRoot.render(
+      createElement(InstructionsPanel, {
+        title: "About Page Guide",
+        instructions,
+        defaultOpen: false
+      })
+    );
+  });
+</script>

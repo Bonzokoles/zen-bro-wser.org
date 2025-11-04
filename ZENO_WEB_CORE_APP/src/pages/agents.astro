@@ -12,11 +12,51 @@ import Layout from "../layouts/Layout.astro";
 <script>
   import { createRoot } from "react-dom/client";
   import React from "react";
+  import { createElement } from "react";
   import AgentsManager from "../components/AgentsManager";
+  import { InstructionsPanel, type Instruction } from "../components/InstructionsPanel";
 
-  const container = document.getElementById("agents-root");
-  if (container) {
-    const root = createRoot(container);
-    root.render(React.createElement(AgentsManager));
-  }
+  document.addEventListener("DOMContentLoaded", () => {
+    // Mount AgentsManager
+    const container = document.getElementById("agents-root");
+    if (container) {
+      const root = createRoot(container);
+      root.render(React.createElement(AgentsManager));
+    }
+
+    // Mount Instructions Panel
+    const instructions: Instruction[] = [
+      {
+        step: 1,
+        title: "View Active Agents",
+        description: "Monitor all AI agents currently running in your system. See their status, tasks, and performance metrics in real-time."
+      },
+      {
+        step: 2,
+        title: "Start New Agent",
+        description: "Click 'Add Agent' to configure and launch a new AI agent. Choose agent type, set parameters, and define its tasks."
+      },
+      {
+        step: 3,
+        title: "Monitor Agent Health",
+        description: "Track agent performance, response times, and task completion rates. Green status indicates healthy operation, red indicates issues requiring attention."
+      },
+      {
+        step: 4,
+        title: "Manage Agent Lifecycle",
+        description: "Pause, resume, or terminate agents as needed. Export agent logs and configurations for debugging and optimization."
+      }
+    ];
+
+    const instructionsContainer = document.createElement("div");
+    document.body.appendChild(instructionsContainer);
+    const instructionsRoot = createRoot(instructionsContainer);
+    instructionsRoot.render(
+      createElement(InstructionsPanel, {
+        title: "Agents Manager Guide",
+        instructions,
+        defaultOpen: false
+      })
+    );
+  });
 </script>

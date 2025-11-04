@@ -1,0 +1,251 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout
+  title="ZENO - Video Players Demo"
+  description="Demo of Internet Archive, YouTube and Elfsight players"
+>
+  <div id="video-demo-root"></div>
+</Layout>
+
+<style is:global>
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Arial', sans-serif;
+    background: #FFFFFF;
+    color: #000000;
+  }
+
+  #video-demo-root {
+    padding: 0;
+    min-height: 100vh;
+  }
+
+  .demo-header {
+    background: #000000;
+    color: #FFFFFF;
+    padding: 30px;
+    border-bottom: 4px solid #FF0000;
+  }
+
+  .demo-header h1 {
+    font-size: 3rem;
+    font-weight: 900;
+    margin: 0 0 10px 0;
+    text-transform: uppercase;
+  }
+
+  .demo-header p {
+    font-size: 1.2rem;
+    margin: 0;
+  }
+
+  .demo-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 40px 20px;
+  }
+
+  .player-section {
+    background: #F0F0F0;
+    border: 4px solid #000000;
+    padding: 30px;
+    margin-bottom: 30px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.8);
+  }
+
+  .player-section h2 {
+    font-size: 2rem;
+    font-weight: bold;
+    margin: 0 0 20px 0;
+    color: #000000;
+    border-bottom: 3px solid #FF0000;
+    padding-bottom: 10px;
+  }
+
+  .player-controls {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+
+  .control-button {
+    background: #000000;
+    color: #FFFFFF;
+    border: 3px solid #000000;
+    padding: 12px 24px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.8);
+  }
+
+  .control-button:hover {
+    background: #FF0000;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.9);
+  }
+
+  .control-button:active {
+    transform: translateY(0);
+  }
+
+  .player-info {
+    background: #FFFFFF;
+    border: 3px solid #000000;
+    padding: 15px;
+    margin-top: 15px;
+  }
+
+  .player-info code {
+    background: #FFFF00;
+    color: #000000;
+    padding: 2px 6px;
+    font-weight: bold;
+    border: 2px solid #000000;
+  }
+</style>
+
+<script>
+  import { createRoot } from "react-dom/client";
+  import { createElement } from "react";
+  import { InternetArchivePlayer } from "../components/iframe/InternetArchivePlayer";
+  import { YouTubePlayer } from "../components/iframe/YouTubePlayer";
+  import { ElfsightMovieWidget } from "../components/iframe/ElfsightMovieWidget";
+  import { InstructionsPanel, type Instruction } from "../components/InstructionsPanel";
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const root = document.getElementById("video-demo-root");
+    if (!root) return;
+
+    // Instructions for this page
+    const instructions: Instruction[] = [
+      {
+        step: 1,
+        title: "Choose a Player",
+        description: "Select one of the three video players: Internet Archive for historical content, YouTube for popular videos, or Elfsight for custom widgets."
+      },
+      {
+        step: 2,
+        title: "Enter Video ID",
+        description: "Each player requires a specific ID: Archive identifier for Internet Archive, video ID for YouTube, or widget ID for Elfsight."
+      },
+      {
+        step: 3,
+        title: "Control Playback",
+        description: "Use the control buttons to play, pause, or test the player functionality. YouTube player has advanced event callbacks."
+      },
+      {
+        step: 4,
+        title: "Integrate in Your App",
+        description: "Copy the code examples shown below each player to integrate them into your own application."
+      }
+    ];
+
+    // Create page structure
+    root.innerHTML = `
+      <div class="demo-header">
+        <h1>🎬 Video Players Demo</h1>
+        <p>Internet Archive, YouTube & Elfsight Integration</p>
+      </div>
+
+      <div class="demo-container">
+        <!-- Internet Archive Player -->
+        <div class="player-section">
+          <h2>📼 Internet Archive Player</h2>
+          <div id="archive-player"></div>
+          <div class="player-controls">
+            <button class="control-button" onclick="alert('Internet Archive player loaded!')">Test Player</button>
+          </div>
+          <div class="player-info">
+            <strong>Usage:</strong><br/>
+            <code>&lt;InternetArchivePlayer identifier="prelinger" /&gt;</code>
+          </div>
+        </div>
+
+        <!-- YouTube Player -->
+        <div class="player-section">
+          <h2>📺 YouTube Player</h2>
+          <div id="youtube-player"></div>
+          <div class="player-controls">
+            <button class="control-button" id="yt-play">Play</button>
+            <button class="control-button" id="yt-pause">Pause</button>
+          </div>
+          <div class="player-info">
+            <strong>Usage:</strong><br/>
+            <code>&lt;YouTubePlayer videoId="dQw4w9WgXcQ" onPlay={() =&gt; {...}} /&gt;</code>
+          </div>
+        </div>
+
+        <!-- Elfsight Widget -->
+        <div class="player-section">
+          <h2>🎞️ Elfsight Movie Widget</h2>
+          <div id="elfsight-player"></div>
+          <div class="player-controls">
+            <button class="control-button" onclick="alert('Elfsight widget loaded!')">Test Widget</button>
+          </div>
+          <div class="player-info">
+            <strong>Usage:</strong><br/>
+            <code>&lt;ElfsightMovieWidget widgetId="your-widget-id" /&gt;</code>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Mount Internet Archive Player
+    const archiveContainer = document.getElementById("archive-player");
+    if (archiveContainer) {
+      const archiveRoot = createRoot(archiveContainer);
+      archiveRoot.render(
+        createElement(InternetArchivePlayer, {
+          identifier: "prelinger",
+          width: 800,
+          height: 450
+        })
+      );
+    }
+
+    // Mount YouTube Player
+    const youtubeContainer = document.getElementById("youtube-player");
+    if (youtubeContainer) {
+      const youtubeRoot = createRoot(youtubeContainer);
+      youtubeRoot.render(
+        createElement(YouTubePlayer, {
+          videoId: "dQw4w9WgXcQ",
+          width: 800,
+          height: 450,
+          onReady: () => console.log("YouTube player ready"),
+          onPlay: () => console.log("YouTube playing"),
+          onPause: () => console.log("YouTube paused")
+        })
+      );
+    }
+
+    // Mount Elfsight Widget (example - requires valid widget ID)
+    const elfsightContainer = document.getElementById("elfsight-player");
+    if (elfsightContainer) {
+      elfsightContainer.innerHTML = `
+        <div style="background: #F0F0F0; border: 3px solid #000000; padding: 40px; text-align: center;">
+          <h3 style="margin: 0 0 10px 0;">Elfsight Widget</h3>
+          <p style="margin: 0; color: #666;">Requires valid widget ID from Elfsight dashboard</p>
+        </div>
+      `;
+    }
+
+    // Mount Instructions Panel
+    const instructionsContainer = document.createElement("div");
+    root.appendChild(instructionsContainer);
+    const instructionsRoot = createRoot(instructionsContainer);
+    instructionsRoot.render(
+      createElement(InstructionsPanel, {
+        title: "Video Players Guide",
+        instructions,
+        defaultOpen: false
+      })
+    );
+  });
+</script>

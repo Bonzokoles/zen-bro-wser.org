@@ -57,6 +57,7 @@ const Browser: React.FC = () => {
 	const [isConsoleOpen, setIsConsoleOpen] = useState(false);
 	const [showBookmarks, setShowBookmarks] = useState(false);
 	const [showHistory, setShowHistory] = useState(false);
+	const [showTools, setShowTools] = useState(false);
 	const [isChatOpen, setIsChatOpen] = useState(false);
 	const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 	const [isLocalChatOpen, setIsLocalChatOpen] = useState(false);
@@ -64,7 +65,8 @@ const Browser: React.FC = () => {
 	const [consoleOutput, setConsoleOutput] = useState<string[]>([
 		'ZENO_WEB_CORE initialized successfully!',
 		'Advanced MCP integration ready...',
-		'Modern browser experience activated!'
+		'Modern browser experience activated!',
+		'⌨️ Keyboard shortcuts: Ctrl/Cmd + T (Tools), B (Bookmarks), H (History), K (Console), , (Settings)'
 	]);
 
 	const [bookmarks, setBookmarks] = useState<Bookmark[]>([
@@ -75,6 +77,60 @@ const Browser: React.FC = () => {
 	]);
 
 	const [history, setHistory] = useState<HistoryItem[]>([]);
+
+	// Listen for navigation events from WebView
+	useEffect(() => {
+		const handleNavigationEvent = (event: any) => {
+			if (event.detail && event.detail.url) {
+				handleNavigate(event.detail.url);
+			}
+		};
+
+		window.addEventListener('navigate', handleNavigationEvent);
+		return () => window.removeEventListener('navigate', handleNavigationEvent);
+	}, []);
+
+	// Keyboard shortcuts
+	useEffect(() => {
+		const handleKeyPress = (e: KeyboardEvent) => {
+			// Check if Ctrl/Cmd is pressed
+			const isMod = e.ctrlKey || e.metaKey;
+
+			if (!isMod) return;
+
+			// Prevent default browser behavior for our shortcuts
+			switch(e.key.toLowerCase()) {
+				case 't':
+					e.preventDefault();
+					setShowTools(prev => !prev);
+					addConsoleMessage('⌨️ Keyboard shortcut: Tools panel toggled');
+					break;
+				case 'b':
+					e.preventDefault();
+					setShowBookmarks(prev => !prev);
+					addConsoleMessage('⌨️ Keyboard shortcut: Bookmarks panel toggled');
+					break;
+				case 'h':
+					e.preventDefault();
+					setShowHistory(prev => !prev);
+					addConsoleMessage('⌨️ Keyboard shortcut: History panel toggled');
+					break;
+				case 'k':
+					e.preventDefault();
+					setIsConsoleOpen(prev => !prev);
+					addConsoleMessage('⌨️ Keyboard shortcut: Console toggled');
+					break;
+				case ',':
+					e.preventDefault();
+					setIsSettingsOpen(true);
+					addConsoleMessage('⌨️ Keyboard shortcut: Settings opened');
+					break;
+			}
+		};
+
+		window.addEventListener('keydown', handleKeyPress);
+		return () => window.removeEventListener('keydown', handleKeyPress);
+	}, []);
 
 	// Initialize MCP Service automatically
 	useEffect(() => {
@@ -247,15 +303,39 @@ const Browser: React.FC = () => {
 	};
 
 	const performSearch = (query: string) => {
-		const isUrl = query.includes('.') || query.startsWith('http');
+		// Trim whitespace
+		query = query.trim();
 		
-		if (isUrl) {
-			const url = query.startsWith('http') ? query : `https://${query}`;
-			return url;
-		} else {
-			// Use Google search for non-URLs
-			return `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+		// Already a full URL with protocol
+		if (query.startsWith('http://') || query.startsWith('https://')) {
+			return query;
 		}
+		
+		// Special URLs (localhost, about:, file:)
+		if (query.startsWith('localhost') || query.startsWith('about:') || query.startsWith('file:')) {
+			if (query.startsWith('localhost')) {
+				return `http://${query}`;
+			}
+			return query;
+		}
+		
+		// Check if it looks like a domain (has TLD and no spaces)
+		const domainPattern = /^([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(\/.*)?$/;
+		if (domainPattern.test(query)) {
+			return `https://${query}`;
+		}
+		
+		// If it has a dot and no spaces, treat as URL
+		if (query.includes('.') && !query.includes(' ')) {
+			return `https://${query}`;
+		}
+		
+		// Otherwise, it's a search query - use Tavily or Brave instead of Google
+		// For now, open in new tab with Google (since Google blocks iframe anyway)
+		const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+		window.open(searchUrl, '_blank');
+		addConsoleMessage(`Search query opened in new tab: "${query}"`);
+		return currentUrl; // Stay on current page
 	};
 
 	const toggleTheme = () => {
@@ -722,8 +802,607 @@ const Browser: React.FC = () => {
 				</div>
 			)}
 
+			{/* Tools Panel */}
+			{showTools && (
+				<div style={{
+					position: 'fixed',
+					top: '80px',
+					left: 0,
+					right: 0,
+					height: '400px',
+					backgroundColor: colors.secondary,
+					borderBottom: `1px solid ${colors.border}`,
+					zIndex: 99,
+					padding: '20px',
+					overflowY: 'auto',
+					backdropFilter: 'blur(10px)'
+				}}>
+					<div style={{
+						display: 'flex',
+						justifyContent: 'space-between',
+						alignItems: 'center',
+						marginBottom: '20px'
+					}}>
+						<h3 style={{color: colors.text, fontSize: '20px', margin: 0, fontWeight: '600'}}>🛠️ Tools & Features</h3>
+						<button
+							onClick={() => setShowTools(false)}
+							style={{
+								background: colors.accent,
+								border: 'none',
+								color: colors.muted,
+								fontSize: '18px',
+								cursor: 'pointer',
+								borderRadius: '50%',
+								width: '32px',
+								height: '32px',
+								display: 'flex',
+								alignItems: 'center',
+								justifyContent: 'center'
+							}}
+						>
+							✕
+						</button>
+					</div>
+					<div style={{
+						display: 'grid',
+						gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+						gap: '16px'
+					}}>
+						{/* Iframe Tester */}
+						<a
+							href="/iframe-tester"
+							style={{
+								backgroundColor: colors.primary,
+								border: `1px solid ${colors.border}`,
+								borderRadius: '12px',
+								padding: '20px',
+								cursor: 'pointer',
+								display: 'flex',
+								alignItems: 'flex-start',
+								gap: '12px',
+								transition: 'all 0.3s ease',
+								boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+								textDecoration: 'none'
+							}}
+							onMouseEnter={(e) => {
+								e.currentTarget.style.transform = 'translateY(-2px)';
+								e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.15)';
+							}}
+							onMouseLeave={(e) => {
+								e.currentTarget.style.transform = 'translateY(0)';
+								e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
+							}}
+						>
+							<div style={{
+								fontSize: '32px',
+								width: '50px',
+								height: '50px',
+								display: 'flex',
+								alignItems: 'center',
+								justifyContent: 'center',
+								background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+								borderRadius: '10px',
+								flexShrink: 0
+							}}>🧪</div>
+							<div style={{flex: 1}}>
+								<div style={{
+									color: colors.text,
+									fontSize: '16px',
+									fontWeight: '700',
+									marginBottom: '6px'
+								}}>
+									Iframe Tester
+								</div>
+								<div style={{
+									color: colors.muted,
+									fontSize: '13px',
+									lineHeight: '1.4'
+								}}>
+									Test iframe compatibility, measure load times, and manage test sessions
+								</div>
+							</div>
+						</a>
+
+						{/* Agents Manager */}
+						<a
+							href="/agents"
+							style={{
+								backgroundColor: colors.primary,
+								border: `1px solid ${colors.border}`,
+								borderRadius: '12px',
+								padding: '20px',
+								cursor: 'pointer',
+								display: 'flex',
+								alignItems: 'flex-start',
+								gap: '12px',
+								transition: 'all 0.3s ease',
+								boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+								textDecoration: 'none'
+							}}
+							onMouseEnter={(e) => {
+								e.currentTarget.style.transform = 'translateY(-2px)';
+								e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.15)';
+							}}
+							onMouseLeave={(e) => {
+								e.currentTarget.style.transform = 'translateY(0)';
+								e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
+							}}
+						>
+							<div style={{
+								fontSize: '32px',
+								width: '50px',
+								height: '50px',
+								display: 'flex',
+								alignItems: 'center',
+								justifyContent: 'center',
+								background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+								borderRadius: '10px',
+								flexShrink: 0
+							}}>🤖</div>
+							<div style={{flex: 1}}>
+								<div style={{
+									color: colors.text,
+									fontSize: '16px',
+									fontWeight: '700',
+									marginBottom: '6px'
+								}}>
+									Agents Manager
+								</div>
+								<div style={{
+									color: colors.muted,
+									fontSize: '13px',
+									lineHeight: '1.4'
+								}}>
+									Manage and monitor AI agents including BIELIK, Gemini, and more
+								</div>
+							</div>
+						</a>
+
+						{/* Admin Panel */}
+						<a
+							href="/admin"
+							style={{
+								backgroundColor: colors.primary,
+								border: `1px solid ${colors.border}`,
+								borderRadius: '12px',
+								padding: '20px',
+								cursor: 'pointer',
+								display: 'flex',
+								alignItems: 'flex-start',
+								gap: '12px',
+								transition: 'all 0.3s ease',
+								boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+								textDecoration: 'none'
+							}}
+							onMouseEnter={(e) => {
+								e.currentTarget.style.transform = 'translateY(-2px)';
+								e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.15)';
+							}}
+							onMouseLeave={(e) => {
+								e.currentTarget.style.transform = 'translateY(0)';
+								e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
+							}}
+						>
+							<div style={{
+								fontSize: '32px',
+								width: '50px',
+								height: '50px',
+								display: 'flex',
+								alignItems: 'center',
+								justifyContent: 'center',
+								background: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+								borderRadius: '10px',
+								flexShrink: 0
+							}}>🛡️</div>
+							<div style={{flex: 1}}>
+								<div style={{
+									color: colors.text,
+									fontSize: '16px',
+									fontWeight: '700',
+									marginBottom: '6px'
+								}}>
+									Admin Panel
+								</div>
+								<div style={{
+									color: colors.muted,
+									fontSize: '13px',
+									lineHeight: '1.4'
+								}}>
+									Manage sites, users, statistics, and system configuration
+								</div>
+							</div>
+						</a>
+
+						{/* Advanced Search */}
+						<a
+							href="/advanced-search"
+							style={{
+								backgroundColor: colors.primary,
+								border: `1px solid ${colors.border}`,
+								borderRadius: '12px',
+								padding: '20px',
+								cursor: 'pointer',
+								display: 'flex',
+								alignItems: 'flex-start',
+								gap: '12px',
+								transition: 'all 0.3s ease',
+								boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+								textDecoration: 'none'
+							}}
+							onMouseEnter={(e) => {
+								e.currentTarget.style.transform = 'translateY(-2px)';
+								e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.15)';
+							}}
+							onMouseLeave={(e) => {
+								e.currentTarget.style.transform = 'translateY(0)';
+								e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
+							}}
+						>
+							<div style={{
+								fontSize: '32px',
+								width: '50px',
+								height: '50px',
+								display: 'flex',
+								alignItems: 'center',
+								justifyContent: 'center',
+								background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+								borderRadius: '10px',
+								flexShrink: 0
+							}}>🔍</div>
+							<div style={{flex: 1}}>
+								<div style={{
+									color: colors.text,
+									fontSize: '16px',
+									fontWeight: '700',
+									marginBottom: '6px'
+								}}>
+									Advanced Search
+								</div>
+								<div style={{
+									color: colors.muted,
+									fontSize: '13px',
+									lineHeight: '1.4'
+								}}>
+									Full-featured search with filters, sorting, and pagination
+								</div>
+							</div>
+						</a>
+
+						{/* Search Demo */}
+						<a
+							href="/search-demo"
+							style={{
+								backgroundColor: colors.primary,
+								border: `1px solid ${colors.border}`,
+								borderRadius: '12px',
+								padding: '20px',
+								cursor: 'pointer',
+								display: 'flex',
+								alignItems: 'flex-start',
+								gap: '12px',
+								transition: 'all 0.3s ease',
+								boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+								textDecoration: 'none'
+							}}
+							onMouseEnter={(e) => {
+								e.currentTarget.style.transform = 'translateY(-2px)';
+								e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.15)';
+							}}
+							onMouseLeave={(e) => {
+								e.currentTarget.style.transform = 'translateY(0)';
+								e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
+							}}
+						>
+							<div style={{
+								fontSize: '32px',
+								width: '50px',
+								height: '50px',
+								display: 'flex',
+								alignItems: 'center',
+								justifyContent: 'center',
+								background: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
+								borderRadius: '10px',
+								flexShrink: 0
+							}}>⚡</div>
+							<div style={{flex: 1}}>
+								<div style={{
+									color: colors.text,
+									fontSize: '16px',
+									fontWeight: '700',
+									marginBottom: '6px'
+								}}>
+									Search Demo
+								</div>
+								<div style={{
+									color: colors.muted,
+									fontSize: '13px',
+									lineHeight: '1.4'
+								}}>
+									Quick search interface for iframe-testable sites
+								</div>
+							</div>
+						</a>
+
+						{/* Debug Console */}
+						<a
+							href="/debug"
+							style={{
+								backgroundColor: colors.primary,
+								border: `1px solid ${colors.border}`,
+								borderRadius: '12px',
+								padding: '20px',
+								cursor: 'pointer',
+								display: 'flex',
+								alignItems: 'flex-start',
+								gap: '12px',
+								transition: 'all 0.3s ease',
+								boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+								textDecoration: 'none'
+							}}
+							onMouseEnter={(e) => {
+								e.currentTarget.style.transform = 'translateY(-2px)';
+								e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.15)';
+							}}
+							onMouseLeave={(e) => {
+								e.currentTarget.style.transform = 'translateY(0)';
+								e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
+							}}
+						>
+							<div style={{
+								fontSize: '32px',
+								width: '50px',
+								height: '50px',
+								display: 'flex',
+								alignItems: 'center',
+								justifyContent: 'center',
+								background: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
+								borderRadius: '10px',
+								flexShrink: 0
+							}}>🐛</div>
+							<div style={{flex: 1}}>
+								<div style={{
+									color: colors.text,
+									fontSize: '16px',
+									fontWeight: '700',
+									marginBottom: '6px'
+								}}>
+									Debug Console
+								</div>
+								<div style={{
+									color: colors.muted,
+									fontSize: '13px',
+									lineHeight: '1.4'
+								}}>
+									Developer tools, logs, and system diagnostics
+								</div>
+							</div>
+						</a>
+
+						{/* About */}
+						<a
+							href="/about"
+							style={{
+								backgroundColor: colors.primary,
+								border: `1px solid ${colors.border}`,
+								borderRadius: '12px',
+								padding: '20px',
+								cursor: 'pointer',
+								display: 'flex',
+								alignItems: 'flex-start',
+								gap: '12px',
+								transition: 'all 0.3s ease',
+								boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+								textDecoration: 'none'
+							}}
+							onMouseEnter={(e) => {
+								e.currentTarget.style.transform = 'translateY(-2px)';
+								e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.15)';
+							}}
+							onMouseLeave={(e) => {
+								e.currentTarget.style.transform = 'translateY(0)';
+								e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
+							}}
+						>
+							<div style={{
+								fontSize: '32px',
+								width: '50px',
+								height: '50px',
+								display: 'flex',
+								alignItems: 'center',
+								justifyContent: 'center',
+								background: 'linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)',
+								borderRadius: '10px',
+								flexShrink: 0
+							}}>ℹ️</div>
+							<div style={{flex: 1}}>
+								<div style={{
+									color: colors.text,
+									fontSize: '16px',
+									fontWeight: '700',
+									marginBottom: '6px'
+								}}>
+									About
+								</div>
+								<div style={{
+									color: colors.muted,
+									fontSize: '13px',
+									lineHeight: '1.4'
+								}}>
+									Learn about ZENO Web Core and its features
+								</div>
+							</div>
+						</a>
+
+						{/* Video Players Demo */}
+						<a
+							href="/video-demo"
+							style={{
+								backgroundColor: colors.primary,
+								border: `1px solid ${colors.border}`,
+								borderRadius: '12px',
+								padding: '20px',
+								cursor: 'pointer',
+								display: 'flex',
+								alignItems: 'flex-start',
+								gap: '12px',
+								transition: 'all 0.3s ease',
+								boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+								textDecoration: 'none'
+							}}
+							onMouseEnter={(e) => {
+								e.currentTarget.style.transform = 'translateY(-2px)';
+								e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.15)';
+							}}
+							onMouseLeave={(e) => {
+								e.currentTarget.style.transform = 'translateY(0)';
+								e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
+							}}
+						>
+							<div style={{
+								fontSize: '32px',
+								width: '50px',
+								height: '50px',
+								display: 'flex',
+								alignItems: 'center',
+								justifyContent: 'center',
+								background: 'linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%)',
+								borderRadius: '10px',
+								flexShrink: 0
+							}}>🎬</div>
+							<div style={{flex: 1}}>
+								<div style={{
+									color: colors.text,
+									fontSize: '16px',
+									fontWeight: '700',
+									marginBottom: '6px'
+								}}>
+									Video Players
+								</div>
+								<div style={{
+									color: colors.muted,
+									fontSize: '13px',
+									lineHeight: '1.4'
+								}}>
+									Internet Archive, YouTube & Elfsight integration
+								</div>
+							</div>
+						</a>
+
+						{/* Orchestrator */}
+						<a
+							href="/orchestrator"
+							style={{
+								backgroundColor: colors.primary,
+								border: `1px solid ${colors.border}`,
+								borderRadius: '12px',
+								padding: '20px',
+								cursor: 'pointer',
+								display: 'flex',
+								alignItems: 'flex-start',
+								gap: '12px',
+								transition: 'all 0.3s ease',
+								boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+								textDecoration: 'none'
+							}}
+							onMouseEnter={(e) => {
+								e.currentTarget.style.transform = 'translateY(-2px)';
+								e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.15)';
+							}}
+							onMouseLeave={(e) => {
+								e.currentTarget.style.transform = 'translateY(0)';
+								e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
+							}}
+						>
+							<div style={{
+								fontSize: '32px',
+								width: '50px',
+								height: '50px',
+								display: 'flex',
+								alignItems: 'center',
+								justifyContent: 'center',
+								background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+								borderRadius: '10px',
+								flexShrink: 0
+							}}>🎭</div>
+							<div style={{flex: 1}}>
+								<div style={{
+									color: colors.text,
+									fontSize: '16px',
+									fontWeight: '700',
+									marginBottom: '6px'
+								}}>
+									Orchestrator + AI Assistant
+								</div>
+								<div style={{
+									color: colors.muted,
+									fontSize: '13px',
+									lineHeight: '1.4'
+								}}>
+									AI-powered content classification & OpenAI chat
+								</div>
+							</div>
+						</a>
+
+						{/* Home */}
+						<a
+							href="/"
+							style={{
+								backgroundColor: colors.primary,
+								border: `2px solid ${colors.border}`,
+								borderRadius: '12px',
+								padding: '20px',
+								cursor: 'pointer',
+								display: 'flex',
+								alignItems: 'flex-start',
+								gap: '12px',
+								transition: 'all 0.3s ease',
+								boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+								textDecoration: 'none'
+							}}
+							onMouseEnter={(e) => {
+								e.currentTarget.style.transform = 'translateY(-2px)';
+								e.currentTarget.style.boxShadow = '0 4px 20px rgba(102, 126, 234, 0.4)';
+							}}
+							onMouseLeave={(e) => {
+								e.currentTarget.style.transform = 'translateY(0)';
+								e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
+							}}
+						>
+							<div style={{
+								fontSize: '32px',
+								width: '50px',
+								height: '50px',
+								display: 'flex',
+								alignItems: 'center',
+								justifyContent: 'center',
+								background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+								borderRadius: '10px',
+								flexShrink: 0
+							}}>🏠</div>
+							<div style={{flex: 1}}>
+								<div style={{
+									color: colors.text,
+									fontSize: '16px',
+									fontWeight: '700',
+									marginBottom: '6px'
+								}}>
+									Home
+								</div>
+								<div style={{
+									color: colors.muted,
+									fontSize: '13px',
+									lineHeight: '1.4'
+								}}>
+									Return to main browser interface
+								</div>
+							</div>
+						</a>
+					</div>
+				</div>
+			)}
+
 			<div style={{
-				marginTop: showBookmarks || showHistory ? '260px' : '60px',
+				marginTop: showBookmarks || showHistory || showTools ? (showTools ? '420px' : '260px') : '60px',
 				marginBottom: '70px', // Space for bottom navigation
 				minHeight: 'calc(100vh - 130px)' // Ensure proper height
 			}}>
@@ -857,7 +1536,7 @@ const Browser: React.FC = () => {
 				<button
 					onClick={() => setShowHistory(!showHistory)}
 					style={{
-						background: showHistory 
+						background: showHistory
 							? `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`
 							: `linear-gradient(135deg, ${colors.primary}40, ${colors.secondary}40)`,
 						border: 'none',
@@ -887,6 +1566,42 @@ const Browser: React.FC = () => {
 				>
 					<span style={{ fontSize: '16px' }}>📜</span>
 					<span>History</span>
+				</button>
+
+				{/* Tools Button */}
+				<button
+					onClick={() => setShowTools(!showTools)}
+					style={{
+						background: showTools
+							? `linear-gradient(135deg, #f59e0b, #d97706)`
+							: `linear-gradient(135deg, #f59e0b40, #d9770640)`,
+						border: 'none',
+						borderRadius: '15px',
+						padding: '12px 16px',
+						color: 'white',
+						cursor: 'pointer',
+						display: 'flex',
+						flexDirection: 'column',
+						alignItems: 'center',
+						gap: '4px',
+						fontSize: '11px',
+						fontWeight: '500',
+						minWidth: '80px',
+						transition: 'all 0.3s ease',
+						backdropFilter: 'blur(10px)',
+						boxShadow: showTools ? '0 4px 15px #f59e0b40' : 'none'
+					}}
+					onMouseEnter={(e) => {
+						e.currentTarget.style.transform = 'translateY(-2px)';
+						e.currentTarget.style.boxShadow = '0 6px 20px #f59e0b60';
+					}}
+					onMouseLeave={(e) => {
+						e.currentTarget.style.transform = 'translateY(0)';
+						e.currentTarget.style.boxShadow = showTools ? '0 4px 15px #f59e0b40' : 'none';
+					}}
+				>
+					<span style={{ fontSize: '16px' }}>🛠️</span>
+					<span>Tools</span>
 				</button>
 
 				{/* Local Chat Button */}

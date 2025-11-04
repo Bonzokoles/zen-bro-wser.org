@@ -28,3 +28,46 @@ import Layout from '../layouts/Layout.astro';
     color: #f1f5f9;
   }
 </style>
+
+<script>
+  import { createRoot } from "react-dom/client";
+  import { createElement } from "react";
+  import { InstructionsPanel, type Instruction } from "../components/InstructionsPanel";
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const instructions: Instruction[] = [
+      {
+        step: 1,
+        title: "Open Browser Console",
+        description: "Press F12 or Ctrl+Shift+I (Cmd+Option+I on Mac) to open the browser developer tools console for detailed debug logs.",
+        shortcut: "F12"
+      },
+      {
+        step: 2,
+        title: "Monitor System Status",
+        description: "Check the system operational status displayed on this page. Green indicates all services are running correctly."
+      },
+      {
+        step: 3,
+        title: "View Debug Logs",
+        description: "All debug information, errors, and system messages are logged to the browser console. Use console filters to focus on specific message types."
+      },
+      {
+        step: 4,
+        title: "Test MCP Services",
+        description: "This page allows testing AI provider connections and chat functionality. Monitor console for connection status and error messages."
+      }
+    ];
+
+    const instructionsContainer = document.createElement("div");
+    document.body.appendChild(instructionsContainer);
+    const instructionsRoot = createRoot(instructionsContainer);
+    instructionsRoot.render(
+      createElement(InstructionsPanel, {
+        title: "Debug Console Guide",
+        instructions,
+        defaultOpen: false
+      })
+    );
+  });
+</script>

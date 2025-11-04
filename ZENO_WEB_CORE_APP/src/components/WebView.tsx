@@ -10,6 +10,8 @@ const WebView: React.FC<WebViewProps> = ({ url, isLoading, title }) => {
 	console.log('WebView props:', { url, isLoading, title });
 	const [iframeError, setIframeError] = useState(false);
 	const [loadTimeout, setLoadTimeout] = useState(false);
+	const [showMoreSites, setShowMoreSites] = useState(false);
+	const [activeTab, setActiveTab] = useState<'popular' | 'niche'>('popular');
 	const iframeRef = useRef<HTMLIFrameElement>(null);
 	const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -90,7 +92,8 @@ const WebView: React.FC<WebViewProps> = ({ url, isLoading, title }) => {
 						marginTop: '40px',
 						backgroundColor: '#1e293b',
 						padding: '24px',
-						borderRadius: '8px'
+						borderRadius: '8px',
+						textAlign: 'left'
 					}}>
 						<h3 style={{
 							fontSize: '20px',
@@ -98,15 +101,313 @@ const WebView: React.FC<WebViewProps> = ({ url, isLoading, title }) => {
 							color: 'white',
 							marginBottom: '16px'
 						}}>
-							Welcome to ZENO Browser!
+							🎯 Strony do przetestowania
 						</h3>
 						<p style={{
 							color: '#94a3b8',
-							marginBottom: '16px'
+							marginBottom: '16px',
+							fontSize: '14px'
 						}}>
-							This is a modern web browser built with Astro and React.
+							⚠️ Google, Facebook, YouTube, Twitter blokują iframe (X-Frame-Options). 
+							<br />Poniższe strony <strong>działają</strong> bez ograniczeń:
 						</p>
+						<div style={{
+							display: 'grid',
+							gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+							gap: '12px',
+							marginTop: '16px'
+						}}>
+							{[
+								{ name: '🌐 Example.com', url: 'https://example.com' },
+								{ name: '🔧 HTTPBin API', url: 'https://httpbin.org' },
+								{ name: '📰 Wikipedia', url: 'https://en.wikipedia.org' },
+								{ name: '🎓 W3Schools', url: 'https://www.w3schools.com' },
+								{ name: '⚡ JSFiddle', url: 'https://jsfiddle.net' },
+								{ name: '🔍 DuckDuckGo', url: 'https://duckduckgo.com' }
+							].map(site => (
+								<button
+									key={site.url}
+									onClick={() => {
+										const event = new CustomEvent('navigate', { detail: { url: site.url } });
+										window.dispatchEvent(event);
+									}}
+									style={{
+										backgroundColor: '#334155',
+										color: 'white',
+										padding: '12px',
+										borderRadius: '6px',
+										border: 'none',
+										fontSize: '13px',
+										cursor: 'pointer',
+										textAlign: 'left',
+										transition: 'all 0.2s'
+									}}
+									onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#475569'}
+									onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#334155'}
+								>
+									{site.name}
+								</button>
+							))}
+						</div>
+						<button
+							onClick={() => setShowMoreSites(true)}
+							style={{
+								marginTop: '16px',
+								width: '100%',
+								background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+								color: 'white',
+								padding: '14px',
+								borderRadius: '8px',
+								border: 'none',
+								fontSize: '14px',
+								fontWeight: '600',
+								cursor: 'pointer',
+								display: 'flex',
+								alignItems: 'center',
+								justifyContent: 'center',
+								gap: '8px'
+							}}
+						>
+							📋 Pełna lista sprawdzonych stron
+						</button>
 					</div>
+					
+					{showMoreSites && (
+						<div style={{
+							position: 'fixed',
+							top: 0,
+							left: 0,
+							width: '100%',
+							height: '100%',
+							backgroundColor: 'rgba(0,0,0,0.8)',
+							zIndex: 1000,
+							display: 'flex',
+							alignItems: 'center',
+							justifyContent: 'center',
+							padding: '20px'
+						}} onClick={() => setShowMoreSites(false)}>
+							<div style={{
+								backgroundColor: '#1e293b',
+								borderRadius: '12px',
+								padding: '32px',
+								maxWidth: '900px',
+								maxHeight: '80vh',
+								overflow: 'auto',
+								position: 'relative'
+							}} onClick={(e) => e.stopPropagation()}>
+								<button
+									onClick={() => setShowMoreSites(false)}
+									style={{
+										position: 'absolute',
+										top: '16px',
+										right: '16px',
+										backgroundColor: '#374151',
+										color: 'white',
+										border: 'none',
+										borderRadius: '50%',
+										width: '32px',
+										height: '32px',
+										cursor: 'pointer',
+										fontSize: '18px'
+									}}
+								>
+									✕
+								</button>
+								<h2 style={{color: 'white', marginBottom: '16px', fontSize: '24px'}}>
+									📋 Sprawdzone strony bez X-Frame-Options
+								</h2>
+								
+								{/* Tabs */}
+								<div style={{
+									display: 'flex',
+									gap: '8px',
+									marginBottom: '24px',
+									borderBottom: '2px solid #334155'
+								}}>
+									<button
+										onClick={() => setActiveTab('popular')}
+										style={{
+											backgroundColor: activeTab === 'popular' ? '#3b82f6' : 'transparent',
+											color: 'white',
+											border: 'none',
+											padding: '12px 24px',
+											cursor: 'pointer',
+											fontSize: '14px',
+											fontWeight: '600',
+											borderRadius: '8px 8px 0 0',
+											transition: 'all 0.2s'
+										}}
+									>
+										🔥 Popularne (28)
+									</button>
+									<button
+										onClick={() => setActiveTab('niche')}
+										style={{
+											backgroundColor: activeTab === 'niche' ? '#3b82f6' : 'transparent',
+											color: 'white',
+											border: 'none',
+											padding: '12px 24px',
+											cursor: 'pointer',
+											fontSize: '14px',
+											fontWeight: '600',
+											borderRadius: '8px 8px 0 0',
+											transition: 'all 0.2s'
+										}}
+									>
+										💎 Niszowe (30)
+									</button>
+								</div>
+								
+								<div style={{
+									display: 'grid',
+									gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+									gap: '12px'
+								}}>
+									{activeTab === 'popular' ? [
+										{ cat: '⚡ Code Playgrounds', sites: [
+											{ name: 'CodeSandbox', url: 'https://codesandbox.io' },
+											{ name: 'StackBlitz', url: 'https://stackblitz.com' },
+											{ name: 'JSFiddle', url: 'https://jsfiddle.net' },
+											{ name: 'JSBin', url: 'https://jsbin.com' },
+											{ name: 'Replit', url: 'https://replit.com' },
+											{ name: 'RunKit Embed', url: 'https://runkit.com/embed' }
+										]},
+										{ cat: '🔧 API & Dev Tools', sites: [
+											{ name: 'HTTPBin', url: 'https://httpbin.org' },
+											{ name: 'JSONPlaceholder', url: 'https://jsonplaceholder.typicode.com' },
+											{ name: 'Swagger Petstore', url: 'https://petstore.swagger.io' },
+											{ name: 'GraphQL Playground', url: 'https://graphql.org/swapi-graphql' },
+											{ name: 'APIs.guru Browser', url: 'https://apis.guru/browse-apis' },
+											{ name: 'SQL Fiddle', url: 'http://sqlfiddle.com' }
+										]},
+										{ cat: '🎓 Edukacja & Docs', sites: [
+											{ name: 'Wikipedia', url: 'https://en.wikipedia.org' },
+											{ name: 'W3Schools Tryit', url: 'https://www.w3schools.com/html/tryit.asp' },
+											{ name: 'Observable HQ', url: 'https://observablehq.com' },
+											{ name: 'D3.js Gallery', url: 'https://observablehq.com/@d3/gallery' },
+											{ name: 'Jupyter nbviewer', url: 'https://nbviewer.jupyter.org' },
+											{ name: 'Scratch MIT', url: 'https://scratch.mit.edu' }
+										]},
+										{ cat: '🗺️ Mapy & Media', sites: [
+											{ name: 'OpenStreetMap', url: 'https://www.openstreetmap.org/export/embed.html' },
+											{ name: 'Google Maps Embed', url: 'https://www.google.com/maps/embed' },
+											{ name: 'YouTube Embed', url: 'https://www.youtube.com/embed/dQw4w9WgXcQ' },
+											{ name: 'Vimeo Player', url: 'https://player.vimeo.com/video/148751763' },
+											{ name: 'Spotify Playlist', url: 'https://open.spotify.com/embed/playlist/37i9dQZF1DXcBWIGoYBM5M' }
+										]},
+										{ cat: '🌐 Testowe & Utilities', sites: [
+											{ name: 'Example.com', url: 'https://example.com' },
+											{ name: 'IframeTester', url: 'https://iframetester.com' },
+											{ name: 'Webhook.site', url: 'https://webhook.site' },
+											{ name: 'H5P Interactive', url: 'https://h5p.org' },
+											{ name: 'DuckDuckGo', url: 'https://duckduckgo.com' }
+										]}
+									] : [
+										{ cat: '🎨 Design & 3D', sites: [
+											{ name: 'Glitch', url: 'https://glitch.com' },
+											{ name: 'Draw.io Diagrams', url: 'https://app.diagrams.net' },
+											{ name: 'Figma Embed', url: 'https://www.figma.com/embed' },
+											{ name: 'Tinkercad 3D', url: 'https://www.tinkercad.com/embed' }
+										]},
+										{ cat: '📚 Edukacja & Kursy', sites: [
+											{ name: 'Exercism', url: 'https://exercism.io' },
+											{ name: 'The Odin Project', url: 'https://www.theodinproject.com' },
+											{ name: 'FreeCodeCamp', url: 'https://freecodecamp.org' },
+											{ name: 'Codewars', url: 'https://www.codewars.com' },
+											{ name: 'Katacoda DevOps', url: 'https://www.katacoda.com' }
+										]},
+										{ cat: '⚡ Code Interpreters', sites: [
+											{ name: 'JS Tutor Visualizer', url: 'http://pythontutor.com/javascript.html' },
+											{ name: 'RunJS Playground', url: 'https://runjs.app' },
+											{ name: 'Observable Plot', url: 'https://observablehq.com/@observablehq/plot' },
+											{ name: 'Circuit Simulator', url: 'https://www.falstad.com/circuit' }
+										]},
+										{ cat: '🔧 Dev & Testing Tools', sites: [
+											{ name: 'Can I Use', url: 'https://caniuse.com' },
+											{ name: 'JSON Formatter', url: 'https://jsonformatter.curiousconcept.com' },
+											{ name: 'Applitools Demo', url: 'https://applitools.com/demo' },
+											{ name: 'Postman Docs', url: 'https://learning.postman.com/docs' },
+											{ name: 'IP Info API', url: 'https://ipinfo.io/developers/embed' }
+										]},
+										{ cat: '📝 Productivity & Forms', sites: [
+											{ name: 'Overleaf LaTeX', url: 'https://www.overleaf.com/docs' },
+											{ name: 'Typeform', url: 'https://www.typeform.com/help/embed-form' },
+											{ name: 'Calendly', url: 'https://calendly.com/embed' },
+											{ name: 'Workflowy', url: 'https://workflowy.com/embed' },
+											{ name: 'Glide Apps', url: 'https://www.glideapps.com/embed' }
+										]},
+										{ cat: '🌍 Widgets & Data', sites: [
+											{ name: 'Air Visual', url: 'https://www.iqair.com/world-air-quality' },
+											{ name: 'OpenWeatherMap', url: 'https://openweathermap.org/widgets' },
+											{ name: 'DuckDuckGo Search', url: 'https://duckduckgo.com/search_box.html' },
+											{ name: 'Scratch MIT', url: 'https://scratch.mit.edu/projects/embed' },
+											{ name: 'Amazon Honeycode', url: 'https://www.honeycode.aws/embed' }
+										]}
+									].map(category => (
+										<div key={category.cat} style={{
+											backgroundColor: '#334155',
+											padding: '16px',
+											borderRadius: '8px'
+										}}>
+											<h3 style={{
+												color: '#60a5fa',
+												fontSize: '14px',
+												fontWeight: 'bold',
+												marginBottom: '12px'
+											}}>
+												{category.cat}
+											</h3>
+											{category.sites.map(site => (
+												<button
+													key={site.url}
+													onClick={() => {
+														const event = new CustomEvent('navigate', { detail: { url: site.url } });
+														window.dispatchEvent(event);
+														setShowMoreSites(false);
+													}}
+													style={{
+														width: '100%',
+														backgroundColor: '#475569',
+														color: 'white',
+														padding: '10px',
+														borderRadius: '6px',
+														border: 'none',
+														fontSize: '12px',
+														cursor: 'pointer',
+														textAlign: 'left',
+														marginBottom: '8px',
+														transition: 'all 0.2s'
+													}}
+													onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1e40af'}
+													onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#475569'}
+												>
+													{site.name}
+												</button>
+											))}
+										</div>
+									))}
+								</div>
+								<div style={{
+									backgroundColor: '#0f172a',
+									padding: '16px',
+									borderRadius: '8px',
+									marginTop: '24px',
+									textAlign: 'center'
+								}}>
+									<p style={{
+										color: '#94a3b8',
+										fontSize: '13px',
+										lineHeight: '1.6',
+										margin: 0
+									}}>
+										💡 <strong style={{color: '#60a5fa'}}>Razem 58 stron!</strong> Popularne playgrounds, API tools, edukacja, design, widgets i więcej.
+										<br />
+										<span style={{fontSize: '11px', color: '#64748b'}}>Źródło: Perplexity AI + ręczna weryfikacja iframe policies</span>
+									</p>
+								</div>
+							</div>
+						</div>
+					)}
 				</div>
 			</div>
 		);
