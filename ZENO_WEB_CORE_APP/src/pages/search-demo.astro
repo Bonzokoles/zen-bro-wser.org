@@ -17,10 +17,14 @@ import Layout from "../layouts/Layout.astro";
       sans-serif;
     background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
     min-height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
   }
 
   #search-demo-root {
     padding: 2rem;
+    max-width: 100%;
+    overflow-y: auto;
   }
 
   .header {
@@ -47,6 +51,9 @@ import Layout from "../layouts/Layout.astro";
     border-radius: 16px;
     padding: 2rem;
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+    max-height: calc(100vh - 250px);
+    overflow-y: auto;
+    overflow-x: hidden;
   }
 </style>
 
@@ -54,7 +61,10 @@ import Layout from "../layouts/Layout.astro";
   import { createRoot } from "react-dom/client";
   import { createElement } from "react";
   import SiteSearch from "../components/iframe/SiteSearch";
-  import { InstructionsPanel, type Instruction } from "../components/InstructionsPanel";
+  import {
+    InstructionsPanel,
+    type Instruction,
+  } from "../components/InstructionsPanel";
 
   document.addEventListener("DOMContentLoaded", () => {
     const root = document.getElementById("search-demo-root");
@@ -94,25 +104,29 @@ import Layout from "../layouts/Layout.astro";
       {
         step: 1,
         title: "Search Sites",
-        description: "Type in the search box to find sites by name, URL, description, or tags. The search updates in real-time as you type.",
-        shortcut: "Ctrl+F"
+        description:
+          "Type in the search box to find sites by name, URL, description, or tags. The search updates in real-time as you type.",
+        shortcut: "Ctrl+F",
       },
       {
         step: 2,
         title: "Apply Filters",
-        description: "Use category filters to narrow results. Toggle 'Iframe Friendly' to show only sites that work in iframes without security restrictions."
+        description:
+          "Use category filters to narrow results. Toggle 'Iframe Friendly' to show only sites that work in iframes without security restrictions.",
       },
       {
         step: 3,
         title: "Manage Favorites",
-        description: "Click the star icon to add sites to your favorites. Access your favorite sites quickly from the favorites tab.",
-        shortcut: "Ctrl+B"
+        description:
+          "Click the star icon to add sites to your favorites. Access your favorite sites quickly from the favorites tab.",
+        shortcut: "Ctrl+B",
       },
       {
         step: 4,
         title: "View History",
-        description: "Check your search history to revisit previously searched sites. History is saved locally in your browser for quick access."
-      }
+        description:
+          "Check your search history to revisit previously searched sites. History is saved locally in your browser for quick access.",
+      },
     ];
 
     const instructionsContainer = document.createElement("div");
@@ -122,7 +136,7 @@ import Layout from "../layouts/Layout.astro";
       createElement(InstructionsPanel, {
         title: "Search Demo Guide",
         instructions,
-        defaultOpen: false
+        defaultOpen: false,
       })
     );
   });

@@ -34,14 +34,14 @@ const { title, description = "ZENO Web Browser with MCP Integration" } =
 <style>
   @import "../styles/global.css";
 
-  /* Enhanced animated background system */
+  /* Static grid background system */
   .animated-background {
     margin: 0;
     padding: 0;
     height: 100vh;
     overflow: visible;
     position: relative;
-    background: #0f172a;
+    background: #000000;
   }
 
   .background-effects {
@@ -68,61 +68,106 @@ const { title, description = "ZENO Web Browser with MCP Integration" } =
     z-index: 1;
   }
 
+  /* Dark gradient layer - black to blue */
   .gradient-layer {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(-45deg, #0f172a, #1e293b, #334155, #475569);
-    background-size: 400% 400%;
-    animation: gradientShift 15s ease infinite;
+    background: linear-gradient(
+      135deg,
+      #000000 0%,
+      #0a0a1a 25%,
+      #0f1729 50%,
+      #1a1f3a 75%,
+      #1e3a5f 100%
+    );
   }
 
+  /* Grid pattern layer */
   .particle-layer {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-image: radial-gradient(
-        circle at 25% 25%,
-        rgba(96, 165, 250, 0.3) 0%,
-        transparent 50%
+    background-image: 
+      /* Vertical lines */
+      repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 49px,
+        rgba(59, 130, 246, 0.15) 49px,
+        rgba(59, 130, 246, 0.15) 50px
       ),
-      radial-gradient(
-        circle at 75% 75%,
-        rgba(139, 92, 246, 0.3) 0%,
-        transparent 50%
-      ),
-      radial-gradient(
-        circle at 50% 50%,
-        rgba(6, 182, 212, 0.2) 0%,
-        transparent 50%
-      );
-    animation: float 8s ease-in-out infinite;
+      /* Horizontal lines */
+        repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 49px,
+          rgba(59, 130, 246, 0.15) 49px,
+          rgba(59, 130, 246, 0.15) 50px
+        ),
+      /* Thicker vertical lines every 200px */
+        repeating-linear-gradient(
+          90deg,
+          transparent,
+          transparent 199px,
+          rgba(59, 130, 246, 0.3) 199px,
+          rgba(59, 130, 246, 0.3) 201px
+        ),
+      /* Thicker horizontal lines every 200px */
+        repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 199px,
+          rgba(59, 130, 246, 0.3) 199px,
+          rgba(59, 130, 246, 0.3) 201px
+        );
+    background-size:
+      50px 50px,
+      50px 50px,
+      200px 200px,
+      200px 200px;
   }
 
+  /* Diagonal lines and accent elements */
   .stars-layer {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-image: radial-gradient(
-        1px 1px at 20% 30%,
-        rgba(255, 255, 255, 0.8),
-        transparent
+    background-image: 
+      /* Diagonal lines */
+      repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 99px,
+        rgba(147, 197, 253, 0.08) 99px,
+        rgba(147, 197, 253, 0.08) 100px
       ),
-      radial-gradient(1px 1px at 40% 70%, rgba(255, 255, 255, 0.6), transparent),
-      radial-gradient(1px 1px at 60% 20%, rgba(255, 255, 255, 0.4), transparent),
-      radial-gradient(1px 1px at 80% 80%, rgba(255, 255, 255, 0.7), transparent),
-      radial-gradient(1px 1px at 90% 40%, rgba(255, 255, 255, 0.5), transparent);
-    background-size: 100% 100%;
-    animation: sparkle 3s linear infinite;
+      repeating-linear-gradient(
+        -45deg,
+        transparent,
+        transparent 99px,
+        rgba(147, 197, 253, 0.08) 99px,
+        rgba(147, 197, 253, 0.08) 100px
+      ),
+      /* Subtle dots at grid intersections */
+        radial-gradient(
+          circle at 0% 0%,
+          rgba(96, 165, 250, 0.4) 1px,
+          transparent 1px
+        );
+    background-size:
+      100px 100px,
+      100px 100px,
+      50px 50px;
   }
 
-  /* Additional floating particles */
+  /* Vignette effect */
   .particle-layer::after {
     content: "";
     position: absolute;
@@ -130,88 +175,11 @@ const { title, description = "ZENO Web Browser with MCP Integration" } =
     left: 0;
     width: 100%;
     height: 100%;
-    background-image: radial-gradient(
-        circle at 10% 80%,
-        rgba(34, 211, 238, 0.15) 0%,
-        transparent 40%
-      ),
-      radial-gradient(
-        circle at 90% 20%,
-        rgba(147, 51, 234, 0.15) 0%,
-        transparent 40%
-      ),
-      radial-gradient(
-        circle at 30% 60%,
-        rgba(59, 130, 246, 0.1) 0%,
-        transparent 40%
-      );
-    animation: particleMove 20s ease-in-out infinite;
-  }
-
-  /* Keyframe animations */
-  @keyframes gradientShift {
-    0% {
-      background-position: 0% 50%;
-    }
-    50% {
-      background-position: 100% 50%;
-    }
-    100% {
-      background-position: 0% 50%;
-    }
-  }
-
-  @keyframes float {
-    0%,
-    100% {
-      transform: translateY(0px) rotate(0deg);
-    }
-    50% {
-      transform: translateY(-20px) rotate(2deg);
-    }
-  }
-
-  @keyframes sparkle {
-    0%,
-    100% {
-      opacity: 0.4;
-      transform: scale(1);
-    }
-    50% {
-      opacity: 1;
-      transform: scale(1.1);
-    }
-  }
-
-  @keyframes particleMove {
-    0%,
-    100% {
-      background-position:
-        0% 0%,
-        100% 100%,
-        50% 100%;
-      opacity: 0.5;
-    }
-    25% {
-      background-position:
-        100% 0%,
-        0% 100%,
-        0% 50%;
-      opacity: 0.8;
-    }
-    50% {
-      background-position:
-        100% 100%,
-        0% 0%,
-        100% 0%;
-      opacity: 0.6;
-    }
-    75% {
-      background-position:
-        0% 100%,
-        100% 0%,
-        50% 50%;
-      opacity: 0.9;
-    }
+    background: radial-gradient(
+      ellipse at center,
+      transparent 0%,
+      transparent 50%,
+      rgba(0, 0, 0, 0.4) 100%
+    );
   }
 </style>
