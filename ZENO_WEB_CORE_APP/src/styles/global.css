@@ -71,7 +71,8 @@ button, a, input, select, textarea, .card, [class*="rounded"] {
 }
 
 html {
-	font-family: system-ui, sans-serif;
+	font-family: 'Share Tech Mono', monospace;
+	font-style: italic;
 	background: var(--background);
 	color: var(--text);
 	height: 100%;
@@ -84,6 +85,8 @@ body {
 	height: 100%;
 	overflow: auto;
 	position: relative;
+	font-family: 'Share Tech Mono', monospace;
+	font-style: italic;
 }
 
 /* Removed animated background - using static grid from Layout.astro */
