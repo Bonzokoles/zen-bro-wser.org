@@ -382,9 +382,11 @@ const Browser: React.FC = () => {
 		const finalUrl = performSearch(url);
 		const pageTitle = getPageTitle(finalUrl);
 
-		// Close bookmarks/history panels when navigating
+		// Close ALL panels when navigating
 		setShowBookmarks(false);
 		setShowHistory(false);
+		setShowTools(false);
+		setIsConsoleOpen(false);
 
 		setCurrentUrl(finalUrl);
 		setInputUrl(finalUrl);
