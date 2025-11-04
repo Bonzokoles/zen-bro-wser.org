@@ -361,7 +361,7 @@ const Browser: React.FC = () => {
 			accent: '#334155',
 			text: '#f1f5f9',
 			muted: '#94a3b8',
-			border: '#475569'
+			border: '#94a3b8'
 		};
 	}, [theme]);
 
