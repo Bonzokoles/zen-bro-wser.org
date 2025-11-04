@@ -439,7 +439,7 @@ const Browser: React.FC = () => {
 
 	
 	return (
-		<div style={{position: 'relative', zIndex: 1, backgroundColor: colors.primary, minHeight: '100vh'}}>
+		<div style={{position: 'relative', zIndex: 1}}>
 			{/* Top Bar with Logo and Search */}
 			<div style={{
 				position: 'fixed',
