@@ -382,16 +382,22 @@ const Browser: React.FC = () => {
 		const finalUrl = performSearch(url);
 		const pageTitle = getPageTitle(finalUrl);
 
+		// Close bookmarks/history panels when navigating
+		setShowBookmarks(false);
+		setShowHistory(false);
+
 		setCurrentUrl(finalUrl);
 		setInputUrl(finalUrl);
 		setTabs(prev => prev.map(tab => 
 			tab.isActive 
-				? { ...tab, url: finalUrl, isLoading: true, title: 'Loading...' }
+				? { ...tab, url: finalUrl, isLoading: true, title: 'Loading...', favicon: getPageFavicon(finalUrl) }
 				: tab
 		));
 
-		// Add to history
-		addToHistory(finalUrl, pageTitle, getPageFavicon(finalUrl));
+		// Add to history (skip for welcome page and blank tabs)
+		if (!finalUrl.startsWith('about:')) {
+			addToHistory(finalUrl, pageTitle, getPageFavicon(finalUrl));
+		}
 
 		// Simulate page load
 		setTimeout(() => {
