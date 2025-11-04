@@ -1,5 +1,5 @@
 
-import { tavily } from '@tavily/core';
+import { TavilyClient } from 'tavily';
 
 export interface ToolResult {
   success: boolean;
@@ -9,10 +9,11 @@ export interface ToolResult {
 
 class ToolExecutionService {
   private tavilyApiKey: string | null = null;
+  private tavilyClient: TavilyClient | null = null;
 
   constructor(tavilyApiKey?: string) {
     if (tavilyApiKey) {
-      this.tavilyApiKey = tavilyApiKey;
+      this.configureTavilyClient(tavilyApiKey);
     }
   }
 
@@ -27,7 +28,9 @@ class ToolExecutionService {
   }
 
   private async executeWebSearch(args: any): Promise<ToolResult> {
-    if (!this.tavilyApiKey) {
+    const client = this.getTavilyClient();
+
+    if (!client) {
       return { success: false, data: null, error: 'Tavily API key not configured' };
     }
     if (!args.query) {
@@ -35,15 +38,37 @@ class ToolExecutionService {
     }
 
     try {
-      const response = await tavily({
-        apiKey: this.tavilyApiKey,
+      const response = await client.search({
         query: args.query,
-        maxResults: 5,
+        ...(typeof args.maxResults === 'number' ? { max_results: args.maxResults } : { max_results: 5 }),
+        ...(typeof args.searchDepth === 'string' ? { search_depth: args.searchDepth } : {}),
+        ...(typeof args.includeAnswer === 'boolean' ? { include_answer: args.includeAnswer } : {}),
+        ...(typeof args.includeImages === 'boolean' ? { include_images: args.includeImages } : {}),
+        ...(Array.isArray(args.includeDomains) ? { include_domains: args.includeDomains } : {}),
+        ...(Array.isArray(args.excludeDomains) ? { exclude_domains: args.excludeDomains } : {})
       });
       return { success: true, data: response };
     } catch (error: any) {
       return { success: false, data: null, error: `Tavily search failed: ${error?.message || error}` };
     }
+  }
+
+  private configureTavilyClient(apiKey: string): void {
+    this.tavilyApiKey = apiKey;
+    this.tavilyClient = new TavilyClient({ apiKey });
+  }
+
+  private getTavilyClient(): TavilyClient | null {
+    if (this.tavilyClient) {
+      return this.tavilyClient;
+    }
+
+    if (!this.tavilyApiKey) {
+      return null;
+    }
+
+    this.tavilyClient = new TavilyClient({ apiKey: this.tavilyApiKey });
+    return this.tavilyClient;
   }
 }
 

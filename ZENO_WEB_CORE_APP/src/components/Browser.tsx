@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import WebView from './WebView';
 import ChatPanel from './ChatPanel';
 import ProviderSettings from './ProviderSettings';
+import LocalChatbot from './LocalChatbot';
 import { mcpService } from '../services/mcpService';
 
 export interface Tab {
@@ -58,6 +59,7 @@ const Browser: React.FC = () => {
 	const [showHistory, setShowHistory] = useState(false);
 	const [isChatOpen, setIsChatOpen] = useState(false);
 	const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+	const [isLocalChatOpen, setIsLocalChatOpen] = useState(false);
 	const [theme, setTheme] = useState<Theme>('dark');
 	const [consoleOutput, setConsoleOutput] = useState<string[]>([
 		'ZENO_WEB_CORE initialized successfully!',
@@ -74,35 +76,71 @@ const Browser: React.FC = () => {
 
 	const [history, setHistory] = useState<HistoryItem[]>([]);
 
-	// Initialize MCP tools
+	// Initialize MCP Service automatically
 	useEffect(() => {
-		// Simulate MCP tools initialization
-		const mockTools: MCPTool[] = [
-			{
-				id: 'browser-tools',
-				name: 'Browser Tools',
-				description: 'Web navigation and interaction tools',
-				server: 'local',
-				status: 'connected'
-			},
-			{
-				id: 'file-tools',
-				name: 'File System',
-				description: 'File management and operations',
-				server: 'local',
-				status: 'connected'
-			},
-			{
-				id: 'search-tools',
-				name: 'Search Tools',
-				description: 'Advanced search and discovery',
-				server: 'remote',
-				status: 'connected'
+		const initMCP = async () => {
+			// Check if already connected
+			if (mcpService.isConnected()) {
+				setMcpTools(mcpService.getTools());
+				addConsoleMessage('✅ MCP Service already connected');
+				return;
 			}
-		];
 
-		setMcpTools(mockTools);
-		addConsoleMessage('MCP Tools loaded: ' + mockTools.length + ' tools available');
+			// Try to load from localStorage or .env
+			const savedConfig = localStorage.getItem('mcp_config');
+			if (savedConfig) {
+				try {
+					const config = JSON.parse(savedConfig);
+					addConsoleMessage('🔄 Initializing MCP from saved config...');
+					const success = await mcpService.initialize(config);
+					if (success) {
+						setMcpTools(mcpService.getTools());
+						addConsoleMessage(`✅ MCP connected to ${config.provider}`);
+					} else {
+						addConsoleMessage('⚠️ MCP connection failed - check Settings');
+					}
+				} catch (error) {
+					addConsoleMessage('⚠️ Failed to restore MCP session');
+				}
+			} else {
+				// Try auto-init from .env
+				const geminiKey = import.meta.env.VITE_GEMINI_API_KEY;
+				console.log('🔍 Checking env variables:', {
+					geminiKey: geminiKey ? `${geminiKey.substring(0, 10)}...` : 'NOT FOUND',
+					allEnv: import.meta.env
+				});
+				
+				if (geminiKey) {
+					addConsoleMessage('🔄 Auto-initializing MCP with Gemini...');
+					try {
+						const success = await mcpService.initialize({
+							provider: 'gemini',
+							apiKey: geminiKey,
+							model: 'gemini-1.5-pro'
+						});
+						if (success) {
+							setMcpTools(mcpService.getTools());
+							addConsoleMessage('✅ MCP auto-connected with Gemini');
+							// Save config
+							localStorage.setItem('mcp_config', JSON.stringify({
+								provider: 'gemini',
+								apiKey: geminiKey,
+								model: 'gemini-1.5-pro'
+							}));
+						} else {
+							addConsoleMessage('⚠️ Auto-connect failed - configure in Settings');
+						}
+					} catch (error: any) {
+						addConsoleMessage(`⚠️ Auto-connect error: ${error?.message || 'Unknown error'}`);
+						console.error('MCP init error:', error);
+					}
+				} else {
+					addConsoleMessage('ℹ️ Please configure MCP in Settings');
+				}
+			}
+		};
+
+		initMCP();
 	}, []);
 
 	const activeTab = useMemo(() => tabs.find(tab => tab.isActive), [tabs]);
@@ -851,6 +889,42 @@ const Browser: React.FC = () => {
 					<span>History</span>
 				</button>
 
+				{/* Local Chat Button */}
+				<button
+					onClick={() => setIsLocalChatOpen(!isLocalChatOpen)}
+					style={{
+						background: isLocalChatOpen
+							? `linear-gradient(135deg, #8b5cf6, #7c3aed)`
+							: `linear-gradient(135deg, #8b5cf640, #7c3aed40)`,
+						border: 'none',
+						borderRadius: '15px',
+						padding: '12px 16px',
+						color: 'white',
+						cursor: 'pointer',
+						display: 'flex',
+						flexDirection: 'column',
+						alignItems: 'center',
+						gap: '4px',
+						fontSize: '11px',
+						fontWeight: '500',
+						minWidth: '80px',
+						transition: 'all 0.3s ease',
+						backdropFilter: 'blur(10px)',
+						boxShadow: isLocalChatOpen ? '0 4px 15px #8b5cf640' : 'none'
+					}}
+					onMouseEnter={(e) => {
+						e.currentTarget.style.transform = 'translateY(-2px)';
+						e.currentTarget.style.boxShadow = '0 6px 20px #8b5cf660';
+					}}
+					onMouseLeave={(e) => {
+						e.currentTarget.style.transform = 'translateY(0)';
+						e.currentTarget.style.boxShadow = isLocalChatOpen ? '0 4px 15px #8b5cf640' : 'none';
+					}}
+				>
+					<span style={{ fontSize: '16px' }}>🤖</span>
+					<span>Local AI</span>
+				</button>
+
 				{/* Add Bookmark Button */}
 				<button
 					onClick={addBookmark}
@@ -977,6 +1051,37 @@ const Browser: React.FC = () => {
 					setConsoleOutput(prev => [...prev, 'MCP service configured successfully']);
 				}}
 			/>
+
+			{/* Local Model Chatbot */}
+			{isLocalChatOpen && (
+				<div style={{
+					position: 'fixed',
+					top: '50%',
+					left: '50%',
+					transform: 'translate(-50%, -50%)',
+					zIndex: 10000,
+					boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)'
+				}}>
+					<LocalChatbot onClose={() => setIsLocalChatOpen(false)} />
+				</div>
+			)}
+
+			{/* Backdrop for Local Chat */}
+			{isLocalChatOpen && (
+				<div
+					onClick={() => setIsLocalChatOpen(false)}
+					style={{
+						position: 'fixed',
+						top: 0,
+						left: 0,
+						right: 0,
+						bottom: 0,
+						backgroundColor: 'rgba(0, 0, 0, 0.7)',
+						backdropFilter: 'blur(4px)',
+						zIndex: 9999
+					}}
+				/>
+			)}
 		</div>
 	);
 };

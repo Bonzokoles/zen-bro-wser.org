@@ -1,0 +1,22 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout
+  title="ZENO - Agents Manager"
+  description="Manage and monitor AI agents"
+>
+  <div id="agents-root"></div>
+</Layout>
+
+<script>
+  import { createRoot } from "react-dom/client";
+  import React from "react";
+  import AgentsManager from "../components/AgentsManager";
+
+  const container = document.getElementById("agents-root");
+  if (container) {
+    const root = createRoot(container);
+    root.render(React.createElement(AgentsManager));
+  }
+</script>

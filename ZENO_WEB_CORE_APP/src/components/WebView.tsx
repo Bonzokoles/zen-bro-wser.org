@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 interface WebViewProps {
 	url: string;
@@ -9,6 +9,40 @@ interface WebViewProps {
 const WebView: React.FC<WebViewProps> = ({ url, isLoading, title }) => {
 	console.log('WebView props:', { url, isLoading, title });
 	const [iframeError, setIframeError] = useState(false);
+	const [loadTimeout, setLoadTimeout] = useState(false);
+	const iframeRef = useRef<HTMLIFrameElement>(null);
+	const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+	// Reset error states when URL changes
+	useEffect(() => {
+		setIframeError(false);
+		setLoadTimeout(false);
+
+		// Don't set timeout for special URLs
+		if (url.startsWith('about:')) {
+			return;
+		}
+
+		// Set timeout to detect X-Frame-Options blocks
+		timeoutRef.current = setTimeout(() => {
+			// Check if iframe loaded successfully
+			try {
+				const iframe = iframeRef.current;
+				if (iframe && !iframe.contentWindow?.document?.body) {
+					setLoadTimeout(true);
+				}
+			} catch (e) {
+				// Cross-origin access error means iframe loaded but we can't access it
+				// This is actually OK - the page loaded
+			}
+		}, 5000);
+
+		return () => {
+			if (timeoutRef.current) {
+				clearTimeout(timeoutRef.current);
+			}
+		};
+	}, [url]);
 	
 	if (url === 'about:welcome') {
 		return (
@@ -135,7 +169,7 @@ const WebView: React.FC<WebViewProps> = ({ url, isLoading, title }) => {
 	}
 	
 	// External URLs - Load real websites with error handling
-	if (iframeError) {
+	if (iframeError || loadTimeout) {
 		return (
 			<div style={{
 				position: 'fixed',
@@ -150,48 +184,69 @@ const WebView: React.FC<WebViewProps> = ({ url, isLoading, title }) => {
 				justifyContent: 'center'
 			}}>
 				<div style={{textAlign: 'center', maxWidth: '600px', padding: '20px'}}>
-					<div style={{fontSize: '48px', marginBottom: '20px'}}>🚫</div>
+					<div style={{fontSize: '48px', marginBottom: '20px'}}>�</div>
 					<h3 style={{color: 'white', fontSize: '24px', marginBottom: '16px'}}>
-						Cannot display this website
+						Nie można wyświetlić tej strony
 					</h3>
-					<p style={{color: '#94a3b8', fontSize: '16px', marginBottom: '16px'}}>
+					<p style={{color: '#94a3b8', fontSize: '16px', marginBottom: '16px', wordBreak: 'break-all'}}>
 						{url}
 					</p>
-					<p style={{color: '#64748b', fontSize: '14px', lineHeight: '1.5', marginBottom: '24px'}}>
-						This website cannot be displayed in an iframe due to security restrictions (X-Frame-Options). 
-						Many sites like Google, Facebook, and banking sites block iframe embedding for security reasons.
+					<div style={{
+						backgroundColor: '#0f172a',
+						padding: '16px',
+						borderRadius: '8px',
+						borderLeft: '4px solid #3b82f6',
+						marginBottom: '24px',
+						textAlign: 'left'
+					}}>
+						<p style={{color: '#94a3b8', fontSize: '14px', lineHeight: '1.6', margin: 0}}>
+							<strong style={{color: '#60a5fa'}}>Zabezpieczenie X-Frame-Options</strong><br />
+							Ta strona nie może być wyświetlona w iframe ze względów bezpieczeństwa. 
+							Wiele serwisów (Google, Facebook, banki) blokuje osadzanie dla ochrony użytkowników.
+						</p>
+					</div>
+					<div style={{display: 'flex', gap: '12px', justifyContent: 'center'}}>
+						<button
+							onClick={() => window.open(url, '_blank', 'noopener,noreferrer')}
+							style={{
+								background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
+								color: 'white',
+								padding: '12px 24px',
+								borderRadius: '8px',
+								border: 'none',
+								fontSize: '14px',
+								fontWeight: '600',
+								cursor: 'pointer',
+								display: 'flex',
+								alignItems: 'center',
+								gap: '8px'
+							}}
+						>
+							🔗 Otwórz w nowej karcie
+						</button>
+						<button
+							onClick={() => {
+								setIframeError(false);
+								setLoadTimeout(false);
+							}}
+							style={{
+								backgroundColor: '#374151',
+								color: 'white',
+								padding: '12px 24px',
+								borderRadius: '8px',
+								border: 'none',
+								fontSize: '14px',
+								fontWeight: '600',
+								cursor: 'pointer'
+							}}
+						>
+							↻ Spróbuj ponownie
+						</button>
+					</div>
+					<p style={{color: '#64748b', fontSize: '12px', marginTop: '24px', lineHeight: '1.5'}}>
+						💡 <strong>Wskazówka:</strong> Strony bez ograniczeń (np. example.com, httpbin.org, dokumentacje API) 
+						będą działać normalnie w przeglądarce.
 					</p>
-					<button
-						onClick={() => window.open(url, '_blank')}
-						style={{
-							backgroundColor: '#3b82f6',
-							color: 'white',
-							padding: '12px 24px',
-							borderRadius: '6px',
-							border: 'none',
-							fontSize: '14px',
-							fontWeight: '500',
-							cursor: 'pointer',
-							marginRight: '12px'
-						}}
-					>
-						Open in New Tab
-					</button>
-					<button
-						onClick={() => setIframeError(false)}
-						style={{
-							backgroundColor: '#374151',
-							color: 'white',
-							padding: '12px 24px',
-							borderRadius: '6px',
-							border: 'none',
-							fontSize: '14px',
-							fontWeight: '500',
-							cursor: 'pointer'
-						}}
-					>
-						Try Again
-					</button>
 				</div>
 			</div>
 		);
@@ -241,6 +296,7 @@ const WebView: React.FC<WebViewProps> = ({ url, isLoading, title }) => {
 				</div>
 			</div>
 			<iframe
+				ref={iframeRef}
 				src={url}
 				style={{
 					width: '100%',
@@ -252,6 +308,10 @@ const WebView: React.FC<WebViewProps> = ({ url, isLoading, title }) => {
 				onLoad={() => {
 					console.log(`Loaded: ${url}`);
 					setIframeError(false);
+					setLoadTimeout(false);
+					if (timeoutRef.current) {
+						clearTimeout(timeoutRef.current);
+					}
 				}}
 				onError={() => {
 					console.log(`Error loading: ${url}`);

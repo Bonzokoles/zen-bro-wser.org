@@ -1,0 +1,6 @@
+fastapi
+uvicorn[standard]
+transformers>=4.30
+torch  # Zainstaluj wersję zgodną z CUDA na twoim serwerze (opis poniżej)
+sqlalchemy
+pydantic

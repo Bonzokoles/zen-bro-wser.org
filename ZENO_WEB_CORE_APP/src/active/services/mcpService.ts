@@ -1,6 +1,8 @@
 import ToolExecutionService from './toolExecutionService';
 import { GeminiProvider, createGeminiProvider } from './aiProviders/gemini';
 import { OpenRouterProvider, createOpenRouterProvider } from './aiProviders/openrouter';
+import { ClaudeProvider, initializeClaude } from './aiProviders/claude';
+import { AppError, handleError, logError } from '../utils/AppError';
 
 export interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
@@ -39,7 +41,7 @@ export interface MCPSession {
 }
 
 class MCPService {
-  private currentProvider: GeminiProvider | OpenRouterProvider | null = null;
+  private currentProvider: GeminiProvider | OpenRouterProvider | ClaudeProvider | null = null;
   private config: MCPServiceConfig | null = null;
   private toolExecutionService: ToolExecutionService | null = null;
   private session: MCPSession | null = null;
@@ -100,7 +102,15 @@ class MCPService {
     try {
       this.config = config;
 
-      this.toolExecutionService = new ToolExecutionService(config.tavilyApiKey);
+      // Retrieve search API keys from environment variables
+      const tavilyApiKey = import.meta.env.VITE_TAVILY_API_KEY;
+      const braveApiKey = import.meta.env.VITE_BRAVE_API_KEY;
+      
+      if (!tavilyApiKey && !braveApiKey) {
+        console.warn('No search API keys found. Add VITE_TAVILY_API_KEY or VITE_BRAVE_API_KEY to .env');
+      }
+      
+      this.toolExecutionService = new ToolExecutionService(tavilyApiKey, braveApiKey);
 
       switch (config.provider) {
         case 'gemini':
@@ -110,8 +120,11 @@ class MCPService {
           this.currentProvider = createOpenRouterProvider(config.apiKey, config.model);
           break;
         case 'claude':
-          // TODO: Implement Claude provider
-          throw new Error('Claude provider not yet implemented');
+          this.currentProvider = initializeClaude({
+            apiKey: config.apiKey,
+            model: config.model
+          });
+          break;
         default:
           throw new Error(`Unsupported provider: ${config.provider}`);
       }
@@ -153,7 +166,29 @@ class MCPService {
         ? `Current page: ${webContext.title} (${webContext.url})`
         : undefined;
 
-      const response = await this.currentProvider.sendMessage(message, context);
+      let response: ChatMessage;
+
+      // Handle different provider types
+      if (this.currentProvider instanceof ClaudeProvider) {
+        const messages = this.session.messages
+          .filter(m => m.role !== 'system')
+          .map(m => ({
+            role: m.role as 'user' | 'assistant',
+            content: m.content
+          }));
+
+        messages.push({ role: 'user', content: message });
+
+        const responseText = await this.currentProvider.sendMessage(messages, context);
+        
+        response = {
+          role: 'assistant',
+          content: responseText,
+          timestamp: new Date()
+        };
+      } else {
+        response = await this.currentProvider.sendMessage(message, context);
+      }
       
       // Add to session history
       this.session.messages.push({
@@ -165,7 +200,9 @@ class MCPService {
 
       return response;
     } catch (error) {
-      throw new Error(`Failed to send message: ${error.message}`);
+      const appError = handleError(error);
+      logError(appError);
+      throw appError;
     }
   }
 

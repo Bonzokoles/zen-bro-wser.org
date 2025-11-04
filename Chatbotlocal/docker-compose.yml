@@ -1,0 +1,19 @@
+version: "3.8"
+services:
+  backend:
+    build: .
+    container_name: local-chat-backend
+    # Uwaga: aby używać GPU, musisz mieć zainstalowany NVIDIA Container Toolkit i dodać runtime
+    deploy:
+      resources: {}
+    environment:
+      - DATABASE_URL=sqlite:///./chat.db
+    volumes:
+      - ./backend:/app
+      - ./models:/app/models  # zamontuj lokalny folder z modelem
+    ports:
+      - "8000:8000"
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility

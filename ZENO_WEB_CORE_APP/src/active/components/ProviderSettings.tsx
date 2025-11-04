@@ -1,20 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { mcpService } from '../services/mcpService';
 import type { MCPServiceConfig, MCPTool } from '../services/mcpService';
-import { getProviderKey, setProviderKey, getEnvDefaults } from '../utils/apiKeys';
-
-const OPENROUTER_MODELS: Array<{ id: string; label: string }> = [
-  { id: 'openai/gpt-oss-20b:free', label: 'OpenAI GPT-OSS 20B (free)' },
-  { id: 'deepseek/deepseek-chat-v3.1:free', label: 'DeepSeek Chat v3.1 (free)' },
-  { id: 'qwen/qwen3-coder:free', label: 'Qwen3 Coder (free)' },
-  { id: 'moonshotai/kimi-k2:free', label: 'Moonshot Kimi K2 (free)' },
-  { id: 'cognitivecomputations/dolphin-mistral-24b-venice-edition:free', label: 'Dolphin Mistral 24B Venice (free)' },
-  { id: 'agentica-org/deepcoder-14b-preview:free', label: 'DeepCoder 14B Preview (free)' },
-  { id: 'meta-llama/llama-4-maverick:free', label: 'Meta Llama 4 Maverick (free)' },
-  { id: 'google/gemma-3-12b-it:free', label: 'Google Gemma 3 12B IT (free)' },
-  { id: 'google/gemini-2.0-flash-exp:free', label: 'Google Gemini 2.0 Flash Exp (free)' },
-  { id: 'qwen/qwen-2.5-coder-32b-instruct:free', label: 'Qwen 2.5 Coder 32B Instruct (free)' }
-];
+import { getProviderKey, getEnvDefaults } from '../utils/apiKeys';
 
 interface ProviderSettingsProps {
   isOpen: boolean;
@@ -27,18 +14,10 @@ const ProviderSettings: React.FC<ProviderSettingsProps> = ({
   onClose, 
   onConfigured 
 }) => {
-  const envDefaults = getEnvDefaults();
   const [provider, setProvider] = useState<'gemini' | 'openrouter' | 'claude'>('gemini');
-  const [apiKey, setApiKey] = useState(() => getProviderKey('gemini'));
+  const [apiKey, setApiKey] = useState('');
   const [tavilyApiKey, setTavilyApiKey] = useState('');
-  const [llamaApiKey, setLlamaApiKey] = useState(() => getProviderKey('llama'));
-  const [huggingfaceApiKey, setHuggingfaceApiKey] = useState(() => getProviderKey('huggingface'));
-  const [additionalStatus, setAdditionalStatus] = useState<string | null>(null);
   const [model, setModel] = useState('');
-    const isOpenRouterProvider = provider === 'openrouter';
-    const openRouterSelectValue = isOpenRouterProvider && OPENROUTER_MODELS.some(modelOption => modelOption.id === model)
-      ? model
-      : '';
   const [isConnecting, setIsConnecting] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<string | null>(null);
   const [tools, setTools] = useState<MCPTool[]>([]);
@@ -53,53 +32,36 @@ const ProviderSettings: React.FC<ProviderSettingsProps> = ({
         setTavilyApiKey(savedTavilyKey);
       }
 
-      setLlamaApiKey(getProviderKey('llama'));
-      setHuggingfaceApiKey(getProviderKey('huggingface'));
-      setApiKey(getProviderKey(provider));
-
       // Load saved settings from localStorage
       const savedConfig = localStorage.getItem('mcp_config');
       if (savedConfig) {
         try {
           const config = JSON.parse(savedConfig);
-          const nextProvider = (config.provider || 'gemini') as 'gemini' | 'openrouter' | 'claude';
-          setProvider(nextProvider);
-          const configuredKey = config.apiKey || '';
-          if (configuredKey) {
-            setProviderKey(nextProvider, configuredKey);
-            setApiKey(configuredKey);
-          } else {
-            setApiKey(getProviderKey(nextProvider));
-          }
-          const nextModel = config.model || '';
-          if (nextProvider === 'openrouter' && !nextModel) {
-            setModel(OPENROUTER_MODELS[0]?.id || '');
-          } else if (nextProvider === 'gemini' && !nextModel) {
-            setModel('gemini-1.5-pro');
-          } else {
-            setModel(nextModel);
-          }
+          setProvider(config.provider || 'gemini');
+          setApiKey(config.apiKey || '');
+          setModel(config.model || '');
         } catch (error) {
           console.error('Failed to load saved config:', error);
         }
+      } else {
+        // Auto-load from .env if no saved config
+        const envDefaults = getEnvDefaults();
+        if (envDefaults.gemini) {
+          setProvider('gemini');
+          setApiKey(envDefaults.gemini);
+          setConnectionStatus('✅ API key loaded from .env');
+        } else if (envDefaults.openrouter) {
+          setProvider('openrouter');
+          setApiKey(envDefaults.openrouter);
+          setConnectionStatus('✅ API key loaded from .env');
+        } else if (envDefaults.claude) {
+          setProvider('claude');
+          setApiKey(envDefaults.claude);
+          setConnectionStatus('✅ API key loaded from .env');
+        }
       }
-    } else {
-      // When dialog closes reset transient status messages
-      setAdditionalStatus(null);
     }
   }, [isOpen]);
-
-  const handleProviderChange = (nextProvider: 'gemini' | 'openrouter' | 'claude') => {
-    setProvider(nextProvider);
-    setApiKey(getProviderKey(nextProvider));
-    if (nextProvider === 'openrouter') {
-      setModel(OPENROUTER_MODELS[0]?.id || '');
-    } else if (nextProvider === 'gemini') {
-      setModel('gemini-1.5-pro');
-    } else {
-      setModel('');
-    }
-  };
 
   const handleConnect = async () => {
     if (!apiKey.trim()) {
@@ -128,7 +90,6 @@ const ProviderSettings: React.FC<ProviderSettingsProps> = ({
         
         // Save configuration to localStorage
         localStorage.setItem('mcp_config', JSON.stringify(config));
-        setProviderKey(provider, config.apiKey.trim());
         setConnectionStatus('✅ Connected successfully!');
         setTools(mcpService.getTools());
         onConfigured();
@@ -150,14 +111,6 @@ const ProviderSettings: React.FC<ProviderSettingsProps> = ({
     localStorage.removeItem('mcp_config');
     setConnectionStatus('Disconnected');
     setTools([]);
-    setProviderKey(provider, '');
-  };
-
-  const handleSaveAdditionalKeys = () => {
-    setProviderKey('llama', llamaApiKey.trim());
-    setProviderKey('huggingface', huggingfaceApiKey.trim());
-    setAdditionalStatus('✅ Additional provider keys saved locally');
-    setTimeout(() => setAdditionalStatus(null), 2500);
   };
 
   const handleToggleTool = (toolId: string) => {
@@ -170,7 +123,7 @@ const ProviderSettings: React.FC<ProviderSettingsProps> = ({
       case 'gemini':
         return 'gemini-1.5-pro';
       case 'openrouter':
-        return 'openai/gpt-oss-20b:free';
+        return 'openai/gpt-4o-mini';
       case 'claude':
         return 'claude-3-sonnet-20240229';
       default:
@@ -265,9 +218,18 @@ const ProviderSettings: React.FC<ProviderSettingsProps> = ({
             }}>
               AI Provider
             </label>
-              <select
-                value={provider}
-                onChange={(e) => handleProviderChange(e.target.value as 'gemini' | 'openrouter' | 'claude')}
+            <select
+              value={provider}
+              onChange={(e) => {
+                const newProvider = e.target.value as any;
+                setProvider(newProvider);
+                // Auto-load API key for new provider from .env
+                const envKey = getProviderKey(newProvider);
+                if (envKey && !apiKey) {
+                  setApiKey(envKey);
+                  setConnectionStatus('✅ API key loaded from .env');
+                }
+              }}
               disabled={isConnecting}
               style={{
                 width: '100%',
@@ -281,7 +243,7 @@ const ProviderSettings: React.FC<ProviderSettingsProps> = ({
             >
               <option value="gemini">🤖 Google Gemini</option>
               <option value="openrouter">🌐 OpenRouter</option>
-              <option value="claude" disabled>🎭 Claude (Coming Soon)</option>
+              <option value="claude">🎭 Claude (Anthropic)</option>
             </select>
           </div>
 
@@ -379,121 +341,6 @@ const ProviderSettings: React.FC<ProviderSettingsProps> = ({
               }}
             />
           </div>
-
-          {/* Additional Provider Keys */}
-          <div style={{ marginBottom: '24px', padding: '16px', border: '1px solid #1f2937', borderRadius: '8px', backgroundColor: '#0b1220' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-              <h4 style={{ color: '#f1f5f9', fontSize: '14px', fontWeight: 600, margin: 0 }}>Additional Provider Keys</h4>
-              <span style={{ color: '#64748b', fontSize: '12px' }}>Optional · stored locally</span>
-            </div>
-            <p style={{ color: '#94a3b8', fontSize: '12px', marginBottom: '12px' }}>
-              Use these fields to store keys for upcoming providers like Meta Llama or Hugging Face models. Values are pre-filled from
-              environment defaults when available.
-            </p>
-            <div style={{ display: 'grid', gap: '12px' }}>
-              <div>
-                <label style={{ display: 'block', color: '#f1f5f9', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>Llama Provider Key</label>
-                <input
-                  type="password"
-                  value={llamaApiKey}
-                  onChange={(e) => setLlamaApiKey(e.target.value)}
-                  placeholder={envDefaults.llama ? 'Loaded from environment' : 'Enter Llama provider key...'}
-                  style={{
-                    width: '100%',
-                    padding: '10px',
-                    border: '1px solid #334155',
-                    borderRadius: '8px',
-                    backgroundColor: '#0f172a',
-                    color: 'white',
-                    fontSize: '13px'
-                  }}
-                />
-              </div>
-              <div>
-                <label style={{ display: 'block', color: '#f1f5f9', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>Hugging Face Token</label>
-                <input
-                  type="password"
-                  value={huggingfaceApiKey}
-                  onChange={(e) => setHuggingfaceApiKey(e.target.value)}
-                  placeholder={envDefaults.huggingface ? 'Loaded from environment' : 'Enter Hugging Face token...'}
-                  style={{
-                    width: '100%',
-                    padding: '10px',
-                    border: '1px solid #334155',
-                    borderRadius: '8px',
-                    backgroundColor: '#0f172a',
-                    color: 'white',
-                    fontSize: '13px'
-                  }}
-                />
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={handleSaveAdditionalKeys}
-              style={{
-                marginTop: '12px',
-                padding: '10px 16px',
-                borderRadius: '6px',
-                border: '1px solid #1e293b',
-                background: 'linear-gradient(135deg, #334155, #1e293b)',
-                color: '#f8fafc',
-                fontWeight: 600,
-                cursor: 'pointer'
-              }}
-            >
-              Save Additional Keys
-            </button>
-            {additionalStatus && (
-              <div style={{ marginTop: '10px', color: '#38bdf8', fontSize: '12px' }}>{additionalStatus}</div>
-            )}
-          </div>
-
-          {/* OpenRouter Quick Select */}
-          {isOpenRouterProvider && (
-            <div style={{ marginBottom: '24px' }}>
-              <label style={{
-                display: 'block',
-                color: '#f1f5f9',
-                fontSize: '14px',
-                fontWeight: '600',
-                marginBottom: '8px'
-              }}>
-                Choose a Free OpenRouter Model
-              </label>
-              <select
-                value={openRouterSelectValue}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  if (!value) {
-                    setModel('');
-                  } else {
-                    setModel(value);
-                  }
-                }}
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  border: '1px solid #334155',
-                  borderRadius: '8px',
-                  backgroundColor: '#0f172a',
-                  color: 'white',
-                  fontSize: '14px',
-                  marginBottom: '8px'
-                }}
-              >
-                <option value="">Custom model (enter manually below)</option>
-                {OPENROUTER_MODELS.map(modelOption => (
-                  <option key={modelOption.id} value={modelOption.id}>
-                    {modelOption.label}
-                  </option>
-                ))}
-              </select>
-              <div style={{ color: '#94a3b8', fontSize: '12px' }}>
-                Selected value will populate the model field below. You can still specify any other model manually.
-              </div>
-            </div>
-          )}
 
           {/* Model */}
           <div style={{ marginBottom: '24px' }}>

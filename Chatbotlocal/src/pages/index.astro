@@ -1,0 +1,19 @@
+---
+// Strona Astro, importuje komponent Reactowy
+import React from "react";
+import ChatWidget from "../components/ChatWidget.jsx";
+---
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Astro lokalny chatbot</title>
+  </head>
+  <body>
+    <main>
+      <h1>Astro + Lokalny Chatbot</h1>
+      <div id="chat-root">
+        <ChatWidget client:load apiBaseUrl="https://twoj-backend.example.com" />
+      </div>
+    </main>
+  </body>
+</html>
