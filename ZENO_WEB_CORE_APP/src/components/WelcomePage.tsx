@@ -33,7 +33,7 @@ const WelcomePage: React.FC = () => {
       
       <div style={{
         marginTop: '40px',
-        backgroundColor: '#1e293b',
+        backgroundColor: 'transparent',
         padding: '24px',
         textAlign: 'left'
       }}>
@@ -74,18 +74,26 @@ const WelcomePage: React.FC = () => {
                 window.dispatchEvent(event);
               }}
               style={{
-                backgroundColor: '#334155',
+                backgroundColor: 'transparent',
                 color: 'white',
                 padding: '12px',
-                border: 'none',
+                border: '2px solid rgba(148, 163, 184, 0.3)',
                 borderRadius: '0',
                 fontSize: '13px',
                 cursor: 'pointer',
                 textAlign: 'left',
-                transition: 'all 0.2s'
+                transition: 'all 0.3s'
               }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#475569'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#334155'}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgba(96, 165, 250, 0.2)';
+                e.currentTarget.style.borderColor = '#60a5fa';
+                e.currentTarget.style.transform = 'translateY(-2px)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+                e.currentTarget.style.borderColor = 'rgba(148, 163, 184, 0.3)';
+                e.currentTarget.style.transform = 'translateY(0)';
+              }}
             >
               {site.name}
             </button>
@@ -96,10 +104,11 @@ const WelcomePage: React.FC = () => {
           style={{
             marginTop: '16px',
             width: '100%',
-            background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+            background: 'transparent',
             color: 'white',
             padding: '14px',
-            border: 'none',
+            border: '2px solid transparent',
+            borderImage: 'linear-gradient(135deg, #60a5fa, #a78bfa) 1',
             borderRadius: '0',
             fontSize: '14px',
             fontWeight: '600',
@@ -107,7 +116,16 @@ const WelcomePage: React.FC = () => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: '8px'
+            gap: '8px',
+            transition: 'all 0.3s'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'linear-gradient(135deg, rgba(96, 165, 250, 0.2), rgba(167, 139, 250, 0.2))';
+            e.currentTarget.style.transform = 'translateY(-2px)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'transparent';
+            e.currentTarget.style.transform = 'translateY(0)';
           }}
         >
           📋 Pełna lista sprawdzonych stron
@@ -130,7 +148,10 @@ const WelcomePage: React.FC = () => {
           overflow: 'hidden'
         }} onClick={() => setShowMoreSites(false)}>
           <div style={{
-            backgroundColor: '#1e293b',
+            backgroundColor: 'rgba(15, 23, 42, 0.85)',
+            backdropFilter: 'blur(12px)',
+            border: '2px solid transparent',
+            borderImage: 'linear-gradient(135deg, #60a5fa, #a78bfa) 1',
             padding: '0',
             maxWidth: '1000px',
             width: '100%',
@@ -144,10 +165,11 @@ const WelcomePage: React.FC = () => {
             {/* Header - fixed */}
             <div style={{
               padding: '24px 32px',
-              borderBottom: '2px solid #334155',
+              borderBottom: '2px solid rgba(148, 163, 184, 0.3)',
               display: 'flex',
               justifyContent: 'space-between',
-              alignItems: 'center'
+              alignItems: 'center',
+              backgroundColor: 'transparent'
             }}>
               <h2 style={{
                 color: 'white',
@@ -184,8 +206,8 @@ const WelcomePage: React.FC = () => {
             {/* Advanced Search Button */}
             <div style={{
               padding: '16px 32px',
-              borderBottom: '2px solid #334155',
-              backgroundColor: '#0f172a'
+              borderBottom: '2px solid rgba(148, 163, 184, 0.3)',
+              backgroundColor: 'transparent'
             }}>
               <a
                 href="/"
@@ -193,18 +215,24 @@ const WelcomePage: React.FC = () => {
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '8px',
-                  backgroundColor: '#3b82f6',
+                  backgroundColor: 'transparent',
                   color: 'white',
                   padding: '12px 24px',
                   borderRadius: '0',
                   textDecoration: 'none',
                   fontWeight: '600',
                   fontSize: '14px',
-                  transition: 'all 0.2s',
-                  border: 'none'
+                  transition: 'all 0.3s',
+                  border: '2px solid #60a5fa'
                 }}
-                onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#2563eb'}
-                onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#3b82f6'}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(96, 165, 250, 0.2)';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }}
               >
                 🔍 Przejdź do wyszukiwarki
               </a>
@@ -229,10 +257,11 @@ const WelcomePage: React.FC = () => {
                 display: 'flex',
                 gap: '8px',
                 marginBottom: '24px',
-                borderBottom: '2px solid #334155',
+                borderBottom: '2px solid rgba(148, 163, 184, 0.3)',
                 position: 'sticky',
                 top: '-24px',
-                backgroundColor: '#1e293b',
+                backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                backdropFilter: 'blur(10px)',
                 zIndex: 10,
                 paddingTop: '8px',
                 marginTop: '-8px'
@@ -370,7 +399,8 @@ const WelcomePage: React.FC = () => {
                 ]}
               ].map(category => (
                 <div key={category.cat} style={{
-                  backgroundColor: '#334155',
+                  backgroundColor: 'transparent',
+                  border: '2px solid rgba(148, 163, 184, 0.3)',
                   padding: '16px',
                   borderRadius: '0'
                 }}>
@@ -392,19 +422,27 @@ const WelcomePage: React.FC = () => {
                       }}
                       style={{
                         width: '100%',
-                        backgroundColor: '#475569',
+                        backgroundColor: 'transparent',
                         color: 'white',
                         padding: '10px',
-                        border: 'none',
+                        border: '2px solid rgba(148, 163, 184, 0.3)',
                         borderRadius: '0',
                         fontSize: '12px',
                         cursor: 'pointer',
                         textAlign: 'left',
                         marginBottom: '8px',
-                        transition: 'all 0.2s'
+                        transition: 'all 0.3s'
                       }}
-                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1e40af'}
-                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#475569'}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = 'rgba(96, 165, 250, 0.2)';
+                        e.currentTarget.style.borderColor = '#60a5fa';
+                        e.currentTarget.style.transform = 'translateX(4px)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                        e.currentTarget.style.borderColor = 'rgba(148, 163, 184, 0.3)';
+                        e.currentTarget.style.transform = 'translateX(0)';
+                      }}
                     >
                       {site.name}
                     </button>
@@ -413,7 +451,8 @@ const WelcomePage: React.FC = () => {
               ))}
             </div>
             <div style={{
-              backgroundColor: '#0f172a',
+              backgroundColor: 'transparent',
+              border: '2px solid rgba(148, 163, 184, 0.3)',
               padding: '16px',
               borderRadius: '0',
               marginTop: '24px',
