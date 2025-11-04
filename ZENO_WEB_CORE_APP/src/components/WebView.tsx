@@ -180,7 +180,7 @@ const WebView: React.FC<WebViewProps> = ({ url, isLoading, title }) => {
 							width: '100%',
 							height: '100%',
 							backgroundColor: 'rgba(0,0,0,0.95)',
-							zIndex: 10000,
+							zIndex: 99999,
 							display: 'flex',
 							alignItems: 'center',
 							justifyContent: 'center',
