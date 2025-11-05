@@ -13,13 +13,13 @@ import cloudflare from '@astrojs/cloudflare';
 // https://astro.build/config
 export default defineConfig({
   site: 'https://zeno-browser.pages.dev',
-  output: 'static',
-  // adapter: cloudflare({
-  //   mode: 'directory',
-  //   platformProxy: {
-  //     enabled: true
-  //   }
-  // }),
+  output: 'server',
+  adapter: cloudflare({
+    mode: 'directory',
+    platformProxy: {
+      enabled: true
+    }
+  }),
   server: {
     port: 4366,
     host: true
