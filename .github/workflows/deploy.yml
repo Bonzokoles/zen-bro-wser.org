@@ -49,8 +49,7 @@ jobs:
           npx wrangler@3.90.0 pages deploy dist \
             --project-name=zeno-browser \
             --branch=main \
-            --commit-dirty=true \
-            --config=wrangler.toml
+            --commit-dirty=true
 
       - name: Deployment Summary
         run: |
