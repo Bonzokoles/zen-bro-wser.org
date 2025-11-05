@@ -40,16 +40,6 @@ jobs:
           VITE_HUGGINGFACE_API_KEY: ${{ secrets.HUGGINGFACE_API_KEY }}
           VITE_OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           VITE_OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          VITE_API_URL: https://zeno-browser-api.stolarnia-ams.workers.dev
-
-      - name: Deploy Worker API
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: .cloudflare
-          command: deploy
-          wranglerVersion: "3.90.0"
 
       - name: Deploy to Cloudflare Pages
         working-directory: ./ZENO_WEB_CORE_APP
