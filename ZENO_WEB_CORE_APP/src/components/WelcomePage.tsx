@@ -9,7 +9,7 @@ const WelcomePage: React.FC = () => {
   const [chatInput, setChatInput] = useState('');
   const [aiResponse, setAiResponse] = useState('');
   const [isAiLoading, setIsAiLoading] = useState(false);
-  const [selectedModel, setSelectedModel] = useState('llama-3.2-3b');
+  const [selectedModel, setSelectedModel] = useState('mistral-7b'); // Najlepszy dla polskiego
   const chatInputRef = useRef<HTMLTextAreaElement>(null);
 
   // Function to send message to AI
@@ -30,8 +30,8 @@ const WelcomePage: React.FC = () => {
       // Build prompt with context
       const enhancedPrompt = rag.buildPrompt(chatInput);
 
-      // Call AI
-      const response = await fetch('/api/ai-assistant', {
+      // Call AI via Cloudflare Worker
+      const response = await fetch('https://zeno-browser-api.stolarnia-ams.workers.dev/api/ai-assistant', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -164,7 +164,7 @@ const WelcomePage: React.FC = () => {
             { name: '📰 Wikipedia', url: 'https://en.wikipedia.org' },
             { name: '🎓 W3Schools', url: 'https://www.w3schools.com' },
             { name: '⚡ JSFiddle', url: 'https://jsfiddle.net' },
-            { name: '🔍 DuckDuckGo', url: 'https://duckduckgo.com' }
+            { name: '🔍 DuckDuckGo', url: 'https://lite.duckduckgo.com' }
           ].map(site => (
             <button
               key={site.url}
@@ -198,6 +198,55 @@ const WelcomePage: React.FC = () => {
             </button>
           ))}
         </div>
+        
+        {/* Second Row of Quick Links */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, 1fr)',
+          gap: '0',
+          marginTop: '12px'
+        }}>
+          {[
+            { name: '🧪 CodePen', url: 'https://codepen.io' },
+            { name: '📚 DevDocs', url: 'https://devdocs.io' },
+            { name: '🎨 Met Museum', url: 'https://www.metmuseum.org/art/collection' },
+            { name: '⚙️ Regex101', url: 'https://regex101.com' },
+            { name: '🔐 JWT.io', url: 'https://jwt.io' },
+            { name: '📊 Observable', url: 'https://observablehq.com' }
+          ].map(site => (
+            <button
+              key={site.url}
+              onClick={() => {
+                const event = new CustomEvent('navigate', { detail: { url: site.url } });
+                window.dispatchEvent(event);
+              }}
+              style={{
+                backgroundColor: 'transparent',
+                color: 'white',
+                padding: '12px',
+                border: '2px solid rgba(148, 163, 184, 0.3)',
+                borderRadius: '0',
+                fontSize: '13px',
+                cursor: 'pointer',
+                textAlign: 'left',
+                transition: 'all 0.3s'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgba(96, 165, 250, 0.2)';
+                e.currentTarget.style.borderColor = '#60a5fa';
+                e.currentTarget.style.transform = 'translateY(-2px)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+                e.currentTarget.style.borderColor = 'rgba(148, 163, 184, 0.3)';
+                e.currentTarget.style.transform = 'translateY(0)';
+              }}
+            >
+              {site.name}
+            </button>
+          ))}
+        </div>
+        
         <button
           onClick={() => setShowMoreSites(true)}
           style={{
@@ -694,11 +743,13 @@ const WelcomePage: React.FC = () => {
                   cursor: 'pointer'
                 }}
               >
-                <option value="llama-3.2-1b">Llama 3.2 1B (szybki)</option>
-                <option value="llama-3.2-3b">Llama 3.2 3B (zbalansowany)</option>
-                <option value="gemma-7b">Gemma 7B (dobry)</option>
-                <option value="gemma-12b">Gemma 12B (najlepszy)</option>
-                <option value="qwen-7b">Qwen 7B (alternatywny)</option>
+                <option value="mistral-7b">🌟 Mistral 7B (ZALECANY dla PL)</option>
+                <option value="llama-3.1-8b">⭐ Llama 3.1 8B (tylko EN)</option>
+                <option value="gemma-7b">� Gemma 7B (multi-language)</option>
+                <option value="qwen-7b">� Qwen 7B (chiński)</option>
+                <option value="llama-3.2-3b">🚀 Llama 3.2 3B (szybki, EN)</option>
+                <option value="llama-3.2-1b">⚡ Llama 3.2 1B (najszybszy, EN)</option>
+                <option value="gemma-2b">� Gemma 2B (mały)</option>
               </select>
 
               <button

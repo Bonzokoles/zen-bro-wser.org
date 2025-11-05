@@ -1,0 +1,66 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout
+  title="ZENO - Orchestrator"
+  description="AI-powered content orchestrator with OpenAI integration"
+>
+  <div id="orchestrator-root"></div>
+</Layout>
+
+<script>
+  import { createRoot } from "react-dom/client";
+  import { createElement } from "react";
+  import { OrchestratorDashboard } from "../components/OrchestratorDashboard";
+  import { InstructionsPanel, type Instruction } from "../components/InstructionsPanel";
+
+  document.addEventListener("DOMContentLoaded", () => {
+    // Mount Orchestrator Dashboard
+    const container = document.getElementById("orchestrator-root");
+    if (container) {
+      const root = createRoot(container);
+      root.render(createElement(OrchestratorDashboard));
+    }
+
+    // Mount Instructions Panel
+    const instructions: Instruction[] = [
+      {
+        step: 1,
+        title: "Set OpenAI API Key",
+        description: "Enter your OpenAI API key (starting with 'sk-') to enable AI-powered classification. Get your key from platform.openai.com/api-keys."
+      },
+      {
+        step: 2,
+        title: "Add Content to Queue",
+        description: "Enter a URL and text content to classify. The AI will automatically categorize it into: art, culture, film, architecture, technology, science, or other."
+      },
+      {
+        step: 3,
+        title: "Monitor Processing",
+        description: "Click 'Start' to begin processing the queue. Watch real-time statistics: queued, processed, failed, and currently processing items."
+      },
+      {
+        step: 4,
+        title: "Use AI Assistant",
+        description: "Click 'AI Assistant' to chat with ZENO Assistant. Ask questions about any ZENO feature, get help troubleshooting, or learn about the application."
+      },
+      {
+        step: 5,
+        title: "Review Results",
+        description: "Click 'Load Results' to view processed pages with their assigned categories, confidence scores, and timestamps. Results are saved to local libraries."
+      }
+    ];
+
+    const instructionsContainer = document.createElement("div");
+    document.body.appendChild(instructionsContainer);
+    const instructionsRoot = createRoot(instructionsContainer);
+    instructionsRoot.render(
+      createElement(InstructionsPanel, {
+        title: "Orchestrator Guide",
+        instructions,
+        defaultOpen: false
+      })
+    );
+  });
+</script>

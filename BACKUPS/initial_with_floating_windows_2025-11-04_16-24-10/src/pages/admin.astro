@@ -1,0 +1,126 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="Panel Administratora - ZENO Browser">
+  <div class="container">
+    <h1>🛡️ Panel Administratora</h1>
+    <p class="subtitle">Zarządzanie stronami i użytkownikami</p>
+
+    <div class="stats-bar">
+      <div class="stat-card">
+        <span class="stat-value" id="total-sites">0</span>
+        <span class="stat-label">Wszystkich stron</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value" id="iframe-friendly">0</span>
+        <span class="stat-label">Zgodnych z iframe</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value" id="total-users">0</span>
+        <span class="stat-label">Użytkowników</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value" id="total-tests">0</span>
+        <span class="stat-label">Wszystkich testów</span>
+      </div>
+    </div>
+
+    <div id="app"></div>
+  </div>
+</Layout>
+
+<script>
+  import React from "react";
+  import { createRoot } from "react-dom/client";
+  import { createElement } from "react";
+  import { AdminPanel } from "../components/iframe/AdminPanel";
+  import { InstructionsPanel, type Instruction } from "../components/InstructionsPanel";
+
+  document.addEventListener("DOMContentLoaded", () => {
+    // Mount React component
+    const container = document.getElementById("app");
+    if (container) {
+      const root = createRoot(container);
+      root.render(React.createElement(AdminPanel));
+    }
+
+    // Load statistics
+    async function loadStats() {
+      try {
+        // Load sites stats
+        const sitesRes = await fetch("/api/admin/sites");
+        const sitesData = await sitesRes.json();
+
+        if (sitesData.success) {
+          const sites = sitesData.data;
+          document.getElementById("total-sites")!.textContent =
+            sites.length.toString();
+
+          const iframeFriendly = sites.filter(
+            (s: any) => s.iframeAllowed
+          ).length;
+          document.getElementById("iframe-friendly")!.textContent =
+            iframeFriendly.toString();
+
+          const totalTests = sites.reduce(
+            (sum: number, s: any) => sum + (s.testCount || 0),
+            0
+          );
+          document.getElementById("total-tests")!.textContent =
+            totalTests.toString();
+        }
+
+        // Load users stats
+        const usersRes = await fetch("/api/admin/users");
+        const usersData = await usersRes.json();
+
+        if (usersData.success) {
+          document.getElementById("total-users")!.textContent =
+            usersData.data.length.toString();
+        }
+      } catch (error) {
+        console.error("Error loading stats:", error);
+      }
+    }
+
+    loadStats();
+
+    // Mount Instructions Panel
+    const instructions: Instruction[] = [
+      {
+        step: 1,
+        title: "Monitor Statistics",
+        description: "View real-time dashboard showing total sites, iframe-friendly sites, active users, and total tests performed across the system."
+      },
+      {
+        step: 2,
+        title: "Manage Sites",
+        description: "Add, edit, or remove test sites. Configure iframe settings, sandbox attributes, and categorize sites for better organization."
+      },
+      {
+            step: 3,
+            title: "User Administration",
+            description: "Manage user accounts, permissions, and access levels. Monitor user activity and test history for audit purposes."
+          },
+          {
+            step: 4,
+            title: "Export & Reports",
+            description: "Generate reports on site compatibility, test results, and system usage. Export data in various formats for analysis."
+          }
+        ];
+
+        const instructionsContainer = document.createElement("div");
+        document.body.appendChild(instructionsContainer);
+        const instructionsRoot = createRoot(instructionsContainer);
+        instructionsRoot.render(
+          createElement(InstructionsPanel, {
+            title: "Admin Panel Guide",
+            instructions,
+            defaultOpen: false
+          })
+        );
+      });
+    </script>
+  </body>
+</html>

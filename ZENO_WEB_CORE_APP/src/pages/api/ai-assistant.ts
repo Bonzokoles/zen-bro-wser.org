@@ -5,6 +5,9 @@
 
 import type { APIRoute } from 'astro';
 
+// Server-side rendering required for API endpoints
+export const prerender = false;
+
 // Dostępne modele
 const AVAILABLE_MODELS = {
   'llama-3.2-1b': '@cf/meta/llama-3.2-1b-instruct',
@@ -16,7 +19,41 @@ const AVAILABLE_MODELS = {
 
 export const POST: APIRoute = async ({ request }) => {
   try {
-    const { prompt, model = 'llama-3.2-3b', temperature = 0.7 } = await request.json();
+    // Sprawdź czy request ma body
+    const contentType = request.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      return new Response(JSON.stringify({ 
+        error: 'Content-Type must be application/json' 
+      }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    // Bezpieczne parsowanie JSON
+    let body;
+    try {
+      const text = await request.text();
+      if (!text || text.trim() === '') {
+        return new Response(JSON.stringify({ 
+          error: 'Request body is empty' 
+        }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+      body = JSON.parse(text);
+    } catch (parseError) {
+      return new Response(JSON.stringify({ 
+        error: 'Invalid JSON in request body',
+        details: parseError.message
+      }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    const { prompt, model = 'llama-3.2-3b', temperature = 0.7 } = body;
 
     if (!prompt) {
       return new Response(JSON.stringify({ error: 'Prompt is required' }), {

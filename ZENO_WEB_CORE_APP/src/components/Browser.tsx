@@ -5,6 +5,7 @@ import ProviderSettings from './ProviderSettings';
 import FloatingWindow from './FloatingWindow';
 // import LocalChatbot from './LocalChatbot'; // Moved to NOT_IN_USE
 import { mcpService } from '../services/mcpService';
+import { analytics } from '../services/analytics';
 
 export interface Tab {
 	id: string;

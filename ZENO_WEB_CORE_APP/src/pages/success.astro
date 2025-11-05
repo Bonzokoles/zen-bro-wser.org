@@ -185,5 +185,15 @@ const sessionId = searchParams.get("session_id");
         >
       </p>
     </div>
+
+    <script>
+      // Save session ID to localStorage for dashboard
+      const urlParams = new URLSearchParams(window.location.search);
+      const sessionId = urlParams.get("session_id");
+      if (sessionId) {
+        localStorage.setItem("zeno_session_id", sessionId);
+        console.log("✅ Session ID saved:", sessionId);
+      }
+    </script>
   </body>
 </html>

@@ -2,11 +2,11 @@
 # Simple and reliable backup solution
 
 param(
-    [Parameter(Mandatory=$false)]
+    [Parameter(Mandatory = $false)]
     [ValidateSet('backup', 'restore', 'list')]
     [string]$Action = 'backup',
     
-    [Parameter(Mandatory=$false)]
+    [Parameter(Mandatory = $false)]
     [string]$BackupName = ""
 )
 
@@ -24,7 +24,8 @@ function Create-Backup {
     
     if ([string]::IsNullOrEmpty($Name)) {
         $Name = "auto_$Timestamp"
-    } else {
+    }
+    else {
         $Name = "${Name}_$Timestamp"
     }
     
@@ -63,9 +64,9 @@ function Restore-Backup {
     param($Name)
     
     $Backup = Get-ChildItem $BackupDir -Directory | 
-        Where-Object { $_.Name -like "*$Name*" } | 
-        Sort-Object LastWriteTime -Descending | 
-        Select-Object -First 1
+    Where-Object { $_.Name -like "*$Name*" } | 
+    Sort-Object LastWriteTime -Descending | 
+    Select-Object -First 1
     
     if (-not $Backup) {
         Write-Host "[ERROR] Backup not found: $Name" -ForegroundColor Red
@@ -117,7 +118,8 @@ function List-Backups {
         if (Test-Path $InfoFile) {
             $Info = Get-Content $InfoFile | ConvertFrom-Json
             Write-Host "  Created: $($Info.date)" -ForegroundColor Gray
-        } else {
+        }
+        else {
             Write-Host "  Created: $($Backup.LastWriteTime)" -ForegroundColor Gray
         }
         
