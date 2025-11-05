@@ -55,6 +55,8 @@ API_VERSION = "v1"
 ALLOWED_ORIGINS = "*"  # Change to your domain in production
 CACHE_TTL = "300"  # 5 minutes
 MAX_PAGE_SIZE = "100"
+STRIPE_PRICE_MONTHLY = "price_1SPy7sRtD21KYuw9U9XFnLRz"
+STRIPE_PRICE_YEARLY = "price_1SPy7tRtD21KYuw93Vs5849G"
 
 # Observability settings
 [observability]
@@ -83,12 +85,16 @@ upstream_protocol = "https"
 # - OPENAI_API_KEY: OpenAI API key
 # - ANTHROPIC_API_KEY: Anthropic Claude API key
 # - TAVILY_API_KEY: Tavily search API key (optional)
+# - STRIPE_SECRET_KEY: Stripe secret key (sk_test_... or sk_live_...)
+# - STRIPE_WEBHOOK_SECRET: Stripe webhook signing secret (whsec_...)
 # 
 # Set secrets with:
 # wrangler secret put GEMINI_API_KEY
 # wrangler secret put OPENAI_API_KEY
 # wrangler secret put ANTHROPIC_API_KEY
 # wrangler secret put TAVILY_API_KEY
+# wrangler secret put STRIPE_SECRET_KEY
+# wrangler secret put STRIPE_WEBHOOK_SECRET
 
 # Triggers (cron jobs)
 # [triggers]
@@ -123,9 +129,9 @@ upstream_protocol = "https"
 # [browser]
 # binding = "BROWSER"
 
-# AI (optional - for Cloudflare AI models)
-# [ai]
-# binding = "AI"
+# AI (for Cloudflare AI models)
+[ai]
+binding = "AI"
 
 # Service bindings (optional - call other workers)
 # [[services]]

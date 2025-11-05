@@ -8,3 +8,20 @@ ZENO_WEB_CORE_APP/.env.*
 #Ignore insiders AI rules
 .github\instructions\codacy.instructions.md
 node_modules
+# Secrets and API keys
+.env
+.env.*
+**/.env
+**/.env.*
+
+# Stripe
+.cloudflare/create-stripe-products.js
+
+# MCP configs with tokens
+DOCUMENTS_ALL/MCP_SERVERS_RESTORE.md
+
+# Test data
+.cloudflare/test-session.json
+
+# Wrangler
+.cloudflare/.wrangler/
