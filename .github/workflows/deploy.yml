@@ -13,7 +13,6 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     name: Deploy ZENO Browser
-    environment: production
 
     steps:
       - name: Checkout repository
@@ -50,7 +49,8 @@ jobs:
           npx wrangler@3.90.0 pages deploy dist \
             --project-name=zeno-browser \
             --branch=main \
-            --commit-dirty=true
+            --commit-dirty=true \
+            --config=wrangler.toml
 
       - name: Deployment Summary
         run: |

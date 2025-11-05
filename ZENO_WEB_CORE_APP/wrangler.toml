@@ -1,0 +1,80 @@
+# Cloudflare Pages Configuration
+# For Astro SSR with @astrojs/cloudflare adapter
+# https://developers.cloudflare.com/pages/functions/bindings/
+
+name = "zeno-browser"
+pages_build_output_dir = "dist"
+compatibility_date = "2024-11-01"
+compatibility_flags = ["nodejs_compat"]
+
+# ============================================
+# KV NAMESPACE - Session Storage
+# ============================================
+[[kv_namespaces]]
+binding = "SESSION"
+id = "cce469bb54d142ebbbce4287e450daec"
+preview_id = "139be3a08d7940eea1de297b0ac22e59"
+
+# ============================================
+# D1 DATABASE - User data & settings
+# ============================================
+[[d1_databases]]
+binding = "DB"
+database_name = "zeno-browser-db"
+database_id = "dc8c73b9-1e19-411c-a447-109e68fd9568"
+
+# ============================================
+# CLOUDFLARE AI - For AI features
+# ============================================
+[ai]
+binding = "AI"
+
+# ============================================
+# WORKERS AI - Translation Model
+# ============================================
+# Model: @cf/meta/m2m100-1.2b (multi-language translation)
+# Supports: 100+ languages including PL, EN, DE, ES, FR
+# Usage: AI.run("@cf/meta/m2m100-1.2b", { text: "Hello", source_lang: "en", target_lang: "pl" })
+
+# ============================================
+# ENVIRONMENT VARIABLES
+# ============================================
+[vars]
+ENVIRONMENT = "production"
+API_VERSION = "v1"
+TRANSLATION_MODEL = "@cf/meta/m2m100-1.2b"  # Mały model tłumaczący (1.2B parametrów)
+
+# ============================================
+# NOTES
+# ============================================
+# 
+# To use these bindings in Astro:
+# 
+# // In any .astro file:
+# const { SESSION, DB, AI } = Astro.locals.runtime.env;
+# 
+# // Example - Session KV:
+# await SESSION.get("user_session");
+# await SESSION.put("user_session", "data", { expirationTtl: 3600 });
+# 
+# // Example - D1 Database:
+# const result = await DB.prepare("SELECT * FROM users WHERE id = ?").bind(userId).first();
+# 
+# // Example - Translation (M2M100):
+# const translated = await AI.run("@cf/meta/m2m100-1.2b", {
+#   text: "Hello, how are you?",
+#   source_lang: "en",  // english
+#   target_lang: "pl"   // polish
+# });
+# // Output: { translated_text: "Cześć, jak się masz?" }
+#
+# // Supported languages:
+# // en (English), pl (Polish), de (German), es (Spanish), fr (French),
+# // it (Italian), pt (Portuguese), ru (Russian), ja (Japanese), zh (Chinese),
+# // ko (Korean), ar (Arabic), hi (Hindi), tr (Turkish), nl (Dutch), sv (Swedish)
+# // + 80 more languages
+#
+# // Example - Chat AI (Llama):
+# const response = await AI.run("@cf/meta/llama-2-7b-chat-int8", {
+#   prompt: "Hello world"
+# });
