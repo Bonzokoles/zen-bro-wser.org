@@ -15,6 +15,7 @@ export default defineConfig({
   site: 'https://zeno-browser.pages.dev',
   output: 'server',
   adapter: cloudflare({
+    mode: 'directory',
     platformProxy: {
       enabled: true
     }
@@ -31,6 +32,9 @@ export default defineConfig({
     locales: ['en', 'pl', 'de', 'es', 'fr'],
   },
   vite: {
+    ssr: {
+      external: ['node:async_hooks']
+    },
     resolve: {
       alias: {
         'http': 'rollup-plugin-node-polyfills/polyfills/http',
