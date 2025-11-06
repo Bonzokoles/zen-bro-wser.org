@@ -1,5 +1,7 @@
 # Astro Starter Kit: Blog
 
+**Last updated:** November 6, 2025
+
 ```sh
 npm create astro@latest -- --template blog
 ```
