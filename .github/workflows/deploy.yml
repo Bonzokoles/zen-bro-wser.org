@@ -22,12 +22,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "18"
-          cache: "npm"
-          cache-dependency-path: ZENO_WEB_CORE_APP/package-lock.json
 
       - name: Install dependencies
         working-directory: ./ZENO_WEB_CORE_APP
-        run: npm ci
+        run: |
+          rm -rf node_modules package-lock.json
+          npm install
       - name: Build application
         working-directory: ./ZENO_WEB_CORE_APP
         run: npm run build
