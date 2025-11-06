@@ -19,14 +19,19 @@ class AnalyticsService {
   private intervalId?: number;
 
   constructor() {
-    // Get or create userId
+    // Get or create userId (only in browser)
     this.userId = this.getUserId();
     
-    // Start flush interval
+    // Start flush interval (only in browser)
     this.startFlushInterval();
   }
 
   private getUserId(): string {
+    // Check if running in browser
+    if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
+      return `ssr_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    }
+    
     let userId = localStorage.getItem('zeno_user_id');
     if (!userId) {
       userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -173,8 +178,32 @@ class AnalyticsService {
   }
 }
 
-// Export singleton instance
-export const analytics = new AnalyticsService();
+// Lazy singleton instance - only created in browser
+let analyticsInstance: AnalyticsService | null = null;
+
+function getAnalyticsInstance(): AnalyticsService {
+  if (typeof window === 'undefined') {
+    // Return a no-op instance for SSR
+    return {
+      track: () => {},
+      trackPageView: () => {},
+      trackClick: () => {},
+      trackSearch: () => {},
+      trackError: () => {},
+      flush: () => Promise.resolve(),
+      destroy: () => {},
+    } as any;
+  }
+  
+  if (!analyticsInstance) {
+    analyticsInstance = new AnalyticsService();
+  }
+  
+  return analyticsInstance;
+}
+
+// Export singleton getter
+export const analytics = getAnalyticsInstance();
 
 // Auto-track page views
 if (typeof window !== 'undefined') {
