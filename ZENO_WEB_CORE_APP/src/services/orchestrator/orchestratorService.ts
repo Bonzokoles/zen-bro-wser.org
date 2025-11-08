@@ -1,11 +1,11 @@
 /**
  * Orchestrator Service - Agent Management and Task Queue
  * Manages multiple agents processing pages from a queue
- * Uses in-memory queue (can be upgraded to Redis for production)
+ * Uses in-memory queue (can be upgraded to Redis/Cloudflare Queues for production)
+ * NOTE: Optimized for Cloudflare Workers - no Node.js dependencies
  */
 
 import { simpleAgent, agentWithRetry, type PageData, type AgentResult } from './agentService';
-import { EventEmitter } from 'events';
 
 export interface OrchestratorConfig {
   apiKey?: string;
@@ -24,9 +24,14 @@ export interface OrchestratorStats {
 }
 
 /**
+ * Simple event callback type
+ */
+type EventCallback = (data?: any) => void;
+
+/**
  * Orchestrator class - Manages agent processing queue
  */
-export class Orchestrator extends EventEmitter {
+export class Orchestrator {
   private queue: PageData[] = [];
   private processing: Set<string> = new Set();
   private processed: Map<string, AgentResult> = new Map();
@@ -34,9 +39,9 @@ export class Orchestrator extends EventEmitter {
   private config: OrchestratorConfig;
   private isRunning: boolean = false;
   private startedAt?: Date;
+  private eventCallbacks: Map<string, EventCallback[]> = new Map();
 
   constructor(config: Partial<OrchestratorConfig> = {}) {
-    super();
     this.config = {
       apiKey: config.apiKey,
       concurrency: config.concurrency || 3,
@@ -47,6 +52,29 @@ export class Orchestrator extends EventEmitter {
     if (this.config.autoStart) {
       this.start();
     }
+  }
+
+  /**
+   * Simple event emitter (Cloudflare-compatible)
+   */
+  private emit(event: string, data?: any): void {
+    const callbacks = this.eventCallbacks.get(event) || [];
+    callbacks.forEach(cb => {
+      try {
+        cb(data);
+      } catch (error) {
+        console.error(`[Orchestrator] Event callback error for '${event}':`, error);
+      }
+    });
+  }
+
+  /**
+   * Subscribe to events
+   */
+  on(event: string, callback: EventCallback): void {
+    const callbacks = this.eventCallbacks.get(event) || [];
+    callbacks.push(callback);
+    this.eventCallbacks.set(event, callbacks);
   }
 
   /**

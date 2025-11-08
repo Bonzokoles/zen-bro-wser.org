@@ -1,10 +1,8 @@
 /**
- * Storage Service - Local Libraries Management
- * Saves content to thematic local libraries (folders)
+ * Storage Service - Cloudflare-Compatible Storage
+ * Saves content to in-memory storage (can be upgraded to KV/R2/D1 for production)
+ * NOTE: This is optimized for Cloudflare Workers - no filesystem access
  */
-
-import fs from 'fs/promises';
-import path from 'path';
 
 export interface LibraryMetadata {
   id: string;
@@ -16,12 +14,16 @@ export interface LibraryMetadata {
   [key: string]: any;
 }
 
+// In-memory storage (for development)
+// TODO: Replace with Cloudflare KV for production persistence
+const inMemoryStore = new Map<string, { metadata: LibraryMetadata; text: string }>();
+
 /**
- * Save content to a specific library topic folder
+ * Save content to storage
  * @param topic - Library category (art, film, architecture, culture, etc.)
  * @param id - Unique identifier for the content
- * @param metadata - Metadata object to save as JSON
- * @param text - Text content to save as Markdown
+ * @param metadata - Metadata object to save
+ * @param text - Text content to save
  */
 export async function saveToLibrary(
   topic: string,
@@ -29,20 +31,19 @@ export async function saveToLibrary(
   metadata: LibraryMetadata,
   text: string
 ): Promise<void> {
-  const basePath = path.resolve('./libraries', topic);
-  await fs.mkdir(basePath, { recursive: true });
+  const key = `${topic}:${id}`;
 
-  const metaPath = path.join(basePath, `${id}.json`);
-  const textPath = path.join(basePath, `${id}.md`);
-
-  await fs.writeFile(metaPath, JSON.stringify(metadata, null, 2));
-  await fs.writeFile(textPath, text);
+  inMemoryStore.set(key, { metadata, text });
 
   console.log(`[Storage] ✅ Saved content to library '${topic}' with ID '${id}'`);
+
+  // TODO: For production, use Cloudflare KV:
+  // await env.LIBRARY_KV.put(`metadata:${key}`, JSON.stringify(metadata));
+  // await env.LIBRARY_KV.put(`text:${key}`, text);
 }
 
 /**
- * Read content from library
+ * Read content from storage
  * @param topic - Library category
  * @param id - Content identifier
  */
@@ -51,17 +52,21 @@ export async function readFromLibrary(topic: string, id: string): Promise<{
   text: string;
 } | null> {
   try {
-    const basePath = path.resolve('./libraries', topic);
-    const metaPath = path.join(basePath, `${id}.json`);
-    const textPath = path.join(basePath, `${id}.md`);
+    const key = `${topic}:${id}`;
+    const data = inMemoryStore.get(key);
 
-    const metaContent = await fs.readFile(metaPath, 'utf-8');
-    const textContent = await fs.readFile(textPath, 'utf-8');
+    if (!data) {
+      console.log(`[Storage] ⚠️ Not found: '${topic}' ID '${id}'`);
+      return null;
+    }
 
-    return {
-      metadata: JSON.parse(metaContent),
-      text: textContent
-    };
+    return data;
+
+    // TODO: For production, use Cloudflare KV:
+    // const metaStr = await env.LIBRARY_KV.get(`metadata:${key}`);
+    // const text = await env.LIBRARY_KV.get(`text:${key}`);
+    // if (!metaStr || !text) return null;
+    // return { metadata: JSON.parse(metaStr), text };
   } catch (error) {
     console.error(`[Storage] ❌ Error reading from library '${topic}' ID '${id}':`, error);
     return null;
@@ -74,13 +79,20 @@ export async function readFromLibrary(topic: string, id: string): Promise<{
  */
 export async function listLibraryItems(topic: string): Promise<string[]> {
   try {
-    const basePath = path.resolve('./libraries', topic);
-    const files = await fs.readdir(basePath);
+    const prefix = `${topic}:`;
+    const items: string[] = [];
 
-    // Return only JSON files (IDs)
-    return files
-      .filter(f => f.endsWith('.json'))
-      .map(f => f.replace('.json', ''));
+    for (const key of inMemoryStore.keys()) {
+      if (key.startsWith(prefix)) {
+        items.push(key.replace(prefix, ''));
+      }
+    }
+
+    return items;
+
+    // TODO: For production, use Cloudflare KV:
+    // const list = await env.LIBRARY_KV.list({ prefix: `metadata:${prefix}` });
+    // return list.keys.map(k => k.name.replace(`metadata:${prefix}`, ''));
   } catch (error) {
     console.error(`[Storage] ❌ Error listing library '${topic}':`, error);
     return [];
@@ -88,17 +100,23 @@ export async function listLibraryItems(topic: string): Promise<string[]> {
 }
 
 /**
- * List all available libraries
+ * List all available libraries (topics)
  */
 export async function listLibraries(): Promise<string[]> {
   try {
-    const basePath = path.resolve('./libraries');
-    await fs.mkdir(basePath, { recursive: true });
-    const dirs = await fs.readdir(basePath, { withFileTypes: true });
+    const topics = new Set<string>();
 
-    return dirs
-      .filter(d => d.isDirectory())
-      .map(d => d.name);
+    for (const key of inMemoryStore.keys()) {
+      const topic = key.split(':')[0];
+      topics.add(topic);
+    }
+
+    return Array.from(topics);
+
+    // TODO: For production, use Cloudflare KV:
+    // const list = await env.LIBRARY_KV.list({ prefix: 'metadata:' });
+    // const topics = new Set(list.keys.map(k => k.name.split(':')[1]));
+    // return Array.from(topics);
   } catch (error) {
     console.error('[Storage] ❌ Error listing libraries:', error);
     return [];
