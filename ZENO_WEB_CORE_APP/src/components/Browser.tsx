@@ -3,9 +3,12 @@ import WebView from './WebView';
 import ChatPanel from './ChatPanel';
 import ProviderSettings from './ProviderSettings';
 import FloatingWindow from './FloatingWindow';
+import UpgradePrompt from './UpgradePrompt';
 // import LocalChatbot from './LocalChatbot'; // Moved to NOT_IN_USE
 import { mcpService } from '../services/mcpService';
 import { analytics } from '../services/analytics';
+import { licenseManager, getLicensePlan } from '../services/security/licenseManager';
+import { hasFeatureAccess, TAB_LIMITS, FEATURES, type PlanType } from '../config/features';
 
 export interface Tab {
 	id: string;
@@ -86,6 +89,16 @@ const Browser: React.FC = () => {
 
 	const [history, setHistory] = useState<HistoryItem[]>([]);
 
+	// License & Feature Gates
+	const [currentPlan, setCurrentPlan] = useState<PlanType>('free');
+	const [isLicenseValid, setIsLicenseValid] = useState(false);
+	const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
+	const [upgradeFeature, setUpgradeFeature] = useState<{
+		name: string;
+		icon: string;
+		requiredPlan: PlanType;
+	} | null>(null);
+
 	// Load bookmarks and history from localStorage on mount
 	useEffect(() => {
 		const loadData = () => {
@@ -135,6 +148,30 @@ const Browser: React.FC = () => {
 			console.error('Failed to save history:', error);
 		}
 	}, [history]);
+
+	// Check license on mount
+	useEffect(() => {
+		const checkLicense = async () => {
+			try {
+				const validation = await licenseManager.validateLicense();
+				setIsLicenseValid(validation.isValid);
+				const plan = getLicensePlan();
+				setCurrentPlan(plan);
+
+				if (validation.isValid) {
+					addConsoleMessage(`✅ License activated - ${plan} plan`);
+				} else {
+					addConsoleMessage('ℹ️ Using Free plan - Upgrade to unlock premium features');
+				}
+			} catch (error) {
+				console.error('License check failed:', error);
+				setCurrentPlan('free');
+				setIsLicenseValid(false);
+			}
+		};
+
+		checkLicense();
+	}, []);
 
 	// Floating windows state
 	interface FloatingWindowData {
@@ -554,6 +591,37 @@ const Browser: React.FC = () => {
 		}, 500);
 	};
 
+	// Feature gate helper functions
+	const checkFeatureAccess = (featureId: string): boolean => {
+		return hasFeatureAccess(currentPlan, featureId);
+	};
+
+	const promptUpgrade = (featureName: string, featureIcon: string, requiredPlan: PlanType) => {
+		setUpgradeFeature({ name: featureName, icon: featureIcon, requiredPlan });
+		setShowUpgradePrompt(true);
+		addConsoleMessage(`🔒 ${featureName} requires ${requiredPlan} plan`);
+	};
+
+	const handleUpgrade = () => {
+		// Redirect to pricing page or show payment modal
+		window.open('/pricing', '_blank');
+		setShowUpgradePrompt(false);
+	};
+
+	// Override create tab to enforce tab limits
+	const handleCreateTabGated = (url: string = 'about:blank') => {
+		const tabLimit = TAB_LIMITS[currentPlan];
+
+		if (tabs.length >= tabLimit) {
+			if (currentPlan === 'free') {
+				promptUpgrade('Unlimited Tabs', '∞', 'monthly');
+				return;
+			}
+		}
+
+		handleCreateTab(url);
+	};
+
 
 	
 	return (
@@ -599,6 +667,55 @@ const Browser: React.FC = () => {
 						<span style={{color: colors.text}}>ZENO_WEB_CORE</span>
 					</div>
 					
+					{/* Plan Badge */}
+					<div
+						onClick={() => {
+							if (currentPlan === 'free') {
+								window.open('/pricing', '_blank');
+							}
+						}}
+						style={{
+							background: currentPlan === 'free'
+								? 'linear-gradient(135deg, #94a3b8, #64748b)'
+								: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+							border: 'none',
+							borderRadius: '10px',
+							padding: '8px 16px',
+							color: 'white',
+							fontWeight: '700',
+							fontSize: '12px',
+							cursor: currentPlan === 'free' ? 'pointer' : 'default',
+							transition: 'all 0.3s ease',
+							boxShadow: currentPlan === 'free'
+								? '0 2px 10px rgba(148, 163, 184, 0.3)'
+								: '0 4px 15px rgba(102, 126, 234, 0.4)',
+							textTransform: 'uppercase',
+							letterSpacing: '0.5px',
+							display: 'flex',
+							alignItems: 'center',
+							gap: '6px'
+						}}
+						onMouseEnter={(e) => {
+							if (currentPlan === 'free') {
+								e.currentTarget.style.transform = 'scale(1.05)';
+								e.currentTarget.style.boxShadow = '0 4px 15px rgba(102, 126, 234, 0.4)';
+							}
+						}}
+						onMouseLeave={(e) => {
+							if (currentPlan === 'free') {
+								e.currentTarget.style.transform = 'scale(1)';
+								e.currentTarget.style.boxShadow = '0 2px 10px rgba(148, 163, 184, 0.3)';
+							}
+						}}
+					>
+						{currentPlan === 'free' && '⬆️'}
+						{currentPlan === 'monthly' && '⭐'}
+						{currentPlan === 'yearly' && '🚀'}
+						{currentPlan === 'lifetime' && '👑'}
+						{currentPlan.toUpperCase()}
+						{currentPlan === 'free' && ' - Upgrade'}
+					</div>
+
 					{/* Theme Toggle */}
 					<button
 						onClick={toggleTheme}
@@ -1747,7 +1864,14 @@ const Browser: React.FC = () => {
 			}}>
 				{/* MCP Tools Button */}
 				<button
-					onClick={() => setIsConsoleOpen(!isConsoleOpen)}
+					onClick={() => {
+						// Check if user has access to MCP tools
+						if (!checkFeatureAccess('mcp_tools')) {
+							promptUpgrade('MCP Tools Integration', '🔧', 'monthly');
+							return;
+						}
+						setIsConsoleOpen(!isConsoleOpen);
+					}}
 					style={{
 						background: isConsoleOpen 
 							? `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`
@@ -1891,7 +2015,14 @@ const Browser: React.FC = () => {
 
 				{/* Local Chat Button */}
 				<button
-					onClick={() => setIsLocalChatOpen(!isLocalChatOpen)}
+					onClick={() => {
+						// Check if user has access to Ollama integration
+						if (!checkFeatureAccess('ollama_integration')) {
+							promptUpgrade('Local Ollama Models', '🦙', 'monthly');
+							return;
+						}
+						setIsLocalChatOpen(!isLocalChatOpen);
+					}}
 					style={{
 						background: isLocalChatOpen
 							? `linear-gradient(135deg, #8b5cf6, #7c3aed)`
@@ -1961,6 +2092,11 @@ const Browser: React.FC = () => {
 				{/* AI Chat Button */}
 				<button
 					onClick={() => {
+						// Check if user has access to AI assistant
+						if (!checkFeatureAccess('ai_assistant')) {
+							promptUpgrade('AI Assistant', '🤖', 'monthly');
+							return;
+						}
 						console.log('AI Chat button clicked, current state:', isChatOpen);
 						setIsChatOpen(!isChatOpen);
 					}}
@@ -2099,6 +2235,17 @@ const Browser: React.FC = () => {
 					initialY={120 + (floatingWindows.findIndex(w => w.id === window.id) * 30)}
 				/>
 			))}
+
+			{/* Upgrade Prompt Modal */}
+			{showUpgradePrompt && upgradeFeature && (
+				<UpgradePrompt
+					featureName={upgradeFeature.name}
+					featureIcon={upgradeFeature.icon}
+					requiredPlan={upgradeFeature.requiredPlan}
+					onClose={() => setShowUpgradePrompt(false)}
+					onUpgrade={handleUpgrade}
+				/>
+			)}
 		</div>
 	);
 };
