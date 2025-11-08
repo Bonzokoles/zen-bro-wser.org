@@ -9,6 +9,7 @@ export interface Env {
   DB: D1Database;
   CACHE: KVNamespace;
   AI: any; // Cloudflare Workers AI
+  BIELIK_AGENTS: Fetcher; // Service binding to BIELIK agent system
   GEMINI_API_KEY: string;
   OPENAI_API_KEY: string;
   ANTHROPIC_API_KEY: string;
@@ -57,6 +58,10 @@ export default {
       // AI Assistant
       else if (url.pathname === '/api/ai-assistant' && request.method === 'POST') {
         response = await handleAI(request, env);
+      }
+      // BIELIK Agents - Proxy to agent system
+      else if (url.pathname.startsWith('/api/agents/')) {
+        response = await handleBielikAgents(request, env);
       }
       // Analytics - Get stats
       else if (url.pathname === '/api/stats' && request.method === 'GET') {
@@ -783,6 +788,28 @@ async function checkApiKey(apiKey: string, env: Env): Promise<boolean> {
   // Check if subscription is active
   const status = (data as any).status;
   return status === 'active';
+}
+
+// ============================================
+// BIELIK AGENTS INTEGRATION
+// ============================================
+
+/**
+ * Proxy requests to BIELIK agent system worker
+ * All /api/agents/* requests are forwarded to BIELIK_AGENTS service
+ */
+async function handleBielikAgents(request: Request, env: Env): Promise<Response> {
+  try {
+    // Forward request to BIELIK worker via service binding
+    const response = await env.BIELIK_AGENTS.fetch(request);
+    return response;
+  } catch (error: any) {
+    console.error('BIELIK agent error:', error);
+    return Response.json({
+      error: 'Agent system unavailable',
+      message: error.message,
+    }, { status: 503 });
+  }
 }
 
 // ============================================

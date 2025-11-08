@@ -134,10 +134,10 @@ upstream_protocol = "https"
 binding = "AI"
 
 # Service bindings (optional - call other workers)
-# [[services]]
-# binding = "AUTH_SERVICE"
-# service = "zeno-auth-worker"
-# environment = "production"
+[[services]]
+binding = "BIELIK_AGENTS"
+service = "zeno-bielik-agents"
+# environment = "production"  # Uncomment when using env.production
 
 # Tail consumers (optional - for log processing)
 # [[tail_consumers]]
