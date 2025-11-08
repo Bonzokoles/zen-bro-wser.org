@@ -36,8 +36,12 @@ export class BaseAgent {
       console.log(`\n--- Agent Iteration ${currentIteration} ---`);
 
       const response = await this.model.chat(messages);
-      const assistantMessage = { role: 'assistant', content: response.content, toolCalls: response.toolCalls };
-      messages.push(assistantMessage);
+
+      // Add assistant message to history
+      messages.push({
+        role: 'assistant' as const,
+        content: response.content ?? 'No content provided'
+      });
 
       // If there are tool calls, execute them
       if (response.toolCalls && response.toolCalls.length > 0) {
@@ -50,7 +54,7 @@ export class BaseAgent {
             try {
               const args = JSON.parse(toolCall.function.arguments);
               const result = await toolFn(...Object.values(args));
-              
+
               // Add tool result to messages
               messages.push({
                 role: 'tool',
@@ -59,13 +63,14 @@ export class BaseAgent {
               });
               console.log(`Tool "${toolName}" executed successfully. Result added to context.`);
 
-            } catch (error) {
+            } catch (error: unknown) {
+              const err = error as Error;
               messages.push({
                 role: 'tool',
                 toolCallId: toolCall.id,
-                content: `Error executing tool ${toolName}: ${error.message}`,
+                content: `Error executing tool ${toolName}: ${err.message}`,
               });
-              console.error(`Error executing tool ${toolName}:`, error);
+              console.error(`Error executing tool ${toolName}:`, err);
             }
           } else {
             messages.push({

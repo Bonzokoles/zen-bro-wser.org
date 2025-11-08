@@ -34,7 +34,8 @@ export async function executeWebSearch(query: string): Promise<string> {
     } else {
       return 'No results found.';
     }
-  } catch (error) {
-    return `Error performing web search: ${error.message}`;
+  } catch (error: unknown) {
+    const err = error as Error;
+    return `Error performing web search: ${err.message}`;
   }
 }

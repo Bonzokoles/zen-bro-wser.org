@@ -14,6 +14,7 @@ import { BaseAgent } from './BaseAgent';
 import { AgentConfig } from '../config/agents.config';
 import { IModelProvider, ChatMessage } from '../models/IModelProvider';
 import { Task } from '../tasks/Task';
+import { ToolFunction } from '../core/ToolFactory';
 
 // Define a specific state or context for this agent, if needed.
 interface SpecialistAgentContext {
@@ -22,11 +23,15 @@ interface SpecialistAgentContext {
 }
 
 export class SpecialistAgent extends BaseAgent {
+  private agentModel: IModelProvider;
+
   constructor(
-    public config: AgentConfig,
-    private model: IModelProvider
+    config: AgentConfig,
+    model: IModelProvider,
+    tools: Map<string, ToolFunction>
   ) {
-    super(config, model);
+    super(config, model, tools);
+    this.agentModel = model;
   }
 
   /**
@@ -52,12 +57,12 @@ export class SpecialistAgent extends BaseAgent {
 
     // 2. (Optional) Implement a loop for complex interactions (e.g., ReAct pattern).
     //    This might involve calling tools, processing results, and sending them back to the model.
-    
+
     // For this template, we'll just make a single call.
-    const response = await this.model.chat(messages);
+    const response = await this.agentModel.chat(messages);
 
     // 3. Process the final response.
-    const finalResult = this.processFinalResponse(response.content);
+    const finalResult = this.processFinalResponse(response.content ?? '');
 
     return finalResult;
   }

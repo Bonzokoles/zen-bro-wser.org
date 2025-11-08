@@ -1,0 +1,139 @@
+# Cloudflare Workers Configuration for BIELIK Agent System
+# https://developers.cloudflare.com/workers/wrangler/configuration
+
+name = "zeno-bielik-agents"
+main = "dist/index.js"
+compatibility_date = "2024-11-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Account details
+account_id = "7f490d58a478c6baccb0ae01ea1d87c3"  # Stolarnia.ams@gmail.com
+workers_dev = true  # Use workers.dev subdomain for testing
+
+# Routes for production (uncomment when ready)
+# [env.production]
+# name = "zeno-bielik-agents-production"
+# routes = [
+#   { pattern = "agents.zeno-browser.com/*", zone_name = "zeno-browser.com" }
+# ]
+
+# D1 Database binding for agent logs and state
+[[d1_databases]]
+binding = "DB"
+database_name = "zeno-bielik-db"
+database_id = ""  # FILL THIS: Run 'wrangler d1 create zeno-bielik-db' and paste ID here
+
+# KV Namespace for agent state and caching
+[[kv_namespaces]]
+binding = "AGENT_STATE"
+id = ""  # FILL THIS: Run 'wrangler kv:namespace create AGENT_STATE' and paste ID here
+preview_id = ""  # FILL THIS: Run 'wrangler kv:namespace create AGENT_STATE --preview'
+
+# Environment variables (non-sensitive)
+[vars]
+ENVIRONMENT = "production"
+API_VERSION = "v1"
+ALLOWED_ORIGINS = "*"  # Change to your domain in production
+MAX_TASK_DURATION = "300"  # 5 minutes
+MAX_CONCURRENT_TASKS = "10"
+
+# Observability settings
+[observability]
+enabled = true
+head_sampling_rate = 1.0  # Sample 100% of requests (reduce in production)
+
+# Development server settings
+[dev]
+ip = "0.0.0.0"
+port = 8788  # Different port from main worker
+local_protocol = "http"
+upstream_protocol = "https"
+
+# Secrets (use 'wrangler secret put <NAME>' to set these)
+# DO NOT commit actual secret values to Git!
+# 
+# Required secrets for AI models:
+# - OPENAI_API_KEY: OpenAI API key for GPT models
+# - GOOGLE_GEMINI_API_KEY: Google Gemini API key
+# - ANTHROPIC_API_KEY: Anthropic Claude API key
+# - TAVILY_API_KEY: Tavily search API key
+# 
+# Set secrets with:
+# wrangler secret put OPENAI_API_KEY
+# wrangler secret put GOOGLE_GEMINI_API_KEY
+# wrangler secret put ANTHROPIC_API_KEY
+# wrangler secret put TAVILY_API_KEY
+
+# ============================================
+# PRODUCTION ENVIRONMENT
+# ============================================
+
+[env.production]
+name = "zeno-bielik-agents-production"
+vars = { ENVIRONMENT = "production", ALLOWED_ORIGINS = "https://zeno-browser.pages.dev" }
+
+# Production D1 Database
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "zeno-bielik-db-prod"
+database_id = ""  # FILL THIS: Create separate production database
+
+# Production KV
+[[env.production.kv_namespaces]]
+binding = "AGENT_STATE"
+id = ""  # FILL THIS: Create separate production KV namespace
+
+# ============================================
+# STAGING ENVIRONMENT
+# ============================================
+
+[env.staging]
+name = "zeno-bielik-agents-staging"
+vars = { ENVIRONMENT = "staging", ALLOWED_ORIGINS = "*" }
+
+# Staging D1 Database
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "zeno-bielik-db-staging"
+database_id = ""  # FILL THIS
+
+# Staging KV
+[[env.staging.kv_namespaces]]
+binding = "AGENT_STATE"
+id = ""  # FILL THIS
+
+# ============================================
+# NOTES
+# ============================================
+
+# 1. Setup Steps:
+#    a) cd BIELIK_THE_whitie
+#    b) npm run build  # Must succeed first!
+#    c) wrangler d1 create zeno-bielik-db
+#    d) wrangler kv:namespace create AGENT_STATE
+#    e) Fill in IDs above
+#    f) wrangler secret put OPENAI_API_KEY
+#    g) wrangler secret put TAVILY_API_KEY
+#    h) wrangler deploy
+
+# 2. Local Development:
+#    - npm run build  # Compile TypeScript first
+#    - wrangler dev   # Test locally
+#    - Access: http://localhost:8788
+
+# 3. Deployment:
+#    - Staging: wrangler deploy --env staging
+#    - Production: wrangler deploy --env production
+
+# 4. Testing Endpoints:
+#    - https://zeno-bielik-agents.stolarnia-ams.workers.dev/status
+#    - https://zeno-bielik-agents.stolarnia-ams.workers.dev/agents/researcher
+#    - POST https://zeno-bielik-agents.stolarnia-ams.workers.dev/execute
+
+# 5. CORS Configuration:
+#    - Development: Allow all origins (*)
+#    - Production: Restrict to zeno-browser.pages.dev
+
+# 6. Database Schema:
+#    - Create schema.sql in BIELIK_THE_whitie/
+#    - Run: wrangler d1 execute zeno-bielik-db --file=./schema.sql

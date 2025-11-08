@@ -23,8 +23,9 @@ export async function readFile(filePath: string): Promise<string> {
     const safePath = resolvePath(filePath);
     const content = await fs.readFile(safePath, 'utf-8');
     return content;
-  } catch (error) {
-    return `Error reading file: ${error.message}`;
+  } catch (error: unknown) {
+    const err = error as Error;
+    return `Error reading file: ${err.message}`;
   }
 }
 
@@ -39,7 +40,8 @@ export async function writeFile(filePath: string, content: string): Promise<stri
     const safePath = resolvePath(filePath);
     await fs.writeFile(safePath, content, 'utf-8');
     return `Successfully wrote to file: ${filePath}`;
-  } catch (error) {
-    return `Error writing to file: ${error.message}`;
+  } catch (error: unknown) {
+    const err = error as Error;
+    return `Error writing to file: ${err.message}`;
   }
 }

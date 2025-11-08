@@ -10,9 +10,9 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy:
+  deploy-frontend:
     runs-on: ubuntu-latest
-    name: Deploy ZENO Browser
+    name: Deploy ZENO Browser Frontend
 
     steps:
       - name: Checkout repository
@@ -26,6 +26,7 @@ jobs:
       - name: Install dependencies
         working-directory: ./ZENO_WEB_CORE_APP
         run: npm ci
+
       - name: Build application
         working-directory: ./ZENO_WEB_CORE_APP
         run: npm run build
@@ -33,6 +34,7 @@ jobs:
           NODE_ENV: production
           VITE_ENVIRONMENT: production
           VITE_API_URL: https://zeno-browser-api.stolarnia-ams.workers.dev
+          VITE_BIELIK_API_URL: https://zeno-bielik-agents.stolarnia-ams.workers.dev
           VITE_CONTACT_EMAIL: JimBoZen@proton.me
           VITE_HUGGINGFACE_API_KEY: ${{ secrets.HUGGINGFACE_API_KEY }}
           VITE_OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
@@ -49,10 +51,44 @@ jobs:
             --branch=main \
             --commit-dirty=true
 
+  deploy-bielik:
+    runs-on: ubuntu-latest
+    name: Deploy BIELIK Agent System
+    needs: deploy-frontend # Deploy backend after frontend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        working-directory: ./BIELIK_THE_whitie
+        run: npm ci
+
+      - name: Build BIELIK
+        working-directory: ./BIELIK_THE_whitie
+        run: npm run build
+
+      - name: Deploy BIELIK to Cloudflare Workers
+        working-directory: ./BIELIK_THE_whitie
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          npx wrangler@3.90.0 deploy \
+            --compatibility-date=2024-11-01
+
       - name: Deployment Summary
         run: |
-          echo "🎉 Deployment Complete!" >> $GITHUB_STEP_SUMMARY
+          echo "🎉 Full Stack Deployment Complete!" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "✅ Frontend: https://zeno-browser.pages.dev" >> $GITHUB_STEP_SUMMARY
+          echo "✅ BIELIK Agents: https://zeno-bielik-agents.stolarnia-ams.workers.dev" >> $GITHUB_STEP_SUMMARY
           echo "✅ Worker API: https://zeno-browser-api.stolarnia-ams.workers.dev" >> $GITHUB_STEP_SUMMARY
           echo "✅ Custom Domain: https://zenbrowsers.org (pending DNS)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "🔗 Test Agent Status: https://zeno-browser.pages.dev/api/agents/status" >> $GITHUB_STEP_SUMMARY
