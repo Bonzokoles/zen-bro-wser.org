@@ -21,7 +21,7 @@ export default defineConfig({
     // Uwaga: domyślnie adapter oczekuje KV o nazwie 'SESSION'. Dodaj binding w Pages lub zmień nazwę przez sessionKVBindingName.
   }),
   server: {
-    port: 4366,
+    port: 4367,
     host: true
   },
   integrations: [mdx(), sitemap(), react(), tailwind({
