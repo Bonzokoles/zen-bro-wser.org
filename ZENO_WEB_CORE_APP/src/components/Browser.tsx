@@ -4,6 +4,7 @@ import ChatPanel from './ChatPanel';
 import ProviderSettings from './ProviderSettings';
 import FloatingWindow from './FloatingWindow';
 import UpgradePrompt from './UpgradePrompt';
+import MusicPlayer from './MusicPlayer';
 // import LocalChatbot from './LocalChatbot'; // Moved to NOT_IN_USE
 import { mcpService } from '../services/mcpService';
 import { analytics } from '../services/analytics';
@@ -66,6 +67,7 @@ const Browser: React.FC = () => {
 	const [isChatOpen, setIsChatOpen] = useState(false);
 	const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 	const [isLocalChatOpen, setIsLocalChatOpen] = useState(false);
+	const [isMusicPlayerOpen, setIsMusicPlayerOpen] = useState(false);
 	const [theme, setTheme] = useState<Theme>('dark');
 	const [isAddingBookmark, setIsAddingBookmark] = useState(false);
 	const [newBookmarkData, setNewBookmarkData] = useState({
@@ -2133,6 +2135,49 @@ const Browser: React.FC = () => {
 					<span>AI Chat</span>
 				</button>
 
+				{/* Music Player Button */}
+				<button
+					onClick={() => {
+						// Check if user has access to music player
+						if (!checkFeatureAccess('music_player')) {
+							promptUpgrade('Music Player (Webamp)', '🎵', 'yearly');
+							return;
+						}
+						setIsMusicPlayerOpen(!isMusicPlayerOpen);
+					}}
+					style={{
+						background: isMusicPlayerOpen
+							? `linear-gradient(135deg, #f093fb 0%, #f5576c 100%)`
+							: `linear-gradient(135deg, #f093fb40, #f5576c40)`,
+						border: 'none',
+						borderRadius: '15px',
+						padding: '12px 16px',
+						color: 'white',
+						cursor: 'pointer',
+						display: 'flex',
+						flexDirection: 'column',
+						alignItems: 'center',
+						gap: '4px',
+						fontSize: '11px',
+						fontWeight: '500',
+						minWidth: '80px',
+						transition: 'all 0.3s ease',
+						backdropFilter: 'blur(10px)',
+						boxShadow: isMusicPlayerOpen ? '0 4px 15px #f093fb40' : 'none'
+					}}
+					onMouseEnter={(e) => {
+						e.currentTarget.style.transform = 'translateY(-2px)';
+						e.currentTarget.style.boxShadow = '0 6px 20px #f093fb60';
+					}}
+					onMouseLeave={(e) => {
+						e.currentTarget.style.transform = 'translateY(0)';
+						e.currentTarget.style.boxShadow = isMusicPlayerOpen ? '0 4px 15px #f093fb40' : 'none';
+					}}
+				>
+					<span style={{ fontSize: '16px' }}>🎵</span>
+					<span>Music</span>
+				</button>
+
 				{/* Settings Button */}
 				<button
 					onClick={() => {
@@ -2206,6 +2251,40 @@ const Browser: React.FC = () => {
 			{isLocalChatOpen && (
 				<div
 					onClick={() => setIsLocalChatOpen(false)}
+					style={{
+						position: 'fixed',
+						top: 0,
+						left: 0,
+						right: 0,
+						bottom: 0,
+						backgroundColor: 'rgba(0, 0, 0, 0.7)',
+						backdropFilter: 'blur(4px)',
+						zIndex: 9999
+					}}
+				/>
+			)}
+
+			{/* Music Player (Webamp) */}
+			{isMusicPlayerOpen && (
+				<div style={{
+					position: 'fixed',
+					top: '50%',
+					left: '50%',
+					transform: 'translate(-50%, -50%)',
+					zIndex: 10000,
+					boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)',
+					backgroundColor: '#f1f5f9',
+					borderRadius: '16px',
+					overflow: 'hidden'
+				}}>
+					<MusicPlayer onClose={() => setIsMusicPlayerOpen(false)} />
+				</div>
+			)}
+
+			{/* Backdrop for Music Player */}
+			{isMusicPlayerOpen && (
+				<div
+					onClick={() => setIsMusicPlayerOpen(false)}
 					style={{
 						position: 'fixed',
 						top: 0,

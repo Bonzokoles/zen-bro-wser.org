@@ -100,6 +100,13 @@ export const FEATURES: Feature[] = [
 
   // YEARLY PLAN FEATURES
   {
+    id: 'music_player',
+    name: 'Music Player (Webamp)',
+    description: 'Classic Winamp-style player with skins',
+    icon: '🎵',
+    requiredPlan: 'yearly'
+  },
+  {
     id: 'advanced_search',
     name: 'Advanced Search',
     description: 'Powerful search with filters and sorting',
