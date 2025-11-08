@@ -64,6 +64,12 @@ const Browser: React.FC = () => {
 	const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 	const [isLocalChatOpen, setIsLocalChatOpen] = useState(false);
 	const [theme, setTheme] = useState<Theme>('dark');
+	const [isAddingBookmark, setIsAddingBookmark] = useState(false);
+	const [newBookmarkData, setNewBookmarkData] = useState({
+		title: '',
+		url: '',
+		favicon: '🌐'
+	});
 	const [consoleOutput, setConsoleOutput] = useState<string[]>([
 		'ZENO_WEB_CORE initialized successfully!',
 		'Advanced MCP integration ready...',
@@ -79,6 +85,56 @@ const Browser: React.FC = () => {
 	]);
 
 	const [history, setHistory] = useState<HistoryItem[]>([]);
+
+	// Load bookmarks and history from localStorage on mount
+	useEffect(() => {
+		const loadData = () => {
+			try {
+				// Load bookmarks
+				const savedBookmarks = localStorage.getItem('zeno_bookmarks');
+				if (savedBookmarks) {
+					const parsed = JSON.parse(savedBookmarks);
+					setBookmarks(parsed);
+					console.log(`✅ Loaded ${parsed.length} bookmarks from storage`);
+				}
+
+				// Load history
+				const savedHistory = localStorage.getItem('zeno_history');
+				if (savedHistory) {
+					const parsed = JSON.parse(savedHistory);
+					// Convert date strings back to Date objects
+					const historyWithDates = parsed.map((item: any) => ({
+						...item,
+						visitedAt: new Date(item.visitedAt)
+					}));
+					setHistory(historyWithDates);
+					console.log(`✅ Loaded ${historyWithDates.length} history items from storage`);
+				}
+			} catch (error) {
+				console.error('Failed to load data from localStorage:', error);
+			}
+		};
+
+		loadData();
+	}, []);
+
+	// Save bookmarks to localStorage whenever they change
+	useEffect(() => {
+		try {
+			localStorage.setItem('zeno_bookmarks', JSON.stringify(bookmarks));
+		} catch (error) {
+			console.error('Failed to save bookmarks:', error);
+		}
+	}, [bookmarks]);
+
+	// Save history to localStorage whenever it changes
+	useEffect(() => {
+		try {
+			localStorage.setItem('zeno_history', JSON.stringify(history));
+		} catch (error) {
+			console.error('Failed to save history:', error);
+		}
+	}, [history]);
 
 	// Floating windows state
 	interface FloatingWindowData {
@@ -286,6 +342,41 @@ const Browser: React.FC = () => {
 		const bookmark = bookmarks.find(b => b.id === bookmarkId);
 		setBookmarks(prev => prev.filter(b => b.id !== bookmarkId));
 		addConsoleMessage(`Bookmark removed: ${bookmark?.title || 'Unknown'}`);
+	};
+
+	const addNewBookmarkManually = () => {
+		if (!newBookmarkData.title || !newBookmarkData.url) {
+			addConsoleMessage('⚠️ Title and URL are required');
+			return;
+		}
+
+		// Validate URL
+		try {
+			new URL(newBookmarkData.url.startsWith('http') ? newBookmarkData.url : `https://${newBookmarkData.url}`);
+		} catch {
+			addConsoleMessage('⚠️ Invalid URL format');
+			return;
+		}
+
+		const existingBookmark = bookmarks.find(b => b.url === newBookmarkData.url);
+		if (existingBookmark) {
+			addConsoleMessage('Page already bookmarked');
+			return;
+		}
+
+		const newBookmark: Bookmark = {
+			id: Date.now().toString(),
+			title: newBookmarkData.title,
+			url: newBookmarkData.url.startsWith('http') ? newBookmarkData.url : `https://${newBookmarkData.url}`,
+			favicon: newBookmarkData.favicon || '🌐'
+		};
+
+		setBookmarks(prev => [...prev, newBookmark]);
+		addConsoleMessage(`✅ Bookmark added: ${newBookmark.title}`);
+
+		// Reset form
+		setNewBookmarkData({ title: '', url: '', favicon: '🌐' });
+		setIsAddingBookmark(false);
 	};
 
 	const addToHistory = (url: string, title: string, favicon: string = '🌐') => {
@@ -598,25 +689,196 @@ const Browser: React.FC = () => {
 						marginBottom: '20px'
 					}}>
 						<h3 style={{color: colors.text, fontSize: '20px', margin: 0, fontWeight: '600'}}>� Bookmarks</h3>
-						<button
-							onClick={() => setShowBookmarks(false)}
-							style={{
-								background: colors.accent,
-								border: 'none',
-								color: colors.muted,
-								fontSize: '18px',
-								cursor: 'pointer',
-								borderRadius: '50%',
-								width: '32px',
-								height: '32px',
-								display: 'flex',
-								alignItems: 'center',
-								justifyContent: 'center'
-							}}
-						>
-							✕
-						</button>
+						<div style={{ display: 'flex', gap: '12px' }}>
+							<button
+								onClick={() => setIsAddingBookmark(true)}
+								style={{
+									background: 'linear-gradient(135deg, #10b981, #059669)',
+									border: 'none',
+									color: 'white',
+									fontSize: '14px',
+									cursor: 'pointer',
+									borderRadius: '8px',
+									padding: '8px 16px',
+									fontWeight: '600',
+									transition: 'all 0.3s ease'
+								}}
+								onMouseEnter={(e) => {
+									e.currentTarget.style.transform = 'scale(1.05)';
+									e.currentTarget.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.4)';
+								}}
+								onMouseLeave={(e) => {
+									e.currentTarget.style.transform = 'scale(1)';
+									e.currentTarget.style.boxShadow = 'none';
+								}}
+							>
+								➕ Add New
+							</button>
+							<button
+								onClick={() => setShowBookmarks(false)}
+								style={{
+									background: colors.accent,
+									border: 'none',
+									color: colors.muted,
+									fontSize: '18px',
+									cursor: 'pointer',
+									borderRadius: '50%',
+									width: '32px',
+									height: '32px',
+									display: 'flex',
+									alignItems: 'center',
+									justifyContent: 'center'
+								}}
+							>
+								✕
+							</button>
+						</div>
 					</div>
+
+					{/* Add Bookmark Form */}
+					{isAddingBookmark && (
+						<div style={{
+							backgroundColor: colors.primary,
+							border: `2px solid ${colors.border}`,
+							borderRadius: '12px',
+							padding: '20px',
+							marginBottom: '20px'
+						}}>
+							<h4 style={{ color: colors.text, fontSize: '16px', margin: '0 0 16px 0', fontWeight: '600' }}>
+								Add New Bookmark
+							</h4>
+							<div style={{ display: 'grid', gap: '12px' }}>
+								<div>
+									<label style={{ color: colors.muted, fontSize: '12px', display: 'block', marginBottom: '6px' }}>
+										Title *
+									</label>
+									<input
+										type="text"
+										value={newBookmarkData.title}
+										onChange={(e) => setNewBookmarkData({ ...newBookmarkData, title: e.target.value })}
+										placeholder="e.g., My Favorite Site"
+										style={{
+											width: '100%',
+											backgroundColor: colors.accent,
+											border: `1px solid ${colors.border}`,
+											borderRadius: '8px',
+											padding: '10px 12px',
+											color: colors.text,
+											fontSize: '14px',
+											outline: 'none'
+										}}
+										onKeyPress={(e) => {
+											if (e.key === 'Enter') {
+												addNewBookmarkManually();
+											}
+										}}
+									/>
+								</div>
+								<div>
+									<label style={{ color: colors.muted, fontSize: '12px', display: 'block', marginBottom: '6px' }}>
+										URL *
+									</label>
+									<input
+										type="text"
+										value={newBookmarkData.url}
+										onChange={(e) => setNewBookmarkData({ ...newBookmarkData, url: e.target.value })}
+										placeholder="e.g., https://example.com"
+										style={{
+											width: '100%',
+											backgroundColor: colors.accent,
+											border: `1px solid ${colors.border}`,
+											borderRadius: '8px',
+											padding: '10px 12px',
+											color: colors.text,
+											fontSize: '14px',
+											outline: 'none',
+											fontFamily: 'monospace'
+										}}
+										onKeyPress={(e) => {
+											if (e.key === 'Enter') {
+												addNewBookmarkManually();
+											}
+										}}
+									/>
+								</div>
+								<div>
+									<label style={{ color: colors.muted, fontSize: '12px', display: 'block', marginBottom: '6px' }}>
+										Emoji/Icon (optional)
+									</label>
+									<input
+										type="text"
+										value={newBookmarkData.favicon}
+										onChange={(e) => setNewBookmarkData({ ...newBookmarkData, favicon: e.target.value })}
+										placeholder="🌐"
+										maxLength={2}
+										style={{
+											width: '80px',
+											backgroundColor: colors.accent,
+											border: `1px solid ${colors.border}`,
+											borderRadius: '8px',
+											padding: '10px 12px',
+											color: colors.text,
+											fontSize: '20px',
+											outline: 'none',
+											textAlign: 'center'
+										}}
+									/>
+								</div>
+								<div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
+									<button
+										onClick={addNewBookmarkManually}
+										style={{
+											flex: 1,
+											background: 'linear-gradient(135deg, #10b981, #059669)',
+											border: 'none',
+											color: 'white',
+											padding: '12px',
+											borderRadius: '8px',
+											fontSize: '14px',
+											fontWeight: '600',
+											cursor: 'pointer',
+											transition: 'all 0.3s ease'
+										}}
+										onMouseEnter={(e) => {
+											e.currentTarget.style.transform = 'scale(1.02)';
+										}}
+										onMouseLeave={(e) => {
+											e.currentTarget.style.transform = 'scale(1)';
+										}}
+									>
+										✓ Save Bookmark
+									</button>
+									<button
+										onClick={() => {
+											setIsAddingBookmark(false);
+											setNewBookmarkData({ title: '', url: '', favicon: '🌐' });
+										}}
+										style={{
+											flex: 1,
+											background: colors.accent,
+											border: `1px solid ${colors.border}`,
+											color: colors.muted,
+											padding: '12px',
+											borderRadius: '8px',
+											fontSize: '14px',
+											fontWeight: '600',
+											cursor: 'pointer',
+											transition: 'all 0.3s ease'
+										}}
+										onMouseEnter={(e) => {
+											e.currentTarget.style.backgroundColor = colors.secondary;
+										}}
+										onMouseLeave={(e) => {
+											e.currentTarget.style.backgroundColor = colors.accent;
+										}}
+									>
+										✕ Cancel
+									</button>
+								</div>
+							</div>
+						</div>
+					)}
+
 					<div style={{
 						display: 'grid',
 						gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
