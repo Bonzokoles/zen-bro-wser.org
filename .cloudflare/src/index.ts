@@ -22,23 +22,23 @@ export interface Env {
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
-    
+
     // CORS headers
     const corsHeaders = {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type,Authorization',
     };
-    
+
     // Handle CORS preflight
     if (request.method === 'OPTIONS') {
       return new Response(null, { headers: corsHeaders });
     }
-    
+
     // Router
     try {
       let response: Response;
-      
+
       // Admin API - Sites CRUD
       if (url.pathname === '/api/admin/sites') {
         response = await handleAdminSites(request, env);
@@ -87,14 +87,14 @@ export default {
       else {
         response = Response.json({ error: 'Not Found' }, { status: 404 });
       }
-      
+
       // Add CORS headers to response
       Object.entries(corsHeaders).forEach(([key, value]) => {
         response.headers.set(key, value);
       });
-      
+
       return response;
-      
+
     } catch (error) {
       console.error('Worker error:', error);
       return Response.json(
@@ -111,24 +111,24 @@ export default {
 
 async function handleAdminSites(request: Request, env: Env): Promise<Response> {
   const { DB } = env;
-  
+
   // GET - List all sites
   if (request.method === 'GET') {
     const sites = await DB.prepare(`
       SELECT * FROM sites ORDER BY added_at DESC
     `).all();
-    
+
     return Response.json({
       success: true,
       data: sites.results,
       count: sites.results.length,
     });
   }
-  
+
   // POST - Create new site
   if (request.method === 'POST') {
     const body = await request.json<any>();
-    
+
     // Validation
     if (!body.name || !body.url) {
       return Response.json(
@@ -136,7 +136,7 @@ async function handleAdminSites(request: Request, env: Env): Promise<Response> {
         { status: 400 }
       );
     }
-    
+
     // Insert
     const result = await DB.prepare(`
       INSERT INTO sites (name, url, category, description, sandbox, height, iframe_allowed, tags)
@@ -151,18 +151,18 @@ async function handleAdminSites(request: Request, env: Env): Promise<Response> {
       body.iframeAllowed !== false ? 1 : 0,
       body.tags ? JSON.stringify(body.tags) : null
     ).run();
-    
+
     // Get created site
     const created = await DB.prepare('SELECT * FROM sites WHERE id = ?')
       .bind(result.meta.last_row_id)
       .first();
-    
+
     return Response.json(
       { success: true, data: created },
       { status: 201 }
     );
   }
-  
+
   return Response.json({ error: 'Method Not Allowed' }, { status: 405 });
 }
 
@@ -174,15 +174,15 @@ async function handleAdminSiteById(request: Request, env: Env): Promise<Response
   const { DB } = env;
   const url = new URL(request.url);
   const id = url.pathname.split('/').pop();
-  
+
   // PUT - Update site
   if (request.method === 'PUT') {
     const body = await request.json<any>();
-    
+
     // Build UPDATE query dynamically
     const updates: string[] = [];
     const values: any[] = [];
-    
+
     if (body.name !== undefined) {
       updates.push('name = ?');
       values.push(body.name);
@@ -203,37 +203,37 @@ async function handleAdminSiteById(request: Request, env: Env): Promise<Response
       updates.push('iframe_allowed = ?');
       values.push(body.iframeAllowed ? 1 : 0);
     }
-    
+
     if (updates.length === 0) {
       return Response.json({ error: 'No fields to update' }, { status: 400 });
     }
-    
+
     values.push(id);
-    
+
     await DB.prepare(`
       UPDATE sites SET ${updates.join(', ')} WHERE id = ?
     `).bind(...values).run();
-    
+
     // Get updated site
     const updated = await DB.prepare('SELECT * FROM sites WHERE id = ?')
       .bind(id)
       .first();
-    
+
     return Response.json({ success: true, data: updated });
   }
-  
+
   // DELETE - Remove site
   if (request.method === 'DELETE') {
     await DB.prepare('DELETE FROM sites WHERE id = ?')
       .bind(id)
       .run();
-    
+
     return Response.json({
       success: true,
       message: 'Site deleted successfully',
     });
   }
-  
+
   return Response.json({ error: 'Method Not Allowed' }, { status: 405 });
 }
 
@@ -243,17 +243,17 @@ async function handleAdminSiteById(request: Request, env: Env): Promise<Response
 
 async function handleAdminUsers(request: Request, env: Env): Promise<Response> {
   const { DB } = env;
-  
+
   if (request.method === 'GET') {
     const users = await DB.prepare('SELECT * FROM users').all();
-    
+
     return Response.json({
       success: true,
       data: users.results,
       count: users.results.length,
     });
   }
-  
+
   return Response.json({ error: 'Method Not Allowed' }, { status: 405 });
 }
 
@@ -264,7 +264,7 @@ async function handleAdminUsers(request: Request, env: Env): Promise<Response> {
 async function handleSearch(request: Request, env: Env): Promise<Response> {
   const { DB, CACHE } = env;
   const url = new URL(request.url);
-  
+
   // Query parameters
   const q = url.searchParams.get('q') || '';
   const category = url.searchParams.get('category');
@@ -272,40 +272,40 @@ async function handleSearch(request: Request, env: Env): Promise<Response> {
   const sort = url.searchParams.get('sort') || 'alphabet';
   const page = parseInt(url.searchParams.get('page') || '1');
   const limit = parseInt(url.searchParams.get('limit') || '20');
-  
+
   // Cache key
   const cacheKey = `search:${q}:${category}:${iframeAllowed}:${sort}:${page}:${limit}`;
-  
+
   // Check cache
   const cached = await CACHE.get(cacheKey);
   if (cached) {
     return Response.json(JSON.parse(cached));
   }
-  
+
   // Build query
   let query = 'SELECT * FROM sites WHERE 1=1';
   const params: any[] = [];
-  
+
   // Search filter
   if (q) {
     query += ' AND (name LIKE ? OR description LIKE ? OR tags LIKE ?)';
     const searchTerm = `%${q}%`;
     params.push(searchTerm, searchTerm, searchTerm);
   }
-  
+
   // Category filter
   if (category) {
     query += ' AND category = ?';
     params.push(category);
   }
-  
+
   // Iframe filter
   if (iframeAllowed === 'true') {
     query += ' AND iframe_allowed = 1';
   } else if (iframeAllowed === 'false') {
     query += ' AND iframe_allowed = 0';
   }
-  
+
   // Sorting
   if (sort === 'added') {
     query += ' ORDER BY added_at DESC';
@@ -314,16 +314,16 @@ async function handleSearch(request: Request, env: Env): Promise<Response> {
   } else {
     query += ' ORDER BY name ASC';
   }
-  
+
   // Execute query
   const allResults = await DB.prepare(query).bind(...params).all();
-  
+
   // Pagination
   const total = allResults.results.length;
   const totalPages = Math.ceil(total / limit);
   const start = (page - 1) * limit;
   const paged = allResults.results.slice(start, start + limit);
-  
+
   const response = {
     success: true,
     data: paged,
@@ -332,10 +332,10 @@ async function handleSearch(request: Request, env: Env): Promise<Response> {
     page,
     pages: totalPages,
   };
-  
+
   // Cache for 5 minutes
   await CACHE.put(cacheKey, JSON.stringify(response), { expirationTtl: 300 });
-  
+
   return Response.json(response);
 }
 
@@ -347,18 +347,18 @@ async function handleTrack(request: Request, env: Env): Promise<Response> {
   try {
     const body = await request.json<any>();
     const { url: trackedUrl, action, userId, metadata } = body;
-    
+
     if (!trackedUrl || !action) {
       return Response.json(
         { error: 'URL and action are required' },
         { status: 400 }
       );
     }
-    
+
     // Generate unique key with timestamp
     const timestamp = Date.now();
     const key = `track:${timestamp}:${crypto.randomUUID()}`;
-    
+
     // Collect request metadata
     const trackingData = {
       url: trackedUrl,
@@ -371,20 +371,20 @@ async function handleTrack(request: Request, env: Env): Promise<Response> {
       timestamp,
       metadata: metadata || {},
     };
-    
+
     // Store in KV with 7-day expiration
     await env.CACHE.put(
       key,
       JSON.stringify(trackingData),
       { expirationTtl: 86400 * 7 } // 7 days
     );
-    
+
     return Response.json({
       success: true,
       tracked: key,
       timestamp,
     });
-    
+
   } catch (error: any) {
     console.error('Track error:', error);
     return Response.json(
@@ -403,41 +403,41 @@ async function handleStats(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
     const period = url.searchParams.get('period') || '7d'; // 1d, 7d, 30d
     const limit = parseInt(url.searchParams.get('limit') || '100');
-    
+
     // Get all tracking keys from KV
     const list = await env.CACHE.list({ prefix: 'track:' });
     const keys = list.keys.slice(0, Math.min(limit, 1000)); // Max 1000
-    
+
     // Fetch tracking data
-    const dataPromises = keys.map(k => 
+    const dataPromises = keys.map(k =>
       env.CACHE.get(k.name, 'json')
     );
     const data = (await Promise.all(dataPromises)).filter(d => d !== null);
-    
+
     // Calculate statistics
     const stats = {
       total: data.length,
       period,
-      
+
       // By URL
       byUrl: data.reduce((acc: any, d: any) => {
         acc[d.url] = (acc[d.url] || 0) + 1;
         return acc;
       }, {}),
-      
+
       // By Action
       byAction: data.reduce((acc: any, d: any) => {
         acc[d.action] = (acc[d.action] || 0) + 1;
         return acc;
       }, {}),
-      
+
       // By Country
       byCountry: data.reduce((acc: any, d: any) => {
         const country = d.country || 'Unknown';
         acc[country] = (acc[country] || 0) + 1;
         return acc;
       }, {}),
-      
+
       // Top URLs (sorted by count)
       topUrls: Object.entries(
         data.reduce((acc: any, d: any) => {
@@ -448,10 +448,10 @@ async function handleStats(request: Request, env: Env): Promise<Response> {
         .sort(([, a]: any, [, b]: any) => b - a)
         .slice(0, 10)
         .map(([url, count]) => ({ url, count })),
-      
+
       // Unique users (by IP)
       uniqueIps: new Set(data.map((d: any) => d.ip)).size,
-      
+
       // Recent events (last 20)
       recent: data
         .sort((a: any, b: any) => b.timestamp - a.timestamp)
@@ -463,13 +463,13 @@ async function handleStats(request: Request, env: Env): Promise<Response> {
           timestamp: new Date(d.timestamp).toISOString(),
         })),
     };
-    
+
     return Response.json({
       success: true,
       stats,
       cached: list.keys.length,
     });
-    
+
   } catch (error: any) {
     console.error('Stats error:', error);
     return Response.json(
@@ -491,19 +491,19 @@ async function handleCheckout(request: Request, env: Env): Promise<Response> {
   try {
     const body = await request.json<any>();
     const { priceId, userId, plan } = body;
-    
+
     if (!priceId || !userId) {
       return Response.json(
         { error: 'priceId and userId are required' },
         { status: 400 }
       );
     }
-    
+
     // Initialize Stripe
     const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
       apiVersion: '2024-11-20.acacia',
     });
-    
+
     // Create checkout session
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
@@ -526,15 +526,15 @@ async function handleCheckout(request: Request, env: Env): Promise<Response> {
         },
       },
     });
-    
+
     console.log('Checkout session created:', session.id);
-    
+
     return Response.json({
       success: true,
       sessionId: session.id,
       url: session.url,
     });
-    
+
   } catch (error: any) {
     console.error('Checkout error:', error);
     return Response.json(
@@ -554,14 +554,14 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
     if (!signature) {
       return Response.json({ error: 'Missing signature' }, { status: 400 });
     }
-    
+
     const body = await request.text();
-    
+
     // Initialize Stripe
     const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
       apiVersion: '2024-11-20.acacia',
     });
-    
+
     // Verify webhook signature
     let event: Stripe.Event;
     try {
@@ -577,17 +577,17 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
         { status: 400 }
       );
     }
-    
+
     console.log('Webhook event:', event.type);
-    
+
     // Handle events
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
-        
+
         // Generate API key
         const apiKey = `zeno_${crypto.randomUUID().replace(/-/g, '')}`;
-        
+
         // Store API key in KV
         await env.CACHE.put(
           `apikey:${apiKey}`,
@@ -601,7 +601,7 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
           }),
           { expirationTtl: 31536000 } // 1 year
         );
-        
+
         // Track purchase
         await env.CACHE.put(
           `purchase:${Date.now()}:${crypto.randomUUID()}`,
@@ -616,14 +616,14 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
           }),
           { expirationTtl: 31536000 } // 1 year
         );
-        
+
         console.log('API key generated:', apiKey, 'for user:', session.metadata?.userId);
         break;
       }
-      
+
       case 'customer.subscription.updated': {
         const subscription = event.data.object as Stripe.Subscription;
-        
+
         // Find API key by subscription ID
         const list = await env.CACHE.list({ prefix: 'apikey:' });
         for (const key of list.keys) {
@@ -644,10 +644,10 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
         }
         break;
       }
-      
+
       case 'customer.subscription.deleted': {
         const subscription = event.data.object as Stripe.Subscription;
-        
+
         // Find and delete API key
         const list = await env.CACHE.list({ prefix: 'apikey:' });
         for (const key of list.keys) {
@@ -660,24 +660,24 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
         }
         break;
       }
-      
+
       case 'invoice.payment_succeeded': {
         const invoice = event.data.object as Stripe.Invoice;
         console.log('Payment succeeded:', invoice.id, invoice.amount_paid / 100);
         break;
       }
-      
+
       case 'invoice.payment_failed': {
         const invoice = event.data.object as Stripe.Invoice;
         console.log('Payment failed:', invoice.id);
-        
+
         // Could send email notification here
         break;
       }
     }
-    
+
     return Response.json({ received: true });
-    
+
   } catch (error: any) {
     console.error('Webhook error:', error);
     return Response.json(
@@ -698,22 +698,22 @@ async function handleRevenueStats(request: Request, env: Env): Promise<Response>
     if (apiKey && !(await checkApiKey(apiKey, env))) {
       return Response.json({ error: 'Invalid API key' }, { status: 401 });
     }
-    
+
     // Get all API keys (active subscriptions)
     const apiKeys = await env.CACHE.list({ prefix: 'apikey:' });
     const activeKeys = [];
-    
+
     for (const key of apiKeys.keys) {
       const data = await env.CACHE.get(key.name, 'json');
       if (data && (data as any).status === 'active') {
         activeKeys.push(data);
       }
     }
-    
+
     // Calculate MRR (Monthly Recurring Revenue)
     let mrr = 0;
     const planCounts = { monthly: 0, yearly: 0 };
-    
+
     for (const key of activeKeys) {
       const plan = (key as any).plan || 'monthly';
       if (plan === 'monthly') {
@@ -724,24 +724,24 @@ async function handleRevenueStats(request: Request, env: Env): Promise<Response>
         planCounts.yearly++;
       }
     }
-    
+
     // Get all purchases
     const purchases = await env.CACHE.list({ prefix: 'purchase:' });
     const purchaseData = [];
-    
+
     for (const purchase of purchases.keys.slice(0, 100)) {
       const data = await env.CACHE.get(purchase.name, 'json');
       if (data) {
         purchaseData.push(data);
       }
     }
-    
+
     // Calculate total revenue
     const totalRevenue = purchaseData.reduce(
       (sum, p: any) => sum + (p.amount || 0),
       0
     );
-    
+
     return Response.json({
       success: true,
       stats: {
@@ -760,7 +760,7 @@ async function handleRevenueStats(request: Request, env: Env): Promise<Response>
           })),
       },
     });
-    
+
   } catch (error: any) {
     console.error('Revenue stats error:', error);
     return Response.json(
@@ -778,13 +778,13 @@ async function checkApiKey(apiKey: string, env: Env): Promise<boolean> {
   if (!apiKey || !apiKey.startsWith('zeno_')) {
     return false;
   }
-  
+
   const data = await env.CACHE.get(`apikey:${apiKey}`, 'json');
-  
+
   if (!data) {
     return false;
   }
-  
+
   // Check if subscription is active
   const status = (data as any).status;
   return status === 'active';
@@ -829,8 +829,8 @@ async function handleAI(request: Request, env: Env): Promise<Response> {
     }
 
     // Detect if prompt is in Polish
-    const isPolish = /[ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]/.test(prompt) || 
-                     /\b(co|jak|czy|gdzie|kiedy|dlaczego|jakie|który|jest|to|na|w|z)\b/i.test(prompt);
+    const isPolish = /[ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]/.test(prompt) ||
+      /\b(co|jak|czy|gdzie|kiedy|dlaczego|jakie|który|jest|to|na|w|z)\b/i.test(prompt);
 
     // Step 0: Search knowledge base for relevant context
     let knowledgeContext = '';
@@ -846,7 +846,7 @@ async function handleAI(request: Request, env: Env): Promise<Response> {
       `).bind(`%${searchQuery}%`, `%${searchQuery}%`, `%${searchQuery}%`).all();
 
       if (kb.results && kb.results.length > 0) {
-        knowledgeContext = '\n\nRelevant information:\n' + 
+        knowledgeContext = '\n\nRelevant information:\n' +
           kb.results.map((r: any) => `[${r.category}] ${r.title}: ${r.content}`).join('\n');
       }
     } catch (e) {
@@ -854,7 +854,7 @@ async function handleAI(request: Request, env: Env): Promise<Response> {
     }
 
     let translatedPrompt = prompt + knowledgeContext;
-    
+
     // Step 1: Translate Polish to English if needed (using m2m100-1.2b)
     if (isPolish) {
       try {
@@ -883,7 +883,7 @@ async function handleAI(request: Request, env: Env): Promise<Response> {
     const modelPath = modelMap[model] || modelMap['mistral-7b'];
 
     // Step 2: Get AI response in English
-    const systemPrompt = knowledgeContext 
+    const systemPrompt = knowledgeContext
       ? 'You are a helpful AI assistant for ZENO Browser. Answer questions using ONLY the information provided in the context. If the context doesn\'t contain the answer, say "I don\'t have that information in my knowledge base." Be concise and accurate.'
       : 'You are a helpful AI assistant for ZENO Browser. Answer questions clearly and concisely in English.';
 

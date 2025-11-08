@@ -5,6 +5,13 @@ import ProviderSettings from './ProviderSettings';
 import FloatingWindow from './FloatingWindow';
 import UpgradePrompt from './UpgradePrompt';
 import MusicPlayer from './MusicPlayer';
+import AdminPanel from './AdminPanel';
+import VideoPlayerPanel from './VideoPlayerPanel';
+import ClockWidget from './widgets/ClockWidget';
+import ShortcutsWidget from './widgets/ShortcutsWidget';
+import MusicPlayerWidget from './widgets/MusicPlayerWidget';
+import { InternetArchivePlayer } from './iframe/InternetArchivePlayer';
+import { YouTubePlayer } from './iframe/YouTubePlayer';
 // import LocalChatbot from './LocalChatbot'; // Moved to NOT_IN_USE
 import { mcpService } from '../services/mcpService';
 import { analytics } from '../services/analytics';
@@ -33,6 +40,8 @@ interface Bookmark {
 	title: string;
 	url: string;
 	favicon: string;
+	category?: string; // e.g. 'Praca', 'Hobby', 'Nauka', 'Rozrywka'
+	createdAt?: number; // timestamp
 }
 
 interface HistoryItem {
@@ -68,12 +77,22 @@ const Browser: React.FC = () => {
 	const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 	const [isLocalChatOpen, setIsLocalChatOpen] = useState(false);
 	const [isMusicPlayerOpen, setIsMusicPlayerOpen] = useState(false);
+	const [isVideoPlayerOpen, setIsVideoPlayerOpen] = useState(false);
+	const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
+	const [isClockWidgetOpen, setIsClockWidgetOpen] = useState(false);
+	const [isShortcutsWidgetOpen, setIsShortcutsWidgetOpen] = useState(false);
+	const [isMusicWidgetOpen, setIsMusicWidgetOpen] = useState(false);
 	const [theme, setTheme] = useState<Theme>('dark');
 	const [isAddingBookmark, setIsAddingBookmark] = useState(false);
+	const [bookmarkCategories, setBookmarkCategories] = useState<string[]>([
+		'Praca', 'Hobby', 'Nauka', 'Rozrywka', 'Narzędzia', 'Inne'
+	]);
+	const [selectedCategory, setSelectedCategory] = useState<string>('Wszystkie');
 	const [newBookmarkData, setNewBookmarkData] = useState({
 		title: '',
 		url: '',
-		favicon: '🌐'
+		favicon: '🌐',
+		category: 'Inne'
 	});
 	const [consoleOutput, setConsoleOutput] = useState<string[]>([
 		'ZENO_WEB_CORE initialized successfully!',
@@ -91,9 +110,9 @@ const Browser: React.FC = () => {
 
 	const [history, setHistory] = useState<HistoryItem[]>([]);
 
-	// License & Feature Gates
-	const [currentPlan, setCurrentPlan] = useState<PlanType>('free');
-	const [isLicenseValid, setIsLicenseValid] = useState(false);
+	// License & Feature Gates - WSZYSTKO DOSTĘPNE (lifetime plan)
+	const [currentPlan, setCurrentPlan] = useState<PlanType>('lifetime');
+	const [isLicenseValid, setIsLicenseValid] = useState(true);
 	const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
 	const [upgradeFeature, setUpgradeFeature] = useState<{
 		name: string;
@@ -204,7 +223,7 @@ const Browser: React.FC = () => {
 			if (!isMod) return;
 
 			// Prevent default browser behavior for our shortcuts
-			switch(e.key.toLowerCase()) {
+			switch (e.key.toLowerCase()) {
 				case 't':
 					e.preventDefault();
 					setShowTools(prev => !prev);
@@ -270,7 +289,7 @@ const Browser: React.FC = () => {
 					geminiKey: geminiKey ? `${geminiKey.substring(0, 10)}...` : 'NOT FOUND',
 					allEnv: import.meta.env
 				});
-				
+
 				if (geminiKey) {
 					addConsoleMessage('🔄 Auto-initializing MCP with Gemini...');
 					try {
@@ -322,7 +341,7 @@ const Browser: React.FC = () => {
 
 	const handleCloseTab = (tabId: string) => {
 		const remainingTabs = tabs.filter(tab => tab.id !== tabId);
-		
+
 		if (remainingTabs.length === 0) {
 			handleCreateTab();
 			return;
@@ -353,22 +372,24 @@ const Browser: React.FC = () => {
 
 	const addBookmark = () => {
 		if (!activeTab) return;
-		
+
 		const existingBookmark = bookmarks.find(b => b.url === activeTab.url);
 		if (existingBookmark) {
 			addConsoleMessage('Page already bookmarked');
 			return;
 		}
-		
+
 		const newBookmark: Bookmark = {
 			id: Date.now().toString(),
 			title: activeTab.title,
 			url: activeTab.url,
-			favicon: activeTab.favicon || '🌐'
+			favicon: activeTab.favicon || '🌐',
+			category: 'Inne', // Default category
+			createdAt: Date.now()
 		};
-		
+
 		setBookmarks(prev => [...prev, newBookmark]);
-		addConsoleMessage(`Bookmark added: ${newBookmark.title}`);
+		addConsoleMessage(`Bookmark added: ${newBookmark.title} [${newBookmark.category}]`);
 	};
 
 	const openBookmark = (url: string) => {
@@ -407,14 +428,16 @@ const Browser: React.FC = () => {
 			id: Date.now().toString(),
 			title: newBookmarkData.title,
 			url: newBookmarkData.url.startsWith('http') ? newBookmarkData.url : `https://${newBookmarkData.url}`,
-			favicon: newBookmarkData.favicon || '🌐'
+			favicon: newBookmarkData.favicon || '🌐',
+			category: newBookmarkData.category || 'Inne',
+			createdAt: Date.now()
 		};
 
 		setBookmarks(prev => [...prev, newBookmark]);
-		addConsoleMessage(`✅ Bookmark added: ${newBookmark.title}`);
+		addConsoleMessage(`✅ Bookmark added: ${newBookmark.title} [${newBookmark.category}]`);
 
 		// Reset form
-		setNewBookmarkData({ title: '', url: '', favicon: '🌐' });
+		setNewBookmarkData({ title: '', url: '', favicon: '🌐', category: 'Inne' });
 		setIsAddingBookmark(false);
 	};
 
@@ -426,7 +449,7 @@ const Browser: React.FC = () => {
 			visitedAt: new Date(),
 			favicon
 		};
-		
+
 		setHistory(prev => [historyItem, ...prev.slice(0, 49)]); // Keep last 50 items
 		addConsoleMessage(`Added to history: ${title}`);
 	};
@@ -445,12 +468,12 @@ const Browser: React.FC = () => {
 	const performSearch = (query: string) => {
 		// Trim whitespace
 		query = query.trim();
-		
+
 		// Already a full URL with protocol
 		if (query.startsWith('http://') || query.startsWith('https://')) {
 			return query;
 		}
-		
+
 		// Special URLs (localhost, about:, file:)
 		if (query.startsWith('localhost') || query.startsWith('about:') || query.startsWith('file:')) {
 			if (query.startsWith('localhost')) {
@@ -458,18 +481,18 @@ const Browser: React.FC = () => {
 			}
 			return query;
 		}
-		
+
 		// Check if it looks like a domain (has TLD and no spaces)
 		const domainPattern = /^([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(\/.*)?$/;
 		if (domainPattern.test(query)) {
 			return `https://${query}`;
 		}
-		
+
 		// If it has a dot and no spaces, treat as URL
 		if (query.includes('.') && !query.includes(' ')) {
 			return `https://${query}`;
 		}
-		
+
 		// Otherwise, it's a search query - use Tavily or Brave instead of Google
 		// For now, open in new tab with Google (since Google blocks iframe anyway)
 		const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
@@ -544,16 +567,16 @@ const Browser: React.FC = () => {
 		// For about: pages, use the traditional tab system
 		setCurrentUrl(finalUrl);
 		setInputUrl(finalUrl);
-		setTabs(prev => prev.map(tab => 
-			tab.isActive 
+		setTabs(prev => prev.map(tab =>
+			tab.isActive
 				? { ...tab, url: finalUrl, isLoading: true, title: 'Loading...', favicon: getPageFavicon(finalUrl) }
 				: tab
 		));
 
 		// Simulate page load
 		setTimeout(() => {
-			setTabs(prev => prev.map(tab => 
-				tab.isActive 
+			setTabs(prev => prev.map(tab =>
+				tab.isActive
 					? { ...tab, isLoading: false, title: pageTitle }
 					: tab
 			));
@@ -575,7 +598,7 @@ const Browser: React.FC = () => {
 	const getPageTitle = (url: string): string => {
 		if (url === 'about:welcome') return 'ZENO_WEB_CORE - Welcome';
 		if (url === 'about:blank') return 'New Tab';
-		
+
 		try {
 			const urlObj = new URL(url);
 			return urlObj.hostname;
@@ -595,7 +618,8 @@ const Browser: React.FC = () => {
 
 	// Feature gate helper functions
 	const checkFeatureAccess = (featureId: string): boolean => {
-		return hasFeatureAccess(currentPlan, featureId);
+		// WSZYSTKO DOSTĘPNE - system subskrypcji wyłączony
+		return true;
 	};
 
 	const promptUpgrade = (featureName: string, featureIcon: string, requiredPlan: PlanType) => {
@@ -625,9 +649,9 @@ const Browser: React.FC = () => {
 	};
 
 
-	
+
 	return (
-		<div style={{position: 'relative', zIndex: 1}}>
+		<div style={{ position: 'relative', zIndex: 1 }}>
 			{/* Top Bar with Logo and Search */}
 			<div style={{
 				position: 'fixed',
@@ -666,9 +690,9 @@ const Browser: React.FC = () => {
 							fontSize: '20px',
 							boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)'
 						}}>⚡</div>
-						<span style={{color: colors.text}}>ZENO_WEB_CORE</span>
+						<span style={{ color: colors.text }}>ZENO_WEB_CORE</span>
 					</div>
-					
+
 					{/* Plan Badge */}
 					<div
 						onClick={() => {
@@ -737,8 +761,8 @@ const Browser: React.FC = () => {
 					</button>
 
 					{/* Modern Search Bar */}
-					<form onSubmit={handleUrlSubmit} style={{flex: 1, maxWidth: '600px'}}>
-						<div style={{position: 'relative'}}>
+					<form onSubmit={handleUrlSubmit} style={{ flex: 1, maxWidth: '600px' }}>
+						<div style={{ position: 'relative' }}>
 							<input
 								type="text"
 								value={inputUrl}
@@ -807,7 +831,7 @@ const Browser: React.FC = () => {
 						alignItems: 'center',
 						marginBottom: '20px'
 					}}>
-						<h3 style={{color: colors.text, fontSize: '20px', margin: 0, fontWeight: '600'}}>� Bookmarks</h3>
+						<h3 style={{ color: colors.text, fontSize: '20px', margin: 0, fontWeight: '600' }}>� Bookmarks</h3>
 						<div style={{ display: 'flex', gap: '12px' }}>
 							<button
 								onClick={() => setIsAddingBookmark(true)}
@@ -943,6 +967,30 @@ const Browser: React.FC = () => {
 										}}
 									/>
 								</div>
+								<div>
+									<label style={{ color: colors.muted, fontSize: '12px', display: 'block', marginBottom: '6px' }}>
+										Kategoria *
+									</label>
+									<select
+										value={newBookmarkData.category}
+										onChange={(e) => setNewBookmarkData({ ...newBookmarkData, category: e.target.value })}
+										style={{
+											width: '100%',
+											backgroundColor: colors.accent,
+											border: `1px solid ${colors.border}`,
+											borderRadius: '8px',
+											padding: '10px 12px',
+											color: colors.text,
+											fontSize: '14px',
+											outline: 'none',
+											cursor: 'pointer'
+										}}
+									>
+										{bookmarkCategories.map(cat => (
+											<option key={cat} value={cat}>{cat}</option>
+										))}
+									</select>
+								</div>
 								<div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
 									<button
 										onClick={addNewBookmarkManually}
@@ -970,7 +1018,7 @@ const Browser: React.FC = () => {
 									<button
 										onClick={() => {
 											setIsAddingBookmark(false);
-											setNewBookmarkData({ title: '', url: '', favicon: '🌐' });
+											setNewBookmarkData({ title: '', url: '', favicon: '🌐', category: 'Inne' });
 										}}
 										style={{
 											flex: 1,
@@ -1003,87 +1051,89 @@ const Browser: React.FC = () => {
 						gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
 						gap: '16px'
 					}}>
-						{bookmarks.map(bookmark => (
-							<div
-								key={bookmark.id}
-								style={{
-									backgroundColor: colors.primary,
-									border: `1px solid ${colors.border}`,
-									borderRadius: '12px',
-									padding: '16px',
-									cursor: 'pointer',
-									display: 'flex',
-									alignItems: 'center',
-									gap: '12px',
-									transition: 'all 0.3s ease',
-									boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
-								}}
-								onMouseEnter={(e) => {
-									e.currentTarget.style.transform = 'translateY(-2px)';
-									e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.15)';
-								}}
-								onMouseLeave={(e) => {
-									e.currentTarget.style.transform = 'translateY(0)';
-									e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
-								}}
-								onClick={() => openBookmark(bookmark.url)}
-							>
-								<div style={{
-									fontSize: '24px',
-									width: '40px',
-									height: '40px',
-									display: 'flex',
-									alignItems: 'center',
-									justifyContent: 'center',
-									background: colors.accent,
-									borderRadius: '10px'
-								}}>{bookmark.favicon}</div>
-								<div style={{flex: 1, overflow: 'hidden'}}>
-									<div style={{
-										color: colors.text,
-										fontSize: '15px',
-										fontWeight: '600',
-										whiteSpace: 'nowrap',
-										overflow: 'hidden',
-										textOverflow: 'ellipsis',
-										marginBottom: '4px'
-									}}>
-										{bookmark.title}
-									</div>
-									<div style={{
-										color: colors.muted,
-										fontSize: '13px',
-										whiteSpace: 'nowrap',
-										overflow: 'hidden',
-										textOverflow: 'ellipsis'
-									}}>
-										{bookmark.url}
-									</div>
-								</div>
-								<button
-									onClick={(e) => {
-										e.stopPropagation();
-										removeBookmark(bookmark.id);
-									}}
+						{bookmarks
+							.filter(b => selectedCategory === 'Wszystkie' || b.category === selectedCategory)
+							.map(bookmark => (
+								<div
+									key={bookmark.id}
 									style={{
-										background: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%)',
-										border: 'none',
-										color: 'white',
-										fontSize: '16px',
+										backgroundColor: colors.primary,
+										border: `1px solid ${colors.border}`,
+										borderRadius: '12px',
+										padding: '16px',
 										cursor: 'pointer',
-										borderRadius: '8px',
-										width: '32px',
-										height: '32px',
+										display: 'flex',
+										alignItems: 'center',
+										gap: '12px',
+										transition: 'all 0.3s ease',
+										boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
+									}}
+									onMouseEnter={(e) => {
+										e.currentTarget.style.transform = 'translateY(-2px)';
+										e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.15)';
+									}}
+									onMouseLeave={(e) => {
+										e.currentTarget.style.transform = 'translateY(0)';
+										e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
+									}}
+									onClick={() => openBookmark(bookmark.url)}
+								>
+									<div style={{
+										fontSize: '24px',
+										width: '40px',
+										height: '40px',
 										display: 'flex',
 										alignItems: 'center',
 										justifyContent: 'center',
-										transition: 'all 0.3s ease'
-									}}
-								>
-									🗑️
-								</button>
-							</div>
-						))}
+										background: colors.accent,
+										borderRadius: '10px'
+									}}>{bookmark.favicon}</div>
+									<div style={{ flex: 1, overflow: 'hidden' }}>
+										<div style={{
+											color: colors.text,
+											fontSize: '15px',
+											fontWeight: '600',
+											whiteSpace: 'nowrap',
+											overflow: 'hidden',
+											textOverflow: 'ellipsis',
+											marginBottom: '4px'
+										}}>
+											{bookmark.title}
+										</div>
+										<div style={{
+											color: colors.muted,
+											fontSize: '13px',
+											whiteSpace: 'nowrap',
+											overflow: 'hidden',
+											textOverflow: 'ellipsis'
+										}}>
+											{bookmark.url}
+										</div>
+									</div>
+									<button
+										onClick={(e) => {
+											e.stopPropagation();
+											removeBookmark(bookmark.id);
+										}}
+										style={{
+											background: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%)',
+											border: 'none',
+											color: 'white',
+											fontSize: '16px',
+											cursor: 'pointer',
+											borderRadius: '8px',
+											width: '32px',
+											height: '32px',
+											display: 'flex',
+											alignItems: 'center',
+											justifyContent: 'center',
+											transition: 'all 0.3s ease'
+										}}
+									>
+										🗑️
+									</button>
+								</div>
+							))}
 					</div>
 				</div>
 			)}
@@ -1109,8 +1159,8 @@ const Browser: React.FC = () => {
 						alignItems: 'center',
 						marginBottom: '20px'
 					}}>
-						<h3 style={{color: colors.text, fontSize: '20px', margin: 0, fontWeight: '600'}}>📈 History</h3>
-						<div style={{display: 'flex', gap: '8px'}}>
+						<h3 style={{ color: colors.text, fontSize: '20px', margin: 0, fontWeight: '600' }}>📈 History</h3>
+						<div style={{ display: 'flex', gap: '8px' }}>
 							<button
 								onClick={clearHistory}
 								style={{
@@ -1145,7 +1195,7 @@ const Browser: React.FC = () => {
 							</button>
 						</div>
 					</div>
-					<div style={{display: 'flex', flexDirection: 'column', gap: '8px'}}>
+					<div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
 						{history.length === 0 ? (
 							<div style={{
 								textAlign: 'center',
@@ -1174,8 +1224,8 @@ const Browser: React.FC = () => {
 									onMouseLeave={(e) => e.currentTarget.style.backgroundColor = colors.primary}
 									onClick={() => openFromHistory(item.url)}
 								>
-									<span style={{fontSize: '20px'}}>{item.favicon}</span>
-									<div style={{flex: 1, overflow: 'hidden'}}>
+									<span style={{ fontSize: '20px' }}>{item.favicon}</span>
+									<div style={{ flex: 1, overflow: 'hidden' }}>
 										<div style={{
 											color: colors.text,
 											fontSize: '14px',
@@ -1231,7 +1281,7 @@ const Browser: React.FC = () => {
 						alignItems: 'center',
 						marginBottom: '20px'
 					}}>
-						<h3 style={{color: colors.text, fontSize: '20px', margin: 0, fontWeight: '600'}}>🛠️ Tools & Features</h3>
+						<h3 style={{ color: colors.text, fontSize: '20px', margin: 0, fontWeight: '600' }}>🛠️ Tools & Features</h3>
 						<button
 							onClick={() => setShowTools(false)}
 							style={{
@@ -1292,7 +1342,7 @@ const Browser: React.FC = () => {
 								borderRadius: '10px',
 								flexShrink: 0
 							}}>🧪</div>
-							<div style={{flex: 1}}>
+							<div style={{ flex: 1 }}>
 								<div style={{
 									color: colors.text,
 									fontSize: '16px',
@@ -1347,7 +1397,7 @@ const Browser: React.FC = () => {
 								borderRadius: '10px',
 								flexShrink: 0
 							}}>🤖</div>
-							<div style={{flex: 1}}>
+							<div style={{ flex: 1 }}>
 								<div style={{
 									color: colors.text,
 									fontSize: '16px',
@@ -1402,7 +1452,7 @@ const Browser: React.FC = () => {
 								borderRadius: '10px',
 								flexShrink: 0
 							}}>🛡️</div>
-							<div style={{flex: 1}}>
+							<div style={{ flex: 1 }}>
 								<div style={{
 									color: colors.text,
 									fontSize: '16px',
@@ -1457,7 +1507,7 @@ const Browser: React.FC = () => {
 								borderRadius: '10px',
 								flexShrink: 0
 							}}>🔍</div>
-							<div style={{flex: 1}}>
+							<div style={{ flex: 1 }}>
 								<div style={{
 									color: colors.text,
 									fontSize: '16px',
@@ -1512,7 +1562,7 @@ const Browser: React.FC = () => {
 								borderRadius: '10px',
 								flexShrink: 0
 							}}>⚡</div>
-							<div style={{flex: 1}}>
+							<div style={{ flex: 1 }}>
 								<div style={{
 									color: colors.text,
 									fontSize: '16px',
@@ -1567,7 +1617,7 @@ const Browser: React.FC = () => {
 								borderRadius: '10px',
 								flexShrink: 0
 							}}>🐛</div>
-							<div style={{flex: 1}}>
+							<div style={{ flex: 1 }}>
 								<div style={{
 									color: colors.text,
 									fontSize: '16px',
@@ -1622,7 +1672,7 @@ const Browser: React.FC = () => {
 								borderRadius: '10px',
 								flexShrink: 0
 							}}>ℹ️</div>
-							<div style={{flex: 1}}>
+							<div style={{ flex: 1 }}>
 								<div style={{
 									color: colors.text,
 									fontSize: '16px',
@@ -1677,7 +1727,7 @@ const Browser: React.FC = () => {
 								borderRadius: '10px',
 								flexShrink: 0
 							}}>🎬</div>
-							<div style={{flex: 1}}>
+							<div style={{ flex: 1 }}>
 								<div style={{
 									color: colors.text,
 									fontSize: '16px',
@@ -1732,7 +1782,7 @@ const Browser: React.FC = () => {
 								borderRadius: '10px',
 								flexShrink: 0
 							}}>🎭</div>
-							<div style={{flex: 1}}>
+							<div style={{ flex: 1 }}>
 								<div style={{
 									color: colors.text,
 									fontSize: '16px',
@@ -1787,7 +1837,7 @@ const Browser: React.FC = () => {
 								borderRadius: '10px',
 								flexShrink: 0
 							}}>🏠</div>
-							<div style={{flex: 1}}>
+							<div style={{ flex: 1 }}>
 								<div style={{
 									color: colors.text,
 									fontSize: '16px',
@@ -1875,7 +1925,7 @@ const Browser: React.FC = () => {
 						setIsConsoleOpen(!isConsoleOpen);
 					}}
 					style={{
-						background: isConsoleOpen 
+						background: isConsoleOpen
 							? `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`
 							: `linear-gradient(135deg, ${colors.primary}40, ${colors.secondary}40)`,
 						border: 'none',
@@ -1911,7 +1961,7 @@ const Browser: React.FC = () => {
 				<button
 					onClick={() => setShowBookmarks(!showBookmarks)}
 					style={{
-						background: showBookmarks 
+						background: showBookmarks
 							? `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`
 							: `linear-gradient(135deg, ${colors.primary}40, ${colors.secondary}40)`,
 						border: 'none',
@@ -2103,7 +2153,7 @@ const Browser: React.FC = () => {
 						setIsChatOpen(!isChatOpen);
 					}}
 					style={{
-						background: isChatOpen 
+						background: isChatOpen
 							? `linear-gradient(135deg, #6366f1, #8b5cf6)`
 							: `linear-gradient(135deg, #6366f140, #8b5cf640)`,
 						border: 'none',
@@ -2176,6 +2226,118 @@ const Browser: React.FC = () => {
 				>
 					<span style={{ fontSize: '16px' }}>🎵</span>
 					<span>Music</span>
+				</button>
+
+				{/* Video Player Button */}
+				<button
+					onClick={() => {
+						if (!checkFeatureAccess('video_player')) {
+							promptUpgrade('Video Players', '🎬', 'monthly');
+							return;
+						}
+						setIsVideoPlayerOpen(!isVideoPlayerOpen);
+					}}
+					style={{
+						background: isVideoPlayerOpen
+							? `linear-gradient(135deg, #f59e0b 0%, #d97706 100%)`
+							: `linear-gradient(135deg, #f59e0b40, #d9770640)`,
+						border: 'none',
+						borderRadius: '15px',
+						padding: '12px 16px',
+						color: 'white',
+						cursor: 'pointer',
+						display: 'flex',
+						flexDirection: 'column',
+						alignItems: 'center',
+						gap: '4px',
+						fontSize: '11px',
+						fontWeight: '500',
+						minWidth: '80px',
+						transition: 'all 0.3s ease',
+						backdropFilter: 'blur(10px)',
+						boxShadow: isVideoPlayerOpen ? '0 4px 15px #f59e0b40' : 'none'
+					}}
+					onMouseEnter={(e) => {
+						e.currentTarget.style.transform = 'translateY(-2px)';
+						e.currentTarget.style.boxShadow = '0 6px 20px #f59e0b60';
+					}}
+					onMouseLeave={(e) => {
+						e.currentTarget.style.transform = 'translateY(0)';
+						e.currentTarget.style.boxShadow = isVideoPlayerOpen ? '0 4px 15px #f59e0b40' : 'none';
+					}}
+				>
+					<span style={{ fontSize: '16px' }}>🎬</span>
+					<span>Video</span>
+				</button>
+
+				{/* Admin Panel Button (Hidden - accessible via keyboard shortcut) */}
+				<button
+					onClick={() => setIsAdminPanelOpen(true)}
+					style={{
+						background: `linear-gradient(135deg, #dc2626 0%, #991b1b 100%)`,
+						border: 'none',
+						borderRadius: '15px',
+						padding: '12px 16px',
+						color: 'white',
+						cursor: 'pointer',
+						display: 'flex',
+						flexDirection: 'column',
+						alignItems: 'center',
+						gap: '4px',
+						fontSize: '11px',
+						fontWeight: '500',
+						minWidth: '80px',
+						transition: 'all 0.3s ease',
+						backdropFilter: 'blur(10px)'
+					}}
+					onMouseEnter={(e) => {
+						e.currentTarget.style.transform = 'translateY(-2px)';
+						e.currentTarget.style.boxShadow = '0 6px 20px #dc262660';
+					}}
+					onMouseLeave={(e) => {
+						e.currentTarget.style.transform = 'translateY(0)';
+						e.currentTarget.style.boxShadow = 'none';
+					}}
+				>
+					<span style={{ fontSize: '16px' }}>🔐</span>
+					<span>Admin</span>
+				</button>
+
+				{/* Widget Panel Button - Rainmeter-style */}
+				<button
+					onClick={() => {
+						setIsClockWidgetOpen(true);
+						setIsShortcutsWidgetOpen(true);
+						setIsMusicWidgetOpen(true);
+					}}
+					style={{
+						background: `linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)`,
+						border: 'none',
+						borderRadius: '15px',
+						padding: '12px 16px',
+						color: 'white',
+						cursor: 'pointer',
+						display: 'flex',
+						flexDirection: 'column',
+						alignItems: 'center',
+						gap: '4px',
+						fontSize: '11px',
+						fontWeight: '500',
+						minWidth: '80px',
+						transition: 'all 0.3s ease',
+						backdropFilter: 'blur(10px)'
+					}}
+					onMouseEnter={(e) => {
+						e.currentTarget.style.transform = 'translateY(-2px)';
+						e.currentTarget.style.boxShadow = '0 6px 20px #8b5cf660';
+					}}
+					onMouseLeave={(e) => {
+						e.currentTarget.style.transform = 'translateY(0)';
+						e.currentTarget.style.boxShadow = 'none';
+					}}
+				>
+					<span style={{ fontSize: '16px' }}>🎨</span>
+					<span>Widgets</span>
 				</button>
 
 				{/* Settings Button */}
@@ -2314,6 +2476,32 @@ const Browser: React.FC = () => {
 					initialY={120 + (floatingWindows.findIndex(w => w.id === window.id) * 30)}
 				/>
 			))}
+
+			{/* Admin Panel */}
+			<AdminPanel
+				isOpen={isAdminPanelOpen}
+				onClose={() => setIsAdminPanelOpen(false)}
+				onPlanChange={(plan) => {
+					setCurrentPlan(plan);
+					addConsoleMessage(`✅ Plan changed to: ${plan.toUpperCase()}`);
+				}}
+			/>
+
+			{/* Video Player Panel (Floating) */}
+			{isVideoPlayerOpen && (
+				<VideoPlayerPanel onClose={() => setIsVideoPlayerOpen(false)} />
+			)}
+
+			{/* Widget Panel (Rainmeter-style) */}
+			{isClockWidgetOpen && (
+				<ClockWidget onClose={() => setIsClockWidgetOpen(false)} />
+			)}
+			{isShortcutsWidgetOpen && (
+				<ShortcutsWidget onClose={() => setIsShortcutsWidgetOpen(false)} />
+			)}
+			{isMusicWidgetOpen && (
+				<MusicPlayerWidget onClose={() => setIsMusicWidgetOpen(false)} />
+			)}
 
 			{/* Upgrade Prompt Modal */}
 			{showUpgradePrompt && upgradeFeature && (
