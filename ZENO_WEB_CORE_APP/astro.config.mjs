@@ -15,10 +15,10 @@ export default defineConfig({
   site: 'https://zeno-browser.pages.dev',
   output: 'server',
   adapter: cloudflare({
-    mode: 'directory',
-    platformProxy: {
-      enabled: true
-    }
+    platformProxy: { enabled: true },
+    cloudflareModules: true,
+    imageService: 'compile',
+    // Uwaga: domyślnie adapter oczekuje KV o nazwie 'SESSION'. Dodaj binding w Pages lub zmień nazwę przez sessionKVBindingName.
   }),
   server: {
     port: 4366,

@@ -25,9 +25,7 @@ jobs:
 
       - name: Install dependencies
         working-directory: ./ZENO_WEB_CORE_APP
-        run: |
-          rm -rf node_modules package-lock.json
-          npm install
+        run: npm ci
       - name: Build application
         working-directory: ./ZENO_WEB_CORE_APP
         run: npm run build
