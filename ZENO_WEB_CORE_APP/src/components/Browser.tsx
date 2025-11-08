@@ -3,9 +3,13 @@ import WebView from './WebView';
 import ChatPanel from './ChatPanel';
 import ProviderSettings from './ProviderSettings';
 import FloatingWindow from './FloatingWindow';
+import UpgradePrompt from './UpgradePrompt';
+import MusicPlayer from './MusicPlayer';
 // import LocalChatbot from './LocalChatbot'; // Moved to NOT_IN_USE
 import { mcpService } from '../services/mcpService';
 import { analytics } from '../services/analytics';
+import { licenseManager, getLicensePlan } from '../services/security/licenseManager';
+import { hasFeatureAccess, TAB_LIMITS, FEATURES, type PlanType } from '../config/features';
 
 export interface Tab {
 	id: string;
@@ -63,7 +67,14 @@ const Browser: React.FC = () => {
 	const [isChatOpen, setIsChatOpen] = useState(false);
 	const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 	const [isLocalChatOpen, setIsLocalChatOpen] = useState(false);
+	const [isMusicPlayerOpen, setIsMusicPlayerOpen] = useState(false);
 	const [theme, setTheme] = useState<Theme>('dark');
+	const [isAddingBookmark, setIsAddingBookmark] = useState(false);
+	const [newBookmarkData, setNewBookmarkData] = useState({
+		title: '',
+		url: '',
+		favicon: '🌐'
+	});
 	const [consoleOutput, setConsoleOutput] = useState<string[]>([
 		'ZENO_WEB_CORE initialized successfully!',
 		'Advanced MCP integration ready...',
@@ -79,6 +90,90 @@ const Browser: React.FC = () => {
 	]);
 
 	const [history, setHistory] = useState<HistoryItem[]>([]);
+
+	// License & Feature Gates
+	const [currentPlan, setCurrentPlan] = useState<PlanType>('free');
+	const [isLicenseValid, setIsLicenseValid] = useState(false);
+	const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
+	const [upgradeFeature, setUpgradeFeature] = useState<{
+		name: string;
+		icon: string;
+		requiredPlan: PlanType;
+	} | null>(null);
+
+	// Load bookmarks and history from localStorage on mount
+	useEffect(() => {
+		const loadData = () => {
+			try {
+				// Load bookmarks
+				const savedBookmarks = localStorage.getItem('zeno_bookmarks');
+				if (savedBookmarks) {
+					const parsed = JSON.parse(savedBookmarks);
+					setBookmarks(parsed);
+					console.log(`✅ Loaded ${parsed.length} bookmarks from storage`);
+				}
+
+				// Load history
+				const savedHistory = localStorage.getItem('zeno_history');
+				if (savedHistory) {
+					const parsed = JSON.parse(savedHistory);
+					// Convert date strings back to Date objects
+					const historyWithDates = parsed.map((item: any) => ({
+						...item,
+						visitedAt: new Date(item.visitedAt)
+					}));
+					setHistory(historyWithDates);
+					console.log(`✅ Loaded ${historyWithDates.length} history items from storage`);
+				}
+			} catch (error) {
+				console.error('Failed to load data from localStorage:', error);
+			}
+		};
+
+		loadData();
+	}, []);
+
+	// Save bookmarks to localStorage whenever they change
+	useEffect(() => {
+		try {
+			localStorage.setItem('zeno_bookmarks', JSON.stringify(bookmarks));
+		} catch (error) {
+			console.error('Failed to save bookmarks:', error);
+		}
+	}, [bookmarks]);
+
+	// Save history to localStorage whenever it changes
+	useEffect(() => {
+		try {
+			localStorage.setItem('zeno_history', JSON.stringify(history));
+		} catch (error) {
+			console.error('Failed to save history:', error);
+		}
+	}, [history]);
+
+	// Check license on mount
+	useEffect(() => {
+		const checkLicense = async () => {
+			try {
+				const validation = await licenseManager.validateLicense();
+				setIsLicenseValid(validation.isValid);
+				const plan = getLicensePlan();
+				setCurrentPlan(plan);
+
+				if (validation.isValid) {
+					addConsoleMessage(`✅ License activated - ${plan} plan`);
+				} else {
+					addConsoleMessage('ℹ️ Using Free plan - Upgrade to unlock premium features');
+				}
+			} catch (error) {
+				console.error('License check failed:', error);
+				setCurrentPlan('free');
+				setIsLicenseValid(false);
+			}
+		};
+
+		checkLicense();
+	}, []);
 
 	// Floating windows state
 	interface FloatingWindowData {
@@ -288,6 +383,41 @@ const Browser: React.FC = () => {
 		addConsoleMessage(`Bookmark removed: ${bookmark?.title || 'Unknown'}`);
 	};
 
+	const addNewBookmarkManually = () => {
+		if (!newBookmarkData.title || !newBookmarkData.url) {
+			addConsoleMessage('⚠️ Title and URL are required');
+			return;
+		}
+
+		// Validate URL
+		try {
+			new URL(newBookmarkData.url.startsWith('http') ? newBookmarkData.url : `https://${newBookmarkData.url}`);
+		} catch {
+			addConsoleMessage('⚠️ Invalid URL format');
+			return;
+		}
+
+		const existingBookmark = bookmarks.find(b => b.url === newBookmarkData.url);
+		if (existingBookmark) {
+			addConsoleMessage('Page already bookmarked');
+			return;
+		}
+
+		const newBookmark: Bookmark = {
+			id: Date.now().toString(),
+			title: newBookmarkData.title,
+			url: newBookmarkData.url.startsWith('http') ? newBookmarkData.url : `https://${newBookmarkData.url}`,
+			favicon: newBookmarkData.favicon || '🌐'
+		};
+
+		setBookmarks(prev => [...prev, newBookmark]);
+		addConsoleMessage(`✅ Bookmark added: ${newBookmark.title}`);
+
+		// Reset form
+		setNewBookmarkData({ title: '', url: '', favicon: '🌐' });
+		setIsAddingBookmark(false);
+	};
+
 	const addToHistory = (url: string, title: string, favicon: string = '🌐') => {
 		const historyItem: HistoryItem = {
 			id: Date.now().toString(),
@@ -463,6 +593,37 @@ const Browser: React.FC = () => {
 		}, 500);
 	};
 
+	// Feature gate helper functions
+	const checkFeatureAccess = (featureId: string): boolean => {
+		return hasFeatureAccess(currentPlan, featureId);
+	};
+
+	const promptUpgrade = (featureName: string, featureIcon: string, requiredPlan: PlanType) => {
+		setUpgradeFeature({ name: featureName, icon: featureIcon, requiredPlan });
+		setShowUpgradePrompt(true);
+		addConsoleMessage(`🔒 ${featureName} requires ${requiredPlan} plan`);
+	};
+
+	const handleUpgrade = () => {
+		// Redirect to pricing page or show payment modal
+		window.open('/pricing', '_blank');
+		setShowUpgradePrompt(false);
+	};
+
+	// Override create tab to enforce tab limits
+	const handleCreateTabGated = (url: string = 'about:blank') => {
+		const tabLimit = TAB_LIMITS[currentPlan];
+
+		if (tabs.length >= tabLimit) {
+			if (currentPlan === 'free') {
+				promptUpgrade('Unlimited Tabs', '∞', 'monthly');
+				return;
+			}
+		}
+
+		handleCreateTab(url);
+	};
+
 
 	
 	return (
@@ -508,6 +669,55 @@ const Browser: React.FC = () => {
 						<span style={{color: colors.text}}>ZENO_WEB_CORE</span>
 					</div>
 					
+					{/* Plan Badge */}
+					<div
+						onClick={() => {
+							if (currentPlan === 'free') {
+								window.open('/pricing', '_blank');
+							}
+						}}
+						style={{
+							background: currentPlan === 'free'
+								? 'linear-gradient(135deg, #94a3b8, #64748b)'
+								: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+							border: 'none',
+							borderRadius: '10px',
+							padding: '8px 16px',
+							color: 'white',
+							fontWeight: '700',
+							fontSize: '12px',
+							cursor: currentPlan === 'free' ? 'pointer' : 'default',
+							transition: 'all 0.3s ease',
+							boxShadow: currentPlan === 'free'
+								? '0 2px 10px rgba(148, 163, 184, 0.3)'
+								: '0 4px 15px rgba(102, 126, 234, 0.4)',
+							textTransform: 'uppercase',
+							letterSpacing: '0.5px',
+							display: 'flex',
+							alignItems: 'center',
+							gap: '6px'
+						}}
+						onMouseEnter={(e) => {
+							if (currentPlan === 'free') {
+								e.currentTarget.style.transform = 'scale(1.05)';
+								e.currentTarget.style.boxShadow = '0 4px 15px rgba(102, 126, 234, 0.4)';
+							}
+						}}
+						onMouseLeave={(e) => {
+							if (currentPlan === 'free') {
+								e.currentTarget.style.transform = 'scale(1)';
+								e.currentTarget.style.boxShadow = '0 2px 10px rgba(148, 163, 184, 0.3)';
+							}
+						}}
+					>
+						{currentPlan === 'free' && '⬆️'}
+						{currentPlan === 'monthly' && '⭐'}
+						{currentPlan === 'yearly' && '🚀'}
+						{currentPlan === 'lifetime' && '👑'}
+						{currentPlan.toUpperCase()}
+						{currentPlan === 'free' && ' - Upgrade'}
+					</div>
+
 					{/* Theme Toggle */}
 					<button
 						onClick={toggleTheme}
@@ -598,25 +808,196 @@ const Browser: React.FC = () => {
 						marginBottom: '20px'
 					}}>
 						<h3 style={{color: colors.text, fontSize: '20px', margin: 0, fontWeight: '600'}}>� Bookmarks</h3>
-						<button
-							onClick={() => setShowBookmarks(false)}
-							style={{
-								background: colors.accent,
-								border: 'none',
-								color: colors.muted,
-								fontSize: '18px',
-								cursor: 'pointer',
-								borderRadius: '50%',
-								width: '32px',
-								height: '32px',
-								display: 'flex',
-								alignItems: 'center',
-								justifyContent: 'center'
-							}}
-						>
-							✕
-						</button>
+						<div style={{ display: 'flex', gap: '12px' }}>
+							<button
+								onClick={() => setIsAddingBookmark(true)}
+								style={{
+									background: 'linear-gradient(135deg, #10b981, #059669)',
+									border: 'none',
+									color: 'white',
+									fontSize: '14px',
+									cursor: 'pointer',
+									borderRadius: '8px',
+									padding: '8px 16px',
+									fontWeight: '600',
+									transition: 'all 0.3s ease'
+								}}
+								onMouseEnter={(e) => {
+									e.currentTarget.style.transform = 'scale(1.05)';
+									e.currentTarget.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.4)';
+								}}
+								onMouseLeave={(e) => {
+									e.currentTarget.style.transform = 'scale(1)';
+									e.currentTarget.style.boxShadow = 'none';
+								}}
+							>
+								➕ Add New
+							</button>
+							<button
+								onClick={() => setShowBookmarks(false)}
+								style={{
+									background: colors.accent,
+									border: 'none',
+									color: colors.muted,
+									fontSize: '18px',
+									cursor: 'pointer',
+									borderRadius: '50%',
+									width: '32px',
+									height: '32px',
+									display: 'flex',
+									alignItems: 'center',
+									justifyContent: 'center'
+								}}
+							>
+								✕
+							</button>
+						</div>
 					</div>
+
+					{/* Add Bookmark Form */}
+					{isAddingBookmark && (
+						<div style={{
+							backgroundColor: colors.primary,
+							border: `2px solid ${colors.border}`,
+							borderRadius: '12px',
+							padding: '20px',
+							marginBottom: '20px'
+						}}>
+							<h4 style={{ color: colors.text, fontSize: '16px', margin: '0 0 16px 0', fontWeight: '600' }}>
+								Add New Bookmark
+							</h4>
+							<div style={{ display: 'grid', gap: '12px' }}>
+								<div>
+									<label style={{ color: colors.muted, fontSize: '12px', display: 'block', marginBottom: '6px' }}>
+										Title *
+									</label>
+									<input
+										type="text"
+										value={newBookmarkData.title}
+										onChange={(e) => setNewBookmarkData({ ...newBookmarkData, title: e.target.value })}
+										placeholder="e.g., My Favorite Site"
+										style={{
+											width: '100%',
+											backgroundColor: colors.accent,
+											border: `1px solid ${colors.border}`,
+											borderRadius: '8px',
+											padding: '10px 12px',
+											color: colors.text,
+											fontSize: '14px',
+											outline: 'none'
+										}}
+										onKeyPress={(e) => {
+											if (e.key === 'Enter') {
+												addNewBookmarkManually();
+											}
+										}}
+									/>
+								</div>
+								<div>
+									<label style={{ color: colors.muted, fontSize: '12px', display: 'block', marginBottom: '6px' }}>
+										URL *
+									</label>
+									<input
+										type="text"
+										value={newBookmarkData.url}
+										onChange={(e) => setNewBookmarkData({ ...newBookmarkData, url: e.target.value })}
+										placeholder="e.g., https://example.com"
+										style={{
+											width: '100%',
+											backgroundColor: colors.accent,
+											border: `1px solid ${colors.border}`,
+											borderRadius: '8px',
+											padding: '10px 12px',
+											color: colors.text,
+											fontSize: '14px',
+											outline: 'none',
+											fontFamily: 'monospace'
+										}}
+										onKeyPress={(e) => {
+											if (e.key === 'Enter') {
+												addNewBookmarkManually();
+											}
+										}}
+									/>
+								</div>
+								<div>
+									<label style={{ color: colors.muted, fontSize: '12px', display: 'block', marginBottom: '6px' }}>
+										Emoji/Icon (optional)
+									</label>
+									<input
+										type="text"
+										value={newBookmarkData.favicon}
+										onChange={(e) => setNewBookmarkData({ ...newBookmarkData, favicon: e.target.value })}
+										placeholder="🌐"
+										maxLength={2}
+										style={{
+											width: '80px',
+											backgroundColor: colors.accent,
+											border: `1px solid ${colors.border}`,
+											borderRadius: '8px',
+											padding: '10px 12px',
+											color: colors.text,
+											fontSize: '20px',
+											outline: 'none',
+											textAlign: 'center'
+										}}
+									/>
+								</div>
+								<div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
+									<button
+										onClick={addNewBookmarkManually}
+										style={{
+											flex: 1,
+											background: 'linear-gradient(135deg, #10b981, #059669)',
+											border: 'none',
+											color: 'white',
+											padding: '12px',
+											borderRadius: '8px',
+											fontSize: '14px',
+											fontWeight: '600',
+											cursor: 'pointer',
+											transition: 'all 0.3s ease'
+										}}
+										onMouseEnter={(e) => {
+											e.currentTarget.style.transform = 'scale(1.02)';
+										}}
+										onMouseLeave={(e) => {
+											e.currentTarget.style.transform = 'scale(1)';
+										}}
+									>
+										✓ Save Bookmark
+									</button>
+									<button
+										onClick={() => {
+											setIsAddingBookmark(false);
+											setNewBookmarkData({ title: '', url: '', favicon: '🌐' });
+										}}
+										style={{
+											flex: 1,
+											background: colors.accent,
+											border: `1px solid ${colors.border}`,
+											color: colors.muted,
+											padding: '12px',
+											borderRadius: '8px',
+											fontSize: '14px',
+											fontWeight: '600',
+											cursor: 'pointer',
+											transition: 'all 0.3s ease'
+										}}
+										onMouseEnter={(e) => {
+											e.currentTarget.style.backgroundColor = colors.secondary;
+										}}
+										onMouseLeave={(e) => {
+											e.currentTarget.style.backgroundColor = colors.accent;
+										}}
+									>
+										✕ Cancel
+									</button>
+								</div>
+							</div>
+						</div>
+					)}
+
 					<div style={{
 						display: 'grid',
 						gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
@@ -1485,7 +1866,14 @@ const Browser: React.FC = () => {
 			}}>
 				{/* MCP Tools Button */}
 				<button
-					onClick={() => setIsConsoleOpen(!isConsoleOpen)}
+					onClick={() => {
+						// Check if user has access to MCP tools
+						if (!checkFeatureAccess('mcp_tools')) {
+							promptUpgrade('MCP Tools Integration', '🔧', 'monthly');
+							return;
+						}
+						setIsConsoleOpen(!isConsoleOpen);
+					}}
 					style={{
 						background: isConsoleOpen 
 							? `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`
@@ -1629,7 +2017,14 @@ const Browser: React.FC = () => {
 
 				{/* Local Chat Button */}
 				<button
-					onClick={() => setIsLocalChatOpen(!isLocalChatOpen)}
+					onClick={() => {
+						// Check if user has access to Ollama integration
+						if (!checkFeatureAccess('ollama_integration')) {
+							promptUpgrade('Local Ollama Models', '🦙', 'monthly');
+							return;
+						}
+						setIsLocalChatOpen(!isLocalChatOpen);
+					}}
 					style={{
 						background: isLocalChatOpen
 							? `linear-gradient(135deg, #8b5cf6, #7c3aed)`
@@ -1699,6 +2094,11 @@ const Browser: React.FC = () => {
 				{/* AI Chat Button */}
 				<button
 					onClick={() => {
+						// Check if user has access to AI assistant
+						if (!checkFeatureAccess('ai_assistant')) {
+							promptUpgrade('AI Assistant', '🤖', 'monthly');
+							return;
+						}
 						console.log('AI Chat button clicked, current state:', isChatOpen);
 						setIsChatOpen(!isChatOpen);
 					}}
@@ -1733,6 +2133,49 @@ const Browser: React.FC = () => {
 				>
 					<span style={{ fontSize: '16px' }}>🤖</span>
 					<span>AI Chat</span>
+				</button>
+
+				{/* Music Player Button */}
+				<button
+					onClick={() => {
+						// Check if user has access to music player
+						if (!checkFeatureAccess('music_player')) {
+							promptUpgrade('Music Player (Webamp)', '🎵', 'yearly');
+							return;
+						}
+						setIsMusicPlayerOpen(!isMusicPlayerOpen);
+					}}
+					style={{
+						background: isMusicPlayerOpen
+							? `linear-gradient(135deg, #f093fb 0%, #f5576c 100%)`
+							: `linear-gradient(135deg, #f093fb40, #f5576c40)`,
+						border: 'none',
+						borderRadius: '15px',
+						padding: '12px 16px',
+						color: 'white',
+						cursor: 'pointer',
+						display: 'flex',
+						flexDirection: 'column',
+						alignItems: 'center',
+						gap: '4px',
+						fontSize: '11px',
+						fontWeight: '500',
+						minWidth: '80px',
+						transition: 'all 0.3s ease',
+						backdropFilter: 'blur(10px)',
+						boxShadow: isMusicPlayerOpen ? '0 4px 15px #f093fb40' : 'none'
+					}}
+					onMouseEnter={(e) => {
+						e.currentTarget.style.transform = 'translateY(-2px)';
+						e.currentTarget.style.boxShadow = '0 6px 20px #f093fb60';
+					}}
+					onMouseLeave={(e) => {
+						e.currentTarget.style.transform = 'translateY(0)';
+						e.currentTarget.style.boxShadow = isMusicPlayerOpen ? '0 4px 15px #f093fb40' : 'none';
+					}}
+				>
+					<span style={{ fontSize: '16px' }}>🎵</span>
+					<span>Music</span>
 				</button>
 
 				{/* Settings Button */}
@@ -1821,6 +2264,40 @@ const Browser: React.FC = () => {
 				/>
 			)}
 
+			{/* Music Player (Webamp) */}
+			{isMusicPlayerOpen && (
+				<div style={{
+					position: 'fixed',
+					top: '50%',
+					left: '50%',
+					transform: 'translate(-50%, -50%)',
+					zIndex: 10000,
+					boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)',
+					backgroundColor: '#f1f5f9',
+					borderRadius: '16px',
+					overflow: 'hidden'
+				}}>
+					<MusicPlayer onClose={() => setIsMusicPlayerOpen(false)} />
+				</div>
+			)}
+
+			{/* Backdrop for Music Player */}
+			{isMusicPlayerOpen && (
+				<div
+					onClick={() => setIsMusicPlayerOpen(false)}
+					style={{
+						position: 'fixed',
+						top: 0,
+						left: 0,
+						right: 0,
+						bottom: 0,
+						backgroundColor: 'rgba(0, 0, 0, 0.7)',
+						backdropFilter: 'blur(4px)',
+						zIndex: 9999
+					}}
+				/>
+			)}
+
 			{/* Floating Windows */}
 			{floatingWindows.map(window => (
 				<FloatingWindow
@@ -1837,6 +2314,17 @@ const Browser: React.FC = () => {
 					initialY={120 + (floatingWindows.findIndex(w => w.id === window.id) * 30)}
 				/>
 			))}
+
+			{/* Upgrade Prompt Modal */}
+			{showUpgradePrompt && upgradeFeature && (
+				<UpgradePrompt
+					featureName={upgradeFeature.name}
+					featureIcon={upgradeFeature.icon}
+					requiredPlan={upgradeFeature.requiredPlan}
+					onClose={() => setShowUpgradePrompt(false)}
+					onUpgrade={handleUpgrade}
+				/>
+			)}
 		</div>
 	);
 };

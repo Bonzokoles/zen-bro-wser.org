@@ -33,7 +33,8 @@ export default defineConfig({
   },
   vite: {
     ssr: {
-      external: ['node:async_hooks']
+      external: ['node:async_hooks'],
+      noExternal: ['crypto-js', 'webamp']
     },
     resolve: {
       alias: {

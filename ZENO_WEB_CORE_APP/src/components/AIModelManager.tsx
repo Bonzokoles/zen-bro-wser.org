@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 interface AIModel {
   id: string;
   name: string;
-  provider: 'gemini' | 'openrouter' | 'claude' | 'custom';
+  provider: 'gemini' | 'openrouter' | 'claude' | 'ollama' | 'custom';
   apiKey: string;
   endpoint?: string;
   model: string;
@@ -25,7 +25,7 @@ const AIModelManager: React.FC<AIModelManagerProps> = ({ isOpen, onClose, onMode
 
   // New model form state
   const [newModel, setNewModel] = useState({
-    provider: 'gemini' as 'gemini' | 'openrouter' | 'claude' | 'custom',
+    provider: 'gemini' as 'gemini' | 'openrouter' | 'claude' | 'ollama' | 'custom',
     name: '',
     apiKey: '',
     model: '',
@@ -60,9 +60,17 @@ const AIModelManager: React.FC<AIModelManagerProps> = ({ isOpen, onClose, onMode
   };
 
   const addModel = () => {
-    if (!newModel.name || !newModel.apiKey || !newModel.model) {
-      alert('Please fill in all required fields');
-      return;
+    // For Ollama, API key is set to 'local' and endpoint is required
+    if (newModel.provider === 'ollama') {
+      if (!newModel.name || !newModel.model || !newModel.endpoint) {
+        alert('Please fill in all required fields (name, model, and server URL)');
+        return;
+      }
+    } else {
+      if (!newModel.name || !newModel.apiKey || !newModel.model) {
+        alert('Please fill in all required fields');
+        return;
+      }
     }
 
     const model: AIModel = {
@@ -132,6 +140,7 @@ const AIModelManager: React.FC<AIModelManagerProps> = ({ isOpen, onClose, onMode
       case 'gemini': return '#4285f4';
       case 'openrouter': return '#10b981';
       case 'claude': return '#f59e0b';
+      case 'ollama': return '#000000';
       case 'custom': return '#8b5cf6';
       default: return '#64748b';
     }
@@ -142,6 +151,7 @@ const AIModelManager: React.FC<AIModelManagerProps> = ({ isOpen, onClose, onMode
       case 'gemini': return '🔷';
       case 'openrouter': return '🔀';
       case 'claude': return '🤖';
+      case 'ollama': return '🦙';
       case 'custom': return '⚙️';
       default: return '🤖';
     }
@@ -164,6 +174,8 @@ const AIModelManager: React.FC<AIModelManagerProps> = ({ isOpen, onClose, onMode
         return ['openai/gpt-4-turbo', 'anthropic/claude-3-opus', 'meta-llama/llama-3-70b'];
       case 'claude':
         return ['claude-3-opus', 'claude-3-sonnet', 'claude-3-haiku'];
+      case 'ollama':
+        return ['llama3.2:1b', 'llama3.2:3b', 'llama3.1:8b', 'mistral:7b', 'phi3:mini', 'gemma2:2b', 'codellama:7b'];
       case 'custom':
         return [];
       default:
@@ -298,8 +310,8 @@ const AIModelManager: React.FC<AIModelManagerProps> = ({ isOpen, onClose, onMode
                 <label style={{ color: '#94a3b8', fontSize: '13px', fontWeight: '600', display: 'block', marginBottom: '8px' }}>
                   Provider *
                 </label>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
-                  {['gemini', 'openrouter', 'claude', 'custom'].map(provider => (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '12px' }}>
+                  {['gemini', 'openrouter', 'claude', 'ollama', 'custom'].map(provider => (
                     <button
                       key={provider}
                       onClick={() => setNewModel({ ...newModel, provider: provider as any, model: '' })}
@@ -384,31 +396,64 @@ const AIModelManager: React.FC<AIModelManagerProps> = ({ isOpen, onClose, onMode
                 </div>
               </div>
 
-              {/* API Key */}
-              <div style={{ marginTop: '16px' }}>
-                <label style={{ color: '#94a3b8', fontSize: '13px', fontWeight: '600', display: 'block', marginBottom: '8px' }}>
-                  API Key *
-                </label>
-                <input
-                  type="password"
-                  value={newModel.apiKey}
-                  onChange={(e) => setNewModel({ ...newModel, apiKey: e.target.value })}
-                  placeholder="Enter API key..."
-                  style={{
-                    width: '100%',
-                    backgroundColor: '#1e293b',
-                    border: '2px solid #334155',
-                    borderRadius: '12px',
-                    padding: '12px',
-                    color: 'white',
-                    fontSize: '14px',
-                    outline: 'none',
-                    fontFamily: 'monospace'
-                  }}
-                  onFocus={(e) => e.target.style.borderColor = getProviderColor(newModel.provider)}
-                  onBlur={(e) => e.target.style.borderColor = '#334155'}
-                />
-              </div>
+              {/* API Key (not for Ollama) */}
+              {newModel.provider !== 'ollama' && (
+                <div style={{ marginTop: '16px' }}>
+                  <label style={{ color: '#94a3b8', fontSize: '13px', fontWeight: '600', display: 'block', marginBottom: '8px' }}>
+                    API Key *
+                  </label>
+                  <input
+                    type="password"
+                    value={newModel.apiKey}
+                    onChange={(e) => setNewModel({ ...newModel, apiKey: e.target.value })}
+                    placeholder="Enter API key..."
+                    style={{
+                      width: '100%',
+                      backgroundColor: '#1e293b',
+                      border: '2px solid #334155',
+                      borderRadius: '12px',
+                      padding: '12px',
+                      color: 'white',
+                      fontSize: '14px',
+                      outline: 'none',
+                      fontFamily: 'monospace'
+                    }}
+                    onFocus={(e) => e.target.style.borderColor = getProviderColor(newModel.provider)}
+                    onBlur={(e) => e.target.style.borderColor = '#334155'}
+                  />
+                </div>
+              )}
+
+              {/* Ollama Endpoint */}
+              {newModel.provider === 'ollama' && (
+                <div style={{ marginTop: '16px' }}>
+                  <label style={{ color: '#94a3b8', fontSize: '13px', fontWeight: '600', display: 'block', marginBottom: '8px' }}>
+                    Ollama Server URL *
+                  </label>
+                  <input
+                    type="text"
+                    value={newModel.endpoint || 'http://localhost:11434'}
+                    onChange={(e) => setNewModel({ ...newModel, endpoint: e.target.value, apiKey: 'local' })}
+                    placeholder="http://localhost:11434"
+                    style={{
+                      width: '100%',
+                      backgroundColor: '#1e293b',
+                      border: '2px solid #334155',
+                      borderRadius: '12px',
+                      padding: '12px',
+                      color: 'white',
+                      fontSize: '14px',
+                      outline: 'none',
+                      fontFamily: 'monospace'
+                    }}
+                    onFocus={(e) => e.target.style.borderColor = getProviderColor(newModel.provider)}
+                    onBlur={(e) => e.target.style.borderColor = '#334155'}
+                  />
+                  <p style={{ color: '#64748b', fontSize: '12px', marginTop: '6px' }}>
+                    💡 Make sure Ollama is running with CORS enabled: <code style={{ color: '#10b981' }}>OLLAMA_ORIGINS=* ollama serve</code>
+                  </p>
+                </div>
+              )}
 
               {/* Custom Endpoint (for custom provider) */}
               {newModel.provider === 'custom' && (
