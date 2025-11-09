@@ -17,7 +17,7 @@ export default defineConfig({
   adapter: cloudflare({
     platformProxy: { enabled: true },
     cloudflareModules: true,
-    imageService: 'compile',
+    imageService: 'passthrough', // Changed from 'compile' - fix image loading issues
     // Uwaga: domyślnie adapter oczekuje KV o nazwie 'SESSION'. Dodaj binding w Pages lub zmień nazwę przez sessionKVBindingName.
   }),
   server: {

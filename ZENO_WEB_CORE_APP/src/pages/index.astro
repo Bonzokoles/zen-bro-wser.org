@@ -8,4 +8,30 @@ import Browser from "../components/Browser.tsx";
   description="Advanced web browser with MCP integration"
 >
   <Browser client:only="react" />
+
+  <!-- Retro Button -->
+  <a
+    href="https://retro.zeno-browser.pages.dev"
+    target="_blank"
+    class="fixed top-1/2 right-6 -translate-y-1/2 z-[9999] px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold rounded-lg shadow-lg transition-all hover:scale-105"
+    style="font-family: 'Comic Sans MS', cursive;"
+  >
+    🎮 RETRO MODE
+  </a>
 </Layout>
+
+<style>
+  a {
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%,
+    100% {
+      box-shadow: 0 0 20px rgba(168, 85, 247, 0.5);
+    }
+    50% {
+      box-shadow: 0 0 40px rgba(168, 85, 247, 0.8);
+    }
+  }
+</style>

@@ -44,18 +44,18 @@ const ShortcutsWidget: React.FC<ShortcutsWidgetProps> = ({
 }) => {
     const [skin, setSkin] = useState<WidgetSkin>(initialSkin);
     const theme = WIDGET_SKINS[skin];
-    
+
     // Shortcuts management
     const [shortcuts, setShortcuts] = useState<Shortcut[]>(() => {
         const saved = localStorage.getItem('widget-shortcuts');
         return saved ? JSON.parse(saved) : DEFAULT_SHORTCUTS;
     });
-    
+
     // Edit mode
     const [isEditMode, setIsEditMode] = useState(false);
     const [editingIndex, setEditingIndex] = useState<number | null>(null);
     const [newShortcut, setNewShortcut] = useState<Shortcut>({ icon: '�', label: '', url: '' });
-    
+
     // Secret PIN system
     const [secretPin, setSecretPin] = useState<string>(() => {
         return localStorage.getItem('widget-shortcuts-pin') || '6498'; // Domyślny PIN
@@ -91,7 +91,7 @@ const ShortcutsWidget: React.FC<ShortcutsWidgetProps> = ({
             if (newPin === secretPin) {
                 setShowSecretLink(true);
                 setPinInput('');
-                
+
                 // Auto-hide after 30 seconds
                 setTimeout(() => setShowSecretLink(false), 30000);
             }
@@ -153,7 +153,7 @@ const ShortcutsWidget: React.FC<ShortcutsWidgetProps> = ({
             height={isEditMode ? 480 : (shortcuts.length * 45 + (showSecretLink ? 45 : 0) + 100)}
         >
             <div style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '500px', overflowY: 'auto' }}>
-                
+
                 {/* Edit Mode Toggle */}
                 <button
                     onClick={(e) => {
@@ -251,7 +251,7 @@ const ShortcutsWidget: React.FC<ShortcutsWidgetProps> = ({
                                 <span>{shortcut.label}</span>
                             </button>
                         )}
-                        
+
                         {/* Edit Mode Controls */}
                         {isEditMode && (
                             <div style={{ display: 'flex', gap: '2px' }}>
@@ -324,10 +324,10 @@ const ShortcutsWidget: React.FC<ShortcutsWidgetProps> = ({
 
                 {/* Add New Shortcut Form */}
                 {isEditMode && (
-                    <div style={{ 
-                        marginTop: '8px', 
-                        padding: '8px', 
-                        background: 'rgba(0,0,0,0.2)', 
+                    <div style={{
+                        marginTop: '8px',
+                        padding: '8px',
+                        background: 'rgba(0,0,0,0.2)',
                         border: `1px solid ${theme.accent}`,
                         display: 'flex',
                         flexDirection: 'column',
@@ -439,10 +439,10 @@ const ShortcutsWidget: React.FC<ShortcutsWidgetProps> = ({
 
                 {/* PIN Hint */}
                 {!isEditMode && (
-                    <div style={{ 
-                        marginTop: '4px', 
-                        fontSize: '9px', 
-                        color: theme.border, 
+                    <div style={{
+                        marginTop: '4px',
+                        fontSize: '9px',
+                        color: theme.border,
                         textAlign: 'center',
                         fontStyle: 'italic'
                     }}>
