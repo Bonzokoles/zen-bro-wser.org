@@ -814,6 +814,87 @@ const WelcomePage: React.FC = () => {
         </button>
       )}
       {/* ============ END AI ASSISTANT ============ */}
+
+      {/* Footer with Contact */}
+      <footer style={{
+        marginTop: '80px',
+        padding: '40px 20px',
+        borderTop: '2px solid rgba(102, 126, 234, 0.3)',
+        background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.8) 0%, rgba(30, 41, 59, 0.8) 100%)',
+        backdropFilter: 'blur(10px)',
+        textAlign: 'center'
+      }}>
+        <div style={{
+          maxWidth: '800px',
+          margin: '0 auto'
+        }}>
+          <h3 style={{
+            fontSize: '24px',
+            fontWeight: '700',
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            marginBottom: '16px'
+          }}>
+            🚀 Współpracuj z nami!
+          </h3>
+          
+          <p style={{
+            fontSize: '16px',
+            color: '#cbd5e1',
+            marginBottom: '20px',
+            lineHeight: '1.6'
+          }}>
+            Zapraszam do współpracy nad projektami AI, webowymi i innowacyjnymi rozwiązaniami.<br />
+            Jeśli potrzebujesz pomocy lub chcesz coś wspólnie stworzyć - pisz śmiało!
+          </p>
+
+          <a
+            href="mailto:JimBoZen@proton.me"
+            style={{
+              display: 'inline-block',
+              padding: '14px 32px',
+              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+              color: 'white',
+              textDecoration: 'none',
+              borderRadius: '12px',
+              fontWeight: '600',
+              fontSize: '16px',
+              transition: 'all 0.3s ease',
+              boxShadow: '0 4px 15px rgba(16, 185, 129, 0.4)',
+              marginBottom: '24px'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 6px 20px rgba(16, 185, 129, 0.6)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 4px 15px rgba(16, 185, 129, 0.4)';
+            }}
+          >
+            📧 JimBoZen@proton.me
+          </a>
+
+          <div style={{
+            marginTop: '32px',
+            fontSize: '13px',
+            color: '#64748b',
+            borderTop: '1px solid rgba(148, 163, 184, 0.2)',
+            paddingTop: '20px'
+          }}>
+            <p style={{ margin: '8px 0' }}>
+              <strong style={{ color: '#94a3b8' }}>Specjalizacja:</strong> AI Integration • Web Development • Cloudflare Workers • MCP Servers
+            </p>
+            <p style={{ margin: '8px 0' }}>
+              Zbudowane z ❤️ używając Astro, React, TypeScript i Cloudflare
+            </p>
+            <p style={{ margin: '8px 0', fontSize: '11px' }}>
+              © 2025 ZENO Browser · Open for collaboration & support requests
+            </p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

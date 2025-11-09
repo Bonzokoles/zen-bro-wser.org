@@ -13,6 +13,7 @@ import MusicPlayerWidget from './widgets/MusicPlayerWidget';
 import { InternetArchivePlayer } from './iframe/InternetArchivePlayer';
 import { YouTubePlayer } from './iframe/YouTubePlayer';
 // import LocalChatbot from './LocalChatbot'; // Moved to NOT_IN_USE
+import OllamaChatbot from './OllamaChatbot';
 import { mcpService } from '../services/mcpService';
 import { analytics } from '../services/analytics';
 import { licenseManager, getLicensePlan } from '../services/security/licenseManager';
@@ -2395,18 +2396,9 @@ const Browser: React.FC = () => {
 				}}
 			/>
 
-			{/* Local Model Chatbot */}
+			{/* Ollama Chatbot */}
 			{isLocalChatOpen && (
-				<div style={{
-					position: 'fixed',
-					top: '50%',
-					left: '50%',
-					transform: 'translate(-50%, -50%)',
-					zIndex: 10000,
-					boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)'
-				}}>
-					<LocalChatbot onClose={() => setIsLocalChatOpen(false)} />
-				</div>
+				<OllamaChatbot onClose={() => setIsLocalChatOpen(false)} />
 			)}
 
 			{/* Backdrop for Local Chat */}
