@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 
 const WelcomePage: React.FC = () => {
   const [showMoreSites, setShowMoreSites] = useState(false);
-	const [activeTab, setActiveTab] = useState<'popular' | 'niche'>('popular');
+  const [activeTab, setActiveTab] = useState<'popular' | 'niche'>('popular');
 
   // AI Assistant state
   const [showQuickChat, setShowQuickChat] = useState(false);
@@ -129,7 +129,7 @@ const WelcomePage: React.FC = () => {
           Advanced_Web_IfrAME_BRO_wser_MCP_AGENTAMI_from_deep_side_of_net
         </p>
       </div>
-      
+
       <div style={{
         marginTop: '40px',
         backgroundColor: 'transparent',
@@ -149,7 +149,7 @@ const WelcomePage: React.FC = () => {
           marginBottom: '16px',
           fontSize: '14px'
         }}>
-          ⚠️ Google, Facebook, YouTube, Twitter blokują iframe (X-Frame-Options). 
+          ⚠️ Google, Facebook, YouTube, Twitter blokują iframe (X-Frame-Options).
           <br />Poniższe strony <strong>działają</strong> bez ograniczeń:
         </p>
         <div style={{
@@ -198,7 +198,7 @@ const WelcomePage: React.FC = () => {
             </button>
           ))}
         </div>
-        
+
         {/* Second Row of Quick Links */}
         <div style={{
           display: 'grid',
@@ -246,7 +246,7 @@ const WelcomePage: React.FC = () => {
             </button>
           ))}
         </div>
-        
+
         <button
           onClick={() => setShowMoreSites(true)}
           style={{
@@ -279,7 +279,7 @@ const WelcomePage: React.FC = () => {
           📋 Pełna lista sprawdzonych stron
         </button>
       </div>
-      
+
       {showMoreSites && (
         <div style={{
           position: 'fixed',
@@ -350,7 +350,7 @@ const WelcomePage: React.FC = () => {
                 ✕
               </button>
             </div>
-            
+
             {/* Advanced Search Button */}
             <div style={{
               padding: '16px 32px',
@@ -392,7 +392,7 @@ const WelcomePage: React.FC = () => {
                 Szukaj, filtruj i sortuj strony z zaawansowanymi opcjami
               </p>
             </div>
-            
+
             {/* Scrollable Content */}
             <div style={{
               flex: 1,
@@ -447,176 +447,200 @@ const WelcomePage: React.FC = () => {
                   💎 Niszowe (30)
                 </button>
               </div>
-            
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-              gap: '12px'
-            }}>
-              {(activeTab === 'popular' ? [
-                { cat: '🇵🇱 Polskie strony', sites: [
-                  { name: 'Onet.pl', url: 'https://www.onet.pl' },
-                  { name: 'Interia.pl', url: 'https://www.interia.pl' },
-                  { name: 'Wp.pl', url: 'https://www.wp.pl' },
-                  { name: 'Gazeta.pl', url: 'https://www.gazeta.pl' },
-                  { name: 'Allegro.pl', url: 'https://allegro.pl' },
-                  { name: 'OLX.pl', url: 'https://www.olx.pl' },
-                  { name: 'Filmweb.pl', url: 'https://www.filmweb.pl' },
-                  { name: 'Wykop.pl', url: 'https://www.wykop.pl' },
-                  { name: 'TVP VOD', url: 'https://vod.tvp.pl' },
-                  { name: 'Niebezpiecznik.pl', url: 'https://niebezpiecznik.pl' }
-                ]},
-                { cat: '⚡ Code Playgrounds', sites: [
-                  { name: 'CodeSandbox', url: 'https://codesandbox.io' },
-                  { name: 'StackBlitz', url: 'https://stackblitz.com' },
-                  { name: 'JSFiddle', url: 'https://jsfiddle.net' },
-                  { name: 'JSBin', url: 'https://jsbin.com' },
-                  { name: 'Replit', url: 'https://replit.com' },
-                  { name: 'RunKit Embed', url: 'https://runkit.com/embed' }
-                ]},
-                { cat: '🔧 API & Dev Tools', sites: [
-                  { name: 'HTTPBin', url: 'https://httpbin.org' },
-                  { name: 'JSONPlaceholder', url: 'https://jsonplaceholder.typicode.com' },
-                  { name: 'Swagger Petstore', url: 'https://petstore.swagger.io' },
-                  { name: 'GraphQL Playground', url: 'https://graphql.org/swapi-graphql' },
-                  { name: 'APIs.guru Browser', url: 'https://apis.guru/browse-apis' },
-                  { name: 'SQL Fiddle', url: 'http://sqlfiddle.com' }
-                ]},
-                { cat: '🎓 Edukacja & Docs', sites: [
-                  { name: 'Wikipedia', url: 'https://en.wikipedia.org' },
-                  { name: 'W3Schools Tryit', url: 'https://www.w3schools.com/html/tryit.asp' },
-                  { name: 'Observable HQ', url: 'https://observablehq.com' },
-                  { name: 'D3.js Gallery', url: 'https://observablehq.com/@d3/gallery' },
-                  { name: 'Jupyter nbviewer', url: 'https://nbviewer.jupyter.org' },
-                  { name: 'Scratch MIT', url: 'https://scratch.mit.edu' }
-                ]},
-                { cat: '🗺️ Mapy & Media', sites: [
-                  { name: 'OpenStreetMap', url: 'https://www.openstreetmap.org/export/embed.html' },
-                  { name: 'Google Maps Embed', url: 'https://www.google.com/maps/embed' },
-                  { name: 'YouTube Embed', url: 'https://www.youtube.com/embed/dQw4w9WgXcQ' },
-                  { name: 'Vimeo Player', url: 'https://player.vimeo.com/video/148751763' },
-                  { name: 'Spotify Playlist', url: 'https://open.spotify.com/embed/playlist/37i9dQZF1DXcBWIGoYBM5M' }
-                ]},
-                { cat: '🌐 Testowe & Utilities', sites: [
-                  { name: 'Example.com', url: 'https://example.com' },
-                  { name: 'IframeTester', url: 'https://iframetester.com' },
-                  { name: 'Webhook.site', url: 'https://webhook.site' },
-                  { name: 'H5P Interactive', url: 'https://h5p.org' },
-                  { name: 'DuckDuckGo', url: 'https://duckduckgo.com' }
-                ]}
-              ] : [
-                { cat: '🎨 Design & 3D', sites: [
-                  { name: 'Glitch', url: 'https://glitch.com' },
-                  { name: 'Draw.io Diagrams', url: 'https://app.diagrams.net' },
-                  { name: 'Figma Embed', url: 'https://www.figma.com/embed' },
-                  { name: 'Tinkercad 3D', url: 'https://www.tinkercad.com/embed' }
-                ]},
-                { cat: '📚 Edukacja & Kursy', sites: [
-                  { name: 'Exercism', url: 'https://exercism.io' },
-                  { name: 'The Odin Project', url: 'https://www.theodinproject.com' },
-                  { name: 'FreeCodeCamp', url: 'https://freecodecamp.org' },
-                  { name: 'Codewars', url: 'https://www.codewars.com' },
-                  { name: 'Katacoda DevOps', url: 'https://www.katacoda.com' }
-                ]},
-                { cat: '⚡ Code Interpreters', sites: [
-                  { name: 'JS Tutor Visualizer', url: 'http://pythontutor.com/javascript.html' },
-                  { name: 'RunJS Playground', url: 'https://runjs.app' },
-                  { name: 'Observable Plot', url: 'https://observablehq.com/@observablehq/plot' },
-                  { name: 'Circuit Simulator', url: 'https://www.falstad.com/circuit' }
-                ]},
-                { cat: '🔧 Dev & Testing Tools', sites: [
-                  { name: 'Can I Use', url: 'https://caniuse.com' },
-                  { name: 'JSON Formatter', url: 'https://jsonformatter.curiousconcept.com' },
-                  { name: 'Applitools Demo', url: 'https://applitools.com/demo' },
-                  { name: 'Postman Docs', url: 'https://learning.postman.com/docs' },
-                  { name: 'IP Info API', url: 'https://ipinfo.io/developers/embed' }
-                ]},
-                { cat: '📝 Productivity & Forms', sites: [
-                  { name: 'Overleaf LaTeX', url: 'https://www.overleaf.com/docs' },
-                  { name: 'Typeform', url: 'https://www.typeform.com/help/embed-form' },
-                  { name: 'Calendly', url: 'https://calendly.com/embed' },
-                  { name: 'Workflowy', url: 'https://workflowy.com/embed' },
-                  { name: 'Glide Apps', url: 'https://www.glideapps.com/embed' }
-                ]},
-                { cat: '🌍 Widgets & Data', sites: [
-                  { name: 'Air Visual', url: 'https://www.iqair.com/world-air-quality' },
-                  { name: 'OpenWeatherMap', url: 'https://openweathermap.org/widgets' },
-                  { name: 'DuckDuckGo Search', url: 'https://duckduckgo.com/search_box.html' },
-                  { name: 'Scratch MIT', url: 'https://scratch.mit.edu/projects/embed' },
-                  { name: 'Amazon Honeycode', url: 'https://www.honeycode.aws/embed' }
-                ]}
-              ]).map(category => (
-                <div key={category.cat} style={{
-                  backgroundColor: 'transparent',
-                  border: '2px solid rgba(148, 163, 184, 0.3)',
-                  padding: '16px',
-                  borderRadius: '0'
-                }}>
-                  <h3 style={{
-                    color: '#60a5fa',
-                    fontSize: '14px',
-                    fontWeight: 'bold',
-                    marginBottom: '12px'
-                  }}>
-                    {category.cat}
-                  </h3>
-                  {category.sites.map(site => (
-                    <button
-                      key={site.url}
-                      onClick={() => {
-                        const event = new CustomEvent('navigate', { detail: { url: site.url } });
-                        window.dispatchEvent(event);
-                        setShowMoreSites(false);
-                      }}
-                      style={{
-                        width: '100%',
-                        backgroundColor: 'transparent',
-                        color: 'white',
-                        padding: '10px',
-                        border: '2px solid rgba(148, 163, 184, 0.3)',
-                        borderRadius: '0',
-                        fontSize: '12px',
-                        cursor: 'pointer',
-                        textAlign: 'left',
-                        marginBottom: '8px',
-                        transition: 'all 0.3s'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = 'rgba(96, 165, 250, 0.2)';
-                        e.currentTarget.style.borderColor = '#60a5fa';
-                        e.currentTarget.style.transform = 'translateX(4px)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = 'transparent';
-                        e.currentTarget.style.borderColor = 'rgba(148, 163, 184, 0.3)';
-                        e.currentTarget.style.transform = 'translateX(0)';
-                      }}
-                    >
-                      {site.name}
-                    </button>
-                  ))}
-                </div>
-              ))}
-            </div>
-            <div style={{
-              backgroundColor: 'transparent',
-              border: '2px solid rgba(148, 163, 184, 0.3)',
-              padding: '16px',
-              borderRadius: '0',
-              marginTop: '24px',
-              textAlign: 'center'
-            }}>
-              <p style={{
-                color: '#94a3b8',
-                fontSize: '13px',
-                lineHeight: '1.6',
-                margin: 0
+
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+                gap: '12px'
               }}>
-                💡 <strong style={{color: '#60a5fa'}}>Razem 68 stron!</strong> Popularne playgrounds, API tools, edukacja, design, widgets i więcej.
-                <br />
-                <span style={{fontSize: '11px', color: '#64748b'}}>Źródło: Perplexity AI + ręczna weryfikacja iframe policies</span>
-              </p>
-            </div>
+                {(activeTab === 'popular' ? [
+                  {
+                    cat: '🇵🇱 Polskie strony', sites: [
+                      { name: 'Onet.pl', url: 'https://www.onet.pl' },
+                      { name: 'Interia.pl', url: 'https://www.interia.pl' },
+                      { name: 'Wp.pl', url: 'https://www.wp.pl' },
+                      { name: 'Gazeta.pl', url: 'https://www.gazeta.pl' },
+                      { name: 'Allegro.pl', url: 'https://allegro.pl' },
+                      { name: 'OLX.pl', url: 'https://www.olx.pl' },
+                      { name: 'Filmweb.pl', url: 'https://www.filmweb.pl' },
+                      { name: 'Wykop.pl', url: 'https://www.wykop.pl' },
+                      { name: 'TVP VOD', url: 'https://vod.tvp.pl' },
+                      { name: 'Niebezpiecznik.pl', url: 'https://niebezpiecznik.pl' }
+                    ]
+                  },
+                  {
+                    cat: '⚡ Code Playgrounds', sites: [
+                      { name: 'CodeSandbox', url: 'https://codesandbox.io' },
+                      { name: 'StackBlitz', url: 'https://stackblitz.com' },
+                      { name: 'JSFiddle', url: 'https://jsfiddle.net' },
+                      { name: 'JSBin', url: 'https://jsbin.com' },
+                      { name: 'Replit', url: 'https://replit.com' },
+                      { name: 'RunKit Embed', url: 'https://runkit.com/embed' }
+                    ]
+                  },
+                  {
+                    cat: '🔧 API & Dev Tools', sites: [
+                      { name: 'HTTPBin', url: 'https://httpbin.org' },
+                      { name: 'JSONPlaceholder', url: 'https://jsonplaceholder.typicode.com' },
+                      { name: 'Swagger Petstore', url: 'https://petstore.swagger.io' },
+                      { name: 'GraphQL Playground', url: 'https://graphql.org/swapi-graphql' },
+                      { name: 'APIs.guru Browser', url: 'https://apis.guru/browse-apis' },
+                      { name: 'SQL Fiddle', url: 'http://sqlfiddle.com' }
+                    ]
+                  },
+                  {
+                    cat: '🎓 Edukacja & Docs', sites: [
+                      { name: 'Wikipedia', url: 'https://en.wikipedia.org' },
+                      { name: 'W3Schools Tryit', url: 'https://www.w3schools.com/html/tryit.asp' },
+                      { name: 'Observable HQ', url: 'https://observablehq.com' },
+                      { name: 'D3.js Gallery', url: 'https://observablehq.com/@d3/gallery' },
+                      { name: 'Jupyter nbviewer', url: 'https://nbviewer.jupyter.org' },
+                      { name: 'Scratch MIT', url: 'https://scratch.mit.edu' }
+                    ]
+                  },
+                  {
+                    cat: '🗺️ Mapy & Media', sites: [
+                      { name: 'OpenStreetMap', url: 'https://www.openstreetmap.org/export/embed.html' },
+                      { name: 'Google Maps Embed', url: 'https://www.google.com/maps/embed' },
+                      { name: 'YouTube Embed', url: 'https://www.youtube.com/embed/dQw4w9WgXcQ' },
+                      { name: 'Vimeo Player', url: 'https://player.vimeo.com/video/148751763' },
+                      { name: 'Spotify Playlist', url: 'https://open.spotify.com/embed/playlist/37i9dQZF1DXcBWIGoYBM5M' }
+                    ]
+                  },
+                  {
+                    cat: '🌐 Testowe & Utilities', sites: [
+                      { name: 'Example.com', url: 'https://example.com' },
+                      { name: 'IframeTester', url: 'https://iframetester.com' },
+                      { name: 'Webhook.site', url: 'https://webhook.site' },
+                      { name: 'H5P Interactive', url: 'https://h5p.org' },
+                      { name: 'DuckDuckGo', url: 'https://duckduckgo.com' }
+                    ]
+                  }
+                ] : [
+                  {
+                    cat: '🎨 Design & 3D', sites: [
+                      { name: 'Glitch', url: 'https://glitch.com' },
+                      { name: 'Draw.io Diagrams', url: 'https://app.diagrams.net' },
+                      { name: 'Figma Embed', url: 'https://www.figma.com/embed' },
+                      { name: 'Tinkercad 3D', url: 'https://www.tinkercad.com/embed' }
+                    ]
+                  },
+                  {
+                    cat: '📚 Edukacja & Kursy', sites: [
+                      { name: 'Exercism', url: 'https://exercism.io' },
+                      { name: 'The Odin Project', url: 'https://www.theodinproject.com' },
+                      { name: 'FreeCodeCamp', url: 'https://freecodecamp.org' },
+                      { name: 'Codewars', url: 'https://www.codewars.com' },
+                      { name: 'Katacoda DevOps', url: 'https://www.katacoda.com' }
+                    ]
+                  },
+                  {
+                    cat: '⚡ Code Interpreters', sites: [
+                      { name: 'JS Tutor Visualizer', url: 'http://pythontutor.com/javascript.html' },
+                      { name: 'RunJS Playground', url: 'https://runjs.app' },
+                      { name: 'Observable Plot', url: 'https://observablehq.com/@observablehq/plot' },
+                      { name: 'Circuit Simulator', url: 'https://www.falstad.com/circuit' }
+                    ]
+                  },
+                  {
+                    cat: '🔧 Dev & Testing Tools', sites: [
+                      { name: 'Can I Use', url: 'https://caniuse.com' },
+                      { name: 'JSON Formatter', url: 'https://jsonformatter.curiousconcept.com' },
+                      { name: 'Applitools Demo', url: 'https://applitools.com/demo' },
+                      { name: 'Postman Docs', url: 'https://learning.postman.com/docs' },
+                      { name: 'IP Info API', url: 'https://ipinfo.io/developers/embed' }
+                    ]
+                  },
+                  {
+                    cat: '📝 Productivity & Forms', sites: [
+                      { name: 'Overleaf LaTeX', url: 'https://www.overleaf.com/docs' },
+                      { name: 'Typeform', url: 'https://www.typeform.com/help/embed-form' },
+                      { name: 'Calendly', url: 'https://calendly.com/embed' },
+                      { name: 'Workflowy', url: 'https://workflowy.com/embed' },
+                      { name: 'Glide Apps', url: 'https://www.glideapps.com/embed' }
+                    ]
+                  },
+                  {
+                    cat: '🌍 Widgets & Data', sites: [
+                      { name: 'Air Visual', url: 'https://www.iqair.com/world-air-quality' },
+                      { name: 'OpenWeatherMap', url: 'https://openweathermap.org/widgets' },
+                      { name: 'DuckDuckGo Search', url: 'https://duckduckgo.com/search_box.html' },
+                      { name: 'Scratch MIT', url: 'https://scratch.mit.edu/projects/embed' },
+                      { name: 'Amazon Honeycode', url: 'https://www.honeycode.aws/embed' }
+                    ]
+                  }
+                ]).map(category => (
+                  <div key={category.cat} style={{
+                    backgroundColor: 'transparent',
+                    border: '2px solid rgba(148, 163, 184, 0.3)',
+                    padding: '16px',
+                    borderRadius: '0'
+                  }}>
+                    <h3 style={{
+                      color: '#60a5fa',
+                      fontSize: '14px',
+                      fontWeight: 'bold',
+                      marginBottom: '12px'
+                    }}>
+                      {category.cat}
+                    </h3>
+                    {category.sites.map(site => (
+                      <button
+                        key={site.url}
+                        onClick={() => {
+                          const event = new CustomEvent('navigate', { detail: { url: site.url } });
+                          window.dispatchEvent(event);
+                          setShowMoreSites(false);
+                        }}
+                        style={{
+                          width: '100%',
+                          backgroundColor: 'transparent',
+                          color: 'white',
+                          padding: '10px',
+                          border: '2px solid rgba(148, 163, 184, 0.3)',
+                          borderRadius: '0',
+                          fontSize: '12px',
+                          cursor: 'pointer',
+                          textAlign: 'left',
+                          marginBottom: '8px',
+                          transition: 'all 0.3s'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = 'rgba(96, 165, 250, 0.2)';
+                          e.currentTarget.style.borderColor = '#60a5fa';
+                          e.currentTarget.style.transform = 'translateX(4px)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = 'transparent';
+                          e.currentTarget.style.borderColor = 'rgba(148, 163, 184, 0.3)';
+                          e.currentTarget.style.transform = 'translateX(0)';
+                        }}
+                      >
+                        {site.name}
+                      </button>
+                    ))}
+                  </div>
+                ))}
+              </div>
+              <div style={{
+                backgroundColor: 'transparent',
+                border: '2px solid rgba(148, 163, 184, 0.3)',
+                padding: '16px',
+                borderRadius: '0',
+                marginTop: '24px',
+                textAlign: 'center'
+              }}>
+                <p style={{
+                  color: '#94a3b8',
+                  fontSize: '13px',
+                  lineHeight: '1.6',
+                  margin: 0
+                }}>
+                  💡 <strong style={{ color: '#60a5fa' }}>Razem 68 stron!</strong> Popularne playgrounds, API tools, edukacja, design, widgets i więcej.
+                  <br />
+                  <span style={{ fontSize: '11px', color: '#64748b' }}>Źródło: Perplexity AI + ręczna weryfikacja iframe policies</span>
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -814,6 +838,87 @@ const WelcomePage: React.FC = () => {
         </button>
       )}
       {/* ============ END AI ASSISTANT ============ */}
+
+      {/* Footer with Contact */}
+      <footer style={{
+        marginTop: '80px',
+        padding: '40px 20px',
+        borderTop: '2px solid rgba(102, 126, 234, 0.3)',
+        background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.8) 0%, rgba(30, 41, 59, 0.8) 100%)',
+        backdropFilter: 'blur(10px)',
+        textAlign: 'center'
+      }}>
+        <div style={{
+          maxWidth: '800px',
+          margin: '0 auto'
+        }}>
+          <h3 style={{
+            fontSize: '24px',
+            fontWeight: '700',
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            marginBottom: '16px'
+          }}>
+            🚀 Współpracuj z nami!
+          </h3>
+
+          <p style={{
+            fontSize: '16px',
+            color: '#cbd5e1',
+            marginBottom: '20px',
+            lineHeight: '1.6'
+          }}>
+            Zapraszam do współpracy nad projektami AI, webowymi i innowacyjnymi rozwiązaniami.<br />
+            Jeśli potrzebujesz pomocy lub chcesz coś wspólnie stworzyć - pisz śmiało!
+          </p>
+
+          <a
+            href="mailto:JimBoZen@proton.me"
+            style={{
+              display: 'inline-block',
+              padding: '14px 32px',
+              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+              color: 'white',
+              textDecoration: 'none',
+              borderRadius: '12px',
+              fontWeight: '600',
+              fontSize: '16px',
+              transition: 'all 0.3s ease',
+              boxShadow: '0 4px 15px rgba(16, 185, 129, 0.4)',
+              marginBottom: '24px'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 6px 20px rgba(16, 185, 129, 0.6)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 4px 15px rgba(16, 185, 129, 0.4)';
+            }}
+          >
+            📧 JimBoZen@proton.me
+          </a>
+
+          <div style={{
+            marginTop: '32px',
+            fontSize: '13px',
+            color: '#64748b',
+            borderTop: '1px solid rgba(148, 163, 184, 0.2)',
+            paddingTop: '20px'
+          }}>
+            <p style={{ margin: '8px 0' }}>
+              <strong style={{ color: '#94a3b8' }}>Specjalizacja:</strong> AI Integration • Web Development • Cloudflare Workers • MCP Servers
+            </p>
+            <p style={{ margin: '8px 0' }}>
+              Zbudowane z ❤️ używając Astro, React, TypeScript i Cloudflare
+            </p>
+            <p style={{ margin: '8px 0', fontSize: '11px' }}>
+              © 2025 ZENO Browser · Open for collaboration & support requests
+            </p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

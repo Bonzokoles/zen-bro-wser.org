@@ -1,14 +1,16 @@
 /**
- * MusicPlayer Component - Webamp Integration
- * Classic Winamp-style music player with skin support
+ * MusicPlayer Component - Webamp Integration with Widget System
+ * Classic Winamp-style music player with skin support and always-on-top
  */
 
 import React, { useEffect, useRef, useState } from 'react';
 import Webamp from 'webamp';
+import { WIDGET_SKINS } from './widgets/WidgetContainer';
+import type { WidgetSkin } from './widgets/WidgetContainer';
 
 interface MusicPlayerProps {
   onClose?: () => void;
-  initialSkin?: string;
+  initialSkin?: WidgetSkin;
 }
 
 // Popular Winamp skins from the Webamp skin museum
@@ -67,30 +69,61 @@ const DEMO_TRACKS = [
   },
 ];
 
-const MusicPlayer: React.FC<MusicPlayerProps> = ({ onClose, initialSkin }) => {
+const MusicPlayer: React.FC<MusicPlayerProps> = ({ onClose, initialSkin = 'modern' }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const webampRef = useRef<Webamp | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [currentSkin, setCurrentSkin] = useState<string | null>(initialSkin || null);
-  const [showSkinSelector, setShowSkinSelector] = useState(false);
+  const [skin, setSkin] = useState<WidgetSkin>(initialSkin);
+  const [isMinimized, setIsMinimized] = useState(false);
+  const [position, setPosition] = useState({ x: 100, y: 100 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+
+  const theme = WIDGET_SKINS[skin];
+
+  // Drag handlers
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).closest('button, select')) return;
+    setIsDragging(true);
+    setDragOffset({
+      x: e.clientX - position.x,
+      y: e.clientY - position.y
+    });
+  };
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (!isDragging) return;
+    setPosition({
+      x: e.clientX - dragOffset.x,
+      y: e.clientY - dragOffset.y
+    });
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDragging, dragOffset]);
 
   useEffect(() => {
     if (!containerRef.current) return;
 
     const initWebamp = async () => {
       try {
-        // Initialize Webamp
+        // Initialize Webamp - bez zewnętrznych skórek (tylko domyślny)
         const webamp = new Webamp({
           initialTracks: DEMO_TRACKS,
-          initialSkin: currentSkin
-            ? {
-                url: currentSkin,
-              }
-            : undefined,
-          availableSkins: CLASSIC_SKINS.map(skin => ({
-            name: skin.name,
-            url: skin.url || undefined,
-          })),
+          // Usuń initialSkin - użyj domyślnego built-in
+          // availableSkins: [], // Wyłącz skin selector
           enableHotkeys: true,
           zIndex: 10000,
         });
