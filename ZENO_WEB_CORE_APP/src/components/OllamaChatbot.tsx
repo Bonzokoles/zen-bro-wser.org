@@ -18,8 +18,8 @@ const OllamaChatbot: React.FC<OllamaChatbotProps> = ({ onClose }) => {
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        // Fetch available models
-        fetch('http://localhost:11434/api/tags')
+        // Fetch available models via proxy (działa zarówno lokalnie jak i na production)
+        fetch('/api/ollama-proxy')
             .then(res => res.json())
             .then(data => {
                 const models = data.models?.map((m: any) => m.name) || [];
@@ -30,7 +30,7 @@ const OllamaChatbot: React.FC<OllamaChatbotProps> = ({ onClose }) => {
             })
             .catch(err => {
                 console.error('Failed to fetch Ollama models:', err);
-                setMessages([{ role: 'assistant', content: '❌ Nie można połączyć z Ollama (localhost:11434).\nSprawdź czy Ollama jest uruchomiona.' }]);
+                setMessages([{ role: 'assistant', content: '❌ Nie można połączyć z Ollama.\n\nRozwiązania:\n1. Zainstaluj Ollama: https://ollama.ai\n2. Uruchom: ollama serve\n3. Sprawdź czy działa: curl http://localhost:11434' }]);
             });
     }, []);
 
@@ -47,7 +47,7 @@ const OllamaChatbot: React.FC<OllamaChatbotProps> = ({ onClose }) => {
         setIsLoading(true);
 
         try {
-            const response = await fetch('http://localhost:11434/api/chat', {
+            const response = await fetch('/api/ollama-proxy', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -88,9 +88,9 @@ const OllamaChatbot: React.FC<OllamaChatbotProps> = ({ onClose }) => {
             height: '700px',
             maxHeight: '90vh',
             backgroundColor: '#1a1a1a',
-            border: '2px solid #00ff00',
+            border: '2px solid #10b981',
             borderRadius: '12px',
-            boxShadow: '0 8px 32px rgba(0, 255, 0, 0.3)',
+            boxShadow: '0 8px 32px rgba(16, 185, 129, 0.3)',
             display: 'flex',
             flexDirection: 'column',
             zIndex: 10000,
@@ -99,7 +99,7 @@ const OllamaChatbot: React.FC<OllamaChatbotProps> = ({ onClose }) => {
             {/* Header */}
             <div style={{
                 padding: '16px',
-                borderBottom: '1px solid #00ff00',
+                borderBottom: '1px solid #10b981',
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
@@ -107,14 +107,14 @@ const OllamaChatbot: React.FC<OllamaChatbotProps> = ({ onClose }) => {
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <span style={{ fontSize: '24px' }}>🤖</span>
-                    <h3 style={{ margin: 0, color: '#00ff00' }}>Ollama Chatbot</h3>
+                    <h3 style={{ margin: 0, color: '#10b981' }}>Ollama Chatbot</h3>
                 </div>
                 <button
                     onClick={onClose}
                     style={{
                         background: 'none',
                         border: 'none',
-                        color: '#00ff00',
+                        color: '#10b981',
                         fontSize: '24px',
                         cursor: 'pointer',
                         padding: '0 8px'
@@ -132,7 +132,7 @@ const OllamaChatbot: React.FC<OllamaChatbotProps> = ({ onClose }) => {
                 gap: '12px',
                 alignItems: 'center'
             }}>
-                <label style={{ color: '#00ff00', fontSize: '12px' }}>Model:</label>
+                <label style={{ color: '#10b981', fontSize: '12px' }}>Model:</label>
                 <select
                     value={model}
                     onChange={(e) => setModel(e.target.value)}
@@ -140,8 +140,8 @@ const OllamaChatbot: React.FC<OllamaChatbotProps> = ({ onClose }) => {
                     style={{
                         padding: '6px 12px',
                         backgroundColor: '#0a0a0a',
-                        color: '#00ff00',
-                        border: '1px solid #00ff00',
+                        color: '#10b981',
+                        border: '1px solid #10b981',
                         borderRadius: '4px',
                         fontSize: '12px',
                         cursor: 'pointer'
@@ -190,9 +190,9 @@ const OllamaChatbot: React.FC<OllamaChatbotProps> = ({ onClose }) => {
                             maxWidth: '80%',
                             padding: '12px 16px',
                             borderRadius: '12px',
-                            backgroundColor: msg.role === 'user' ? '#003300' : '#001a00',
-                            border: `1px solid ${msg.role === 'user' ? '#00ff00' : '#006600'}`,
-                            color: '#00ff00',
+                            backgroundColor: msg.role === 'user' ? '#064e3b' : '#022c22',
+                            border: `1px solid ${msg.role === 'user' ? '#10b981' : '#047857'}`,
+                            color: '#10b981',
                             fontSize: '13px',
                             lineHeight: '1.5',
                             whiteSpace: 'pre-wrap',
@@ -211,9 +211,9 @@ const OllamaChatbot: React.FC<OllamaChatbotProps> = ({ onClose }) => {
                         alignSelf: 'flex-start',
                         padding: '12px 16px',
                         borderRadius: '12px',
-                        backgroundColor: '#001a00',
-                        border: '1px solid #006600',
-                        color: '#00ff00',
+                        backgroundColor: '#022c22',
+                        border: '1px solid #047857',
+                        color: '#10b981',
                         fontSize: '13px'
                     }}>
                         <div style={{ fontSize: '10px', opacity: 0.7, marginBottom: '4px' }}>
@@ -229,7 +229,7 @@ const OllamaChatbot: React.FC<OllamaChatbotProps> = ({ onClose }) => {
             {/* Input */}
             <div style={{
                 padding: '16px',
-                borderTop: '1px solid #00ff00',
+                borderTop: '1px solid #10b981',
                 display: 'flex',
                 gap: '8px',
                 backgroundColor: '#0a0a0a'
@@ -245,8 +245,8 @@ const OllamaChatbot: React.FC<OllamaChatbotProps> = ({ onClose }) => {
                         flex: 1,
                         padding: '12px',
                         backgroundColor: '#1a1a1a',
-                        color: '#00ff00',
-                        border: '1px solid #00ff00',
+                        color: '#10b981',
+                        border: '1px solid #10b981',
                         borderRadius: '6px',
                         fontSize: '13px',
                         outline: 'none'
@@ -257,8 +257,8 @@ const OllamaChatbot: React.FC<OllamaChatbotProps> = ({ onClose }) => {
                     disabled={isLoading || !input.trim()}
                     style={{
                         padding: '12px 24px',
-                        backgroundColor: isLoading || !input.trim() ? '#003300' : '#00ff00',
-                        color: isLoading || !input.trim() ? '#006600' : '#000',
+                        backgroundColor: isLoading || !input.trim() ? '#064e3b' : '#10b981',
+                        color: isLoading || !input.trim() ? '#047857' : '#000',
                         border: 'none',
                         borderRadius: '6px',
                         cursor: isLoading || !input.trim() ? 'not-allowed' : 'pointer',
