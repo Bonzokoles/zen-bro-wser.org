@@ -14,6 +14,9 @@ import { InternetArchivePlayer } from './iframe/InternetArchivePlayer';
 import { YouTubePlayer } from './iframe/YouTubePlayer';
 // import LocalChatbot from './LocalChatbot'; // Moved to NOT_IN_USE
 import OllamaChatbot from './OllamaChatbot';
+import WikipediaWidget from './widgets/WikipediaWidget';
+import OnThisDayWidget from './widgets/OnThisDayWidget';
+import BirthdaySongWidget from './widgets/BirthdaySongWidget';
 import { mcpService } from '../services/mcpService';
 import { analytics } from '../services/analytics';
 import { licenseManager, getLicensePlan } from '../services/security/licenseManager';
@@ -83,6 +86,9 @@ const Browser: React.FC = () => {
 	const [isClockWidgetOpen, setIsClockWidgetOpen] = useState(false);
 	const [isShortcutsWidgetOpen, setIsShortcutsWidgetOpen] = useState(false);
 	const [isMusicWidgetOpen, setIsMusicWidgetOpen] = useState(false);
+	const [isWikipediaOpen, setIsWikipediaOpen] = useState(false);
+	const [isOnThisDayOpen, setIsOnThisDayOpen] = useState(false);
+	const [isBirthdaySongOpen, setIsBirthdaySongOpen] = useState(false);
 	const [theme, setTheme] = useState<Theme>('dark');
 	const [isAddingBookmark, setIsAddingBookmark] = useState(false);
 	const [bookmarkCategories, setBookmarkCategories] = useState<string[]>([
@@ -2109,6 +2115,114 @@ const Browser: React.FC = () => {
 					<span>Local AI</span>
 				</button>
 
+				{/* Wikipedia Widget Button */}
+				<button
+					onClick={() => setIsWikipediaOpen(!isWikipediaOpen)}
+					style={{
+						background: isWikipediaOpen
+							? `linear-gradient(135deg, #3b82f6, #2563eb)`
+							: `linear-gradient(135deg, #3b82f640, #2563eb40)`,
+						border: 'none',
+						borderRadius: '15px',
+						padding: '12px 16px',
+						color: 'white',
+						cursor: 'pointer',
+						display: 'flex',
+						flexDirection: 'column',
+						alignItems: 'center',
+						gap: '4px',
+						fontSize: '11px',
+						fontWeight: '500',
+						minWidth: '80px',
+						transition: 'all 0.3s ease',
+						backdropFilter: 'blur(10px)',
+						boxShadow: isWikipediaOpen ? '0 4px 15px #3b82f640' : 'none'
+					}}
+					onMouseEnter={(e) => {
+						e.currentTarget.style.transform = 'translateY(-2px)';
+						e.currentTarget.style.boxShadow = '0 6px 20px #3b82f660';
+					}}
+					onMouseLeave={(e) => {
+						e.currentTarget.style.transform = 'translateY(0)';
+						e.currentTarget.style.boxShadow = isWikipediaOpen ? '0 4px 15px #3b82f640' : 'none';
+					}}
+				>
+					<span style={{ fontSize: '16px' }}>📚</span>
+					<span>Wikipedia</span>
+				</button>
+
+				{/* On This Day Widget Button */}
+				<button
+					onClick={() => setIsOnThisDayOpen(!isOnThisDayOpen)}
+					style={{
+						background: isOnThisDayOpen
+							? `linear-gradient(135deg, #3b82f6, #1e40af)`
+							: `linear-gradient(135deg, #3b82f640, #1e40af40)`,
+						border: 'none',
+						borderRadius: '15px',
+						padding: '12px 16px',
+						color: 'white',
+						cursor: 'pointer',
+						display: 'flex',
+						flexDirection: 'column',
+						alignItems: 'center',
+						gap: '4px',
+						fontSize: '11px',
+						fontWeight: '500',
+						minWidth: '80px',
+						transition: 'all 0.3s ease',
+						backdropFilter: 'blur(10px)',
+						boxShadow: isOnThisDayOpen ? '0 4px 15px #3b82f640' : 'none'
+					}}
+					onMouseEnter={(e) => {
+						e.currentTarget.style.transform = 'translateY(-2px)';
+						e.currentTarget.style.boxShadow = '0 6px 20px #3b82f660';
+					}}
+					onMouseLeave={(e) => {
+						e.currentTarget.style.transform = 'translateY(0)';
+						e.currentTarget.style.boxShadow = isOnThisDayOpen ? '0 4px 15px #3b82f640' : 'none';
+					}}
+				>
+					<span style={{ fontSize: '16px' }}>📅</span>
+					<span>W tym dniu</span>
+				</button>
+
+				{/* Birthday Song Widget Button */}
+				<button
+					onClick={() => setIsBirthdaySongOpen(!isBirthdaySongOpen)}
+					style={{
+						background: isBirthdaySongOpen
+							? `linear-gradient(135deg, #ec4899, #db2777)`
+							: `linear-gradient(135deg, #ec489940, #db277740)`,
+						border: 'none',
+						borderRadius: '15px',
+						padding: '12px 16px',
+						color: 'white',
+						cursor: 'pointer',
+						display: 'flex',
+						flexDirection: 'column',
+						alignItems: 'center',
+						gap: '4px',
+						fontSize: '11px',
+						fontWeight: '500',
+						minWidth: '80px',
+						transition: 'all 0.3s ease',
+						backdropFilter: 'blur(10px)',
+						boxShadow: isBirthdaySongOpen ? '0 4px 15px #ec489940' : 'none'
+					}}
+					onMouseEnter={(e) => {
+						e.currentTarget.style.transform = 'translateY(-2px)';
+						e.currentTarget.style.boxShadow = '0 6px 20px #ec489960';
+					}}
+					onMouseLeave={(e) => {
+						e.currentTarget.style.transform = 'translateY(0)';
+						e.currentTarget.style.boxShadow = isBirthdaySongOpen ? '0 4px 15px #ec489940' : 'none';
+					}}
+				>
+					<span style={{ fontSize: '16px' }}>🎵</span>
+					<span>Urodziny</span>
+				</button>
+
 				{/* Add Bookmark Button */}
 				<button
 					onClick={addBookmark}
@@ -2399,6 +2513,21 @@ const Browser: React.FC = () => {
 			{/* Ollama Chatbot */}
 			{isLocalChatOpen && (
 				<OllamaChatbot onClose={() => setIsLocalChatOpen(false)} />
+			)}
+
+			{/* Wikipedia Widget */}
+			{isWikipediaOpen && (
+				<WikipediaWidget onClose={() => setIsWikipediaOpen(false)} />
+			)}
+
+			{/* On This Day Widget */}
+			{isOnThisDayOpen && (
+				<OnThisDayWidget onClose={() => setIsOnThisDayOpen(false)} />
+			)}
+
+			{/* Birthday Song Widget */}
+			{isBirthdaySongOpen && (
+				<BirthdaySongWidget onClose={() => setIsBirthdaySongOpen(false)} />
 			)}
 
 			{/* Backdrop for Local Chat */}
