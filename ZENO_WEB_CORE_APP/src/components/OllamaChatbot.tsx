@@ -1,8 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { detectToolIntent, executeMCPTool, formatToolResult, getAvailableMCPTools } from '../services/ollamaMCPBridge';
 
 interface Message {
-    role: 'user' | 'assistant';
+    role: 'user' | 'assistant' | 'system';
     content: string;
+    toolUsed?: string; // ID narzędzia MCP jeśli zostało użyte
 }
 
 interface OllamaChatbotProps {
@@ -43,16 +45,52 @@ const OllamaChatbot: React.FC<OllamaChatbotProps> = ({ onClose }) => {
 
         const userMessage: Message = { role: 'user', content: input };
         setMessages(prev => [...prev, userMessage]);
+        const userInput = input;
         setInput('');
         setIsLoading(true);
 
         try {
+            // KROK 1: Wykryj czy potrzebne jest narzędzie MCP
+            const toolIntent = detectToolIntent(userInput);
+            let contextMessages = [...messages, userMessage];
+
+            if (toolIntent) {
+                console.log('[MCP] Tool detected:', toolIntent);
+
+                // Dodaj info o wykonywaniu narzędzia
+                const toolExecutingMsg: Message = {
+                    role: 'assistant',
+                    content: `🔧 Wykonuję narzędzie: ${toolIntent.toolId}...`,
+                    toolUsed: toolIntent.toolId
+                };
+                setMessages(prev => [...prev, toolExecutingMsg]);
+
+                // KROK 2: Wykonaj narzędzie MCP
+                const toolResult = await executeMCPTool(toolIntent.toolId, toolIntent.params);
+                const formattedResult = formatToolResult(toolResult);
+
+                // KROK 3: Dodaj wynik narzędzia jako kontekst
+                const toolResultMsg: Message = {
+                    role: 'assistant',
+                    content: formattedResult,
+                    toolUsed: toolIntent.toolId
+                };
+                setMessages(prev => [...prev.slice(0, -1), toolResultMsg]); // Zastąp "wykonuję" wynikiem
+
+                // KROK 4: Dodaj wynik do kontekstu dla Ollama
+                contextMessages.push({
+                    role: 'system',
+                    content: `Tool execution result:\n${formattedResult}\n\nBased on this result, provide a helpful response to the user.`
+                });
+            }
+
+            // KROK 5: Wyślij do Ollama (z kontekstem narzędzia jeśli było)
             const response = await fetch('/api/ollama-proxy', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     model: model,
-                    messages: [...messages, userMessage],
+                    messages: contextMessages,
                     stream: false
                 })
             });
@@ -173,12 +211,32 @@ const OllamaChatbot: React.FC<OllamaChatbotProps> = ({ onClose }) => {
                     <div style={{
                         textAlign: 'center',
                         color: '#666',
-                        marginTop: '100px',
+                        marginTop: '80px',
                         fontSize: '14px'
                     }}>
                         <div style={{ fontSize: '48px', marginBottom: '16px' }}>🤖</div>
-                        <p>Rozpocznij rozmowę z Ollama</p>
-                        <p style={{ fontSize: '12px' }}>Model: {model}</p>
+                        <p style={{ fontWeight: 'bold', color: '#10b981' }}>Ollama + MCP Tools</p>
+                        <p style={{ fontSize: '12px', marginTop: '8px' }}>Model: {model}</p>
+                        <div style={{
+                            marginTop: '20px',
+                            padding: '12px',
+                            backgroundColor: '#1a1a2e',
+                            borderRadius: '8px',
+                            fontSize: '11px',
+                            textAlign: 'left',
+                            maxWidth: '400px',
+                            margin: '20px auto 0'
+                        }}>
+                            <div style={{ fontWeight: 'bold', marginBottom: '8px', color: '#60a5fa' }}>🛠️ Dostępne narzędzia MCP:</div>
+                            <div style={{ lineHeight: '1.8' }}>
+                                🔍 Web Search - "szukaj AI w internecie"<br />
+                                📊 Content Analysis - "przeanalizuj https://..."<br />
+                                📑 Bookmark Manager - "dodaj bookmark https://..."<br />
+                                📝 Page Summarizer - "podsumuj https://..."<br />
+                                🔗 Link Extractor - "wyciągnij linki z https://..."<br />
+                                🌐 Web Navigation - "otwórz https://..."
+                            </div>
+                        </div>
                     </div>
                 )}
 
@@ -190,17 +248,29 @@ const OllamaChatbot: React.FC<OllamaChatbotProps> = ({ onClose }) => {
                             maxWidth: '80%',
                             padding: '12px 16px',
                             borderRadius: '12px',
-                            backgroundColor: msg.role === 'user' ? '#064e3b' : '#022c22',
-                            border: `1px solid ${msg.role === 'user' ? '#10b981' : '#047857'}`,
-                            color: '#10b981',
+                            backgroundColor: msg.role === 'user' ? '#064e3b' : msg.role === 'system' ? '#1a1a2e' : '#022c22',
+                            border: `1px solid ${msg.role === 'user' ? '#10b981' : msg.toolUsed ? '#3b82f6' : '#047857'}`,
+                            color: msg.toolUsed ? '#60a5fa' : '#10b981',
                             fontSize: '13px',
                             lineHeight: '1.5',
                             whiteSpace: 'pre-wrap',
                             wordBreak: 'break-word'
                         }}
                     >
-                        <div style={{ fontSize: '10px', opacity: 0.7, marginBottom: '4px' }}>
-                            {msg.role === 'user' ? '👤 Ty' : '🤖 Ollama'}
+                        <div style={{ fontSize: '10px', opacity: 0.7, marginBottom: '4px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span>{msg.role === 'user' ? '👤 Ty' : msg.role === 'system' ? '🔧 System' : '🤖 Ollama'}</span>
+                            {msg.toolUsed && (
+                                <span style={{
+                                    backgroundColor: '#1e40af',
+                                    color: '#93c5fd',
+                                    padding: '2px 8px',
+                                    borderRadius: '10px',
+                                    fontSize: '9px',
+                                    fontWeight: 'bold'
+                                }}>
+                                    🛠️ MCP: {msg.toolUsed}
+                                </span>
+                            )}
                         </div>
                         {msg.content}
                     </div>
