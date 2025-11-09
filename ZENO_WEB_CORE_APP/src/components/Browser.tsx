@@ -2302,14 +2302,7 @@ const Browser: React.FC = () => {
 
 				{/* Music Player Button */}
 				<button
-					onClick={() => {
-						// Check if user has access to music player
-						if (!checkFeatureAccess('music_player')) {
-							promptUpgrade('Music Player (Webamp)', '🎵', 'yearly');
-							return;
-						}
-						setIsMusicPlayerOpen(!isMusicPlayerOpen);
-					}}
+					onClick={() => setIsMusicPlayerOpen(!isMusicPlayerOpen)}
 					style={{
 						background: isMusicPlayerOpen
 							? `linear-gradient(135deg, #f093fb 0%, #f5576c 100%)`
@@ -2345,13 +2338,7 @@ const Browser: React.FC = () => {
 
 				{/* Video Player Button */}
 				<button
-					onClick={() => {
-						if (!checkFeatureAccess('video_player')) {
-							promptUpgrade('Video Players', '🎬', 'monthly');
-							return;
-						}
-						setIsVideoPlayerOpen(!isVideoPlayerOpen);
-					}}
+					onClick={() => setIsVideoPlayerOpen(!isVideoPlayerOpen)}
 					style={{
 						background: isVideoPlayerOpen
 							? `linear-gradient(135deg, #f59e0b 0%, #d97706 100%)`
