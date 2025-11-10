@@ -21,13 +21,13 @@ workers_dev = true  # Use workers.dev subdomain for testing
 [[d1_databases]]
 binding = "DB"
 database_name = "zeno-bielik-db"
-database_id = ""  # FILL THIS: Run 'wrangler d1 create zeno-bielik-db' and paste ID here
+database_id = "a25e8222-2f95-474a-9e71-7dc80a64c8ad"
 
 # KV Namespace for agent state and caching
 [[kv_namespaces]]
 binding = "AGENT_STATE"
-id = ""  # FILL THIS: Run 'wrangler kv:namespace create AGENT_STATE' and paste ID here
-preview_id = ""  # FILL THIS: Run 'wrangler kv:namespace create AGENT_STATE --preview'
+id = "42562f0c7ff34f2d8e85480b648f20bb"
+preview_id = "c4c8174469d1427c99e0a2c46e623291"
 
 # Environment variables (non-sensitive)
 [vars]
