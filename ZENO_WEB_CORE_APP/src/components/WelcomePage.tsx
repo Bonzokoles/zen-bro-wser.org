@@ -751,83 +751,196 @@ const WelcomePage: React.FC = () => {
       )}
       {/* ============ END AI ASSISTANT ============ */}
 
-      {/* Contact Info Button - Fixed above bottom nav, right side */}
-      <button
-        onClick={() => window.location.href = 'mailto:JimBoZen@proton.me'}
-        style={{
-          position: 'fixed',
-          bottom: '90px',
-          right: '20px',
-          padding: '12px 20px',
-          backgroundColor: 'rgba(99, 102, 241, 0.2)',
-          backdropFilter: 'blur(10px)',
-          border: '1px solid rgba(99, 102, 241, 0.5)',
-          borderRadius: '12px',
-          color: '#c7d2fe',
-          cursor: 'pointer',
-          fontSize: '13px',
-          fontWeight: '500',
-          zIndex: 1001,
-          transition: 'all 0.3s',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          boxShadow: '0 4px 15px rgba(99, 102, 241, 0.3)'
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = 'rgba(99, 102, 241, 0.3)';
-          e.currentTarget.style.transform = 'translateY(-2px)';
-          e.currentTarget.style.boxShadow = '0 6px 20px rgba(99, 102, 241, 0.5)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = 'rgba(99, 102, 241, 0.2)';
-          e.currentTarget.style.transform = 'translateY(0)';
-          e.currentTarget.style.boxShadow = '0 4px 15px rgba(99, 102, 241, 0.3)';
-        }}
-        title="Kontakt: JimBoZen@proton.me"
-      >
-        <span style={{ fontSize: '16px' }}>📧</span>
-        <span>Kontakt</span>
-      </button>
+      {/* Right Sidebar with Buttons */}
+      <div style={{
+        position: 'fixed',
+        right: '20px',
+        top: '70px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '12px',
+        zIndex: 1001
+      }}>
+        {/* Wikipedia Widget Button */}
+        <button
+          onClick={() => window.open('https://pl.wikipedia.org', '_blank')}
+          style={{
+            padding: '12px 16px',
+            backgroundColor: 'rgba(59, 130, 246, 0.2)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(59, 130, 246, 0.5)',
+            borderRadius: '12px',
+            color: '#93c5fd',
+            cursor: 'pointer',
+            fontSize: '13px',
+            fontWeight: '500',
+            transition: 'all 0.3s',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            boxShadow: '0 4px 15px rgba(59, 130, 246, 0.3)',
+            minWidth: '160px'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = 'rgba(59, 130, 246, 0.3)';
+            e.currentTarget.style.transform = 'translateX(-5px)';
+            e.currentTarget.style.boxShadow = '0 6px 20px rgba(59, 130, 246, 0.5)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'rgba(59, 130, 246, 0.2)';
+            e.currentTarget.style.transform = 'translateX(0)';
+            e.currentTarget.style.boxShadow = '0 4px 15px rgba(59, 130, 246, 0.3)';
+          }}
+          title="Wyszukaj w Wikipedii"
+        >
+          <span style={{ fontSize: '16px' }}>📖</span>
+          <span>Wikipedia</span>
+        </button>
 
-      {/* Retro Mode Button - Fixed above bottom nav, right side */}
-      <button
-        onClick={() => window.location.href = 'https://retro.zeno-browser.pages.dev?v=' + Date.now()}
-        style={{
-          position: 'fixed',
-          bottom: '150px',
-          right: '20px',
-          padding: '12px 20px',
-          backgroundColor: 'rgba(168, 85, 247, 0.2)',
-          backdropFilter: 'blur(10px)',
-          border: '1px solid rgba(168, 85, 247, 0.5)',
-          borderRadius: '12px',
-          color: '#e9d5ff',
-          cursor: 'pointer',
-          fontSize: '13px',
-          fontWeight: '500',
-          zIndex: 1001,
-          transition: 'all 0.3s',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          boxShadow: '0 4px 15px rgba(168, 85, 247, 0.3)'
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = 'rgba(168, 85, 247, 0.3)';
-          e.currentTarget.style.transform = 'translateY(-2px)';
-          e.currentTarget.style.boxShadow = '0 6px 20px rgba(168, 85, 247, 0.5)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = 'rgba(168, 85, 247, 0.2)';
-          e.currentTarget.style.transform = 'translateY(0)';
-          e.currentTarget.style.boxShadow = '0 4px 15px rgba(168, 85, 247, 0.3)';
-        }}
-        title="Przejdź do RETRO MODE"
-      >
-        <span style={{ fontSize: '16px' }}>🕹️</span>
-        <span>RETRO MODE</span>
-      </button>
+        {/* On This Day Widget Button */}
+        <button
+          onClick={() => window.open('https://en.wikipedia.org/wiki/Wikipedia:On_this_day/Today', '_blank')}
+          style={{
+            padding: '12px 16px',
+            backgroundColor: 'rgba(34, 197, 94, 0.2)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(34, 197, 94, 0.5)',
+            borderRadius: '12px',
+            color: '#86efac',
+            cursor: 'pointer',
+            fontSize: '13px',
+            fontWeight: '500',
+            transition: 'all 0.3s',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            boxShadow: '0 4px 15px rgba(34, 197, 94, 0.3)',
+            minWidth: '160px'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = 'rgba(34, 197, 94, 0.3)';
+            e.currentTarget.style.transform = 'translateX(-5px)';
+            e.currentTarget.style.boxShadow = '0 6px 20px rgba(34, 197, 94, 0.5)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'rgba(34, 197, 94, 0.2)';
+            e.currentTarget.style.transform = 'translateX(0)';
+            e.currentTarget.style.boxShadow = '0 4px 15px rgba(34, 197, 94, 0.3)';
+          }}
+          title="Wydarzenia z tego dnia"
+        >
+          <span style={{ fontSize: '16px' }}>📅</span>
+          <span>On This Day</span>
+        </button>
+
+        {/* Birthday Song Widget Button */}
+        <button
+          onClick={() => window.open('https://playback.fm', '_blank')}
+          style={{
+            padding: '12px 16px',
+            backgroundColor: 'rgba(236, 72, 153, 0.2)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(236, 72, 153, 0.5)',
+            borderRadius: '12px',
+            color: '#f9a8d4',
+            cursor: 'pointer',
+            fontSize: '13px',
+            fontWeight: '500',
+            transition: 'all 0.3s',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            boxShadow: '0 4px 15px rgba(236, 72, 153, 0.3)',
+            minWidth: '160px'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = 'rgba(236, 72, 153, 0.3)';
+            e.currentTarget.style.transform = 'translateX(-5px)';
+            e.currentTarget.style.boxShadow = '0 6px 20px rgba(236, 72, 153, 0.5)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'rgba(236, 72, 153, 0.2)';
+            e.currentTarget.style.transform = 'translateX(0)';
+            e.currentTarget.style.boxShadow = '0 4px 15px rgba(236, 72, 153, 0.3)';
+          }}
+          title="Piosenka #1 w dniu Twoich urodzin"
+        >
+          <span style={{ fontSize: '16px' }}>🎵</span>
+          <span>Birthday Song</span>
+        </button>
+
+        {/* Contact Button */}
+        <button
+          onClick={() => window.location.href = '/contact'}
+          style={{
+            padding: '12px 16px',
+            backgroundColor: 'rgba(99, 102, 241, 0.2)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(99, 102, 241, 0.5)',
+            borderRadius: '12px',
+            color: '#c7d2fe',
+            cursor: 'pointer',
+            fontSize: '13px',
+            fontWeight: '500',
+            transition: 'all 0.3s',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            boxShadow: '0 4px 15px rgba(99, 102, 241, 0.3)',
+            minWidth: '160px'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = 'rgba(99, 102, 241, 0.3)';
+            e.currentTarget.style.transform = 'translateX(-5px)';
+            e.currentTarget.style.boxShadow = '0 6px 20px rgba(99, 102, 241, 0.5)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'rgba(99, 102, 241, 0.2)';
+            e.currentTarget.style.transform = 'translateX(0)';
+            e.currentTarget.style.boxShadow = '0 4px 15px rgba(99, 102, 241, 0.3)';
+          }}
+          title="Kontakt: JimBoZen@proton.me"
+        >
+          <span style={{ fontSize: '16px' }}>📧</span>
+          <span>Kontakt</span>
+        </button>
+
+        {/* RETRO MODE Button */}
+        <button
+          onClick={() => window.location.href = 'https://zeno-retro.pages.dev?v=' + Date.now()}
+          style={{
+            padding: '12px 16px',
+            backgroundColor: 'rgba(168, 85, 247, 0.2)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(168, 85, 247, 0.5)',
+            borderRadius: '12px',
+            color: '#e9d5ff',
+            cursor: 'pointer',
+            fontSize: '13px',
+            fontWeight: '500',
+            transition: 'all 0.3s',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            boxShadow: '0 4px 15px rgba(168, 85, 247, 0.3)',
+            minWidth: '160px'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = 'rgba(168, 85, 247, 0.3)';
+            e.currentTarget.style.transform = 'translateX(-5px)';
+            e.currentTarget.style.boxShadow = '0 6px 20px rgba(168, 85, 247, 0.5)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'rgba(168, 85, 247, 0.2)';
+            e.currentTarget.style.transform = 'translateX(0)';
+            e.currentTarget.style.boxShadow = '0 4px 15px rgba(168, 85, 247, 0.3)';
+          }}
+          title="Przejdź do RETRO MODE"
+        >
+          <span style={{ fontSize: '16px' }}>🕹️</span>
+          <span>RETRO MODE</span>
+        </button>
+      </div>
     </div>
   );
 }
