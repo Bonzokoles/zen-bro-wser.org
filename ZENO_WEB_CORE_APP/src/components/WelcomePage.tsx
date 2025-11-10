@@ -9,7 +9,7 @@ const WelcomePage: React.FC = () => {
   const [chatInput, setChatInput] = useState('');
   const [aiResponse, setAiResponse] = useState('');
   const [isAiLoading, setIsAiLoading] = useState(false);
-  const [selectedModel, setSelectedModel] = useState('llama-3.2-3b');
+  const [selectedModel, setSelectedModel] = useState('gemma-7b');
   const chatInputRef = useRef<HTMLTextAreaElement>(null);
 
   // Function to send message to AI

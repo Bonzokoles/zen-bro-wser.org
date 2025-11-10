@@ -12,7 +12,7 @@ export const prerender = false;
 const AVAILABLE_MODELS = {
   'llama-3.2-1b': '@cf/meta/llama-3.2-1b-instruct',
   'llama-3.2-3b': '@cf/meta/llama-3.2-3b-instruct',
-  'gemma-7b': '@cf/google/gemma-7b-it-lora',
+  'gemma-7b': '@hf/google/gemma-7b-it',
   'gemma-12b': '@hf/google/gemma-3-12b-it',
   'qwen-7b': '@cf/qwen/qwen1.5-7b-chat-awq'
 };
