@@ -55,12 +55,12 @@ export const models: ModelConfig[] = [
     id: 'local-llama3',
     provider: ModelProvider.Ollama,
     modelName: 'llama3',
-    baseURL: process.env.OLLAMA_BASE_URL || 'http://localhost:11434',
+    baseURL: 'http://localhost:11434', // Will be overridden by env var if available
   },
   {
     id: 'local-phi3',
     provider: ModelProvider.Ollama,
     modelName: 'phi3',
-    baseURL: process.env.OLLAMA_BASE_URL || 'http://localhost:11434',
+    baseURL: 'http://localhost:11434', // Will be overridden by env var if available
   },
 ];

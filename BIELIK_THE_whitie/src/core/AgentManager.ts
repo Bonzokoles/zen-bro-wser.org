@@ -5,12 +5,17 @@ import { Task } from '../tasks/Task';
 import { ModelFactory } from './ModelFactory';
 import { ToolFactory, ToolFunction } from './ToolFactory';
 
+// Detect if we're running in Cloudflare Workers
+const isWorkersEnvironment = typeof WorkerGlobalScope !== 'undefined';
+
 export class AgentManager {
   private agents: Map<string, BaseAgent> = new Map();
   private models: Map<string, ModelConfig> = new Map();
   private toolFactory: ToolFactory;
 
   constructor() {
+    // For now, use the regular ToolFactory
+    // TODO: Implement Workers-specific tool loading if needed
     this.toolFactory = new ToolFactory();
   }
 
@@ -50,6 +55,15 @@ export class AgentManager {
 
   getAgent(agentId: string): BaseAgent | undefined {
     return this.agents.get(agentId);
+  }
+
+  listAgents(): Array<{id: string; role: string; capabilities: string[]; modelId: string}> {
+    return Array.from(this.agents.values()).map(agent => ({
+      id: agent.config.id,
+      role: agent.config.role,
+      capabilities: agent.config.capabilities,
+      modelId: agent.config.modelId,
+    }));
   }
 
   async executeTask(task: Task): Promise<string> {
