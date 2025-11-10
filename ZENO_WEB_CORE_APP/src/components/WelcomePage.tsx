@@ -58,7 +58,7 @@ const WelcomePage: React.FC = () => {
   };
 
   return (
-    <div className="page-content" style={{ height: '100%', overflow: 'auto', paddingTop: '120px' }}>
+    <div className="page-content" style={{ height: '100%', overflow: 'auto', paddingTop: '120px', paddingBottom: '90px' }}>
       <div className="page-header" style={{
         textAlign: 'center',
         margin: '2rem 0 3rem 0'
