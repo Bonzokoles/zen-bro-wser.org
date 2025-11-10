@@ -1,6 +1,3 @@
-
-import { TavilyClient } from 'tavily';
-
 export interface ToolResult {
   success: boolean;
   data: any;
@@ -9,12 +6,12 @@ export interface ToolResult {
 
 class ToolExecutionService {
   private tavilyApiKey: string | null = null;
-  private tavilyClient: TavilyClient | null = null;
+  private tavilyClient: any | null = null;
   private braveApiKey: string | null = null;
 
   constructor(tavilyApiKey?: string, braveApiKey?: string) {
     if (tavilyApiKey) {
-      this.configureTavilyClient(tavilyApiKey);
+      this.tavilyApiKey = tavilyApiKey;
     }
     if (braveApiKey) {
       this.braveApiKey = braveApiKey;
@@ -46,7 +43,7 @@ class ToolExecutionService {
     }
 
     // Try Tavily first
-    const client = this.getTavilyClient();
+    const client = await this.getTavilyClient();
     if (client) {
       try {
         const response = await client.search({
@@ -113,12 +110,13 @@ class ToolExecutionService {
     };
   }
 
-  private configureTavilyClient(apiKey: string): void {
+  private async configureTavilyClient(apiKey: string): Promise<void> {
     this.tavilyApiKey = apiKey;
+    const { TavilyClient } = await import('tavily');
     this.tavilyClient = new TavilyClient({ apiKey });
   }
 
-  private getTavilyClient(): TavilyClient | null {
+  private async getTavilyClient(): Promise<any | null> {
     if (this.tavilyClient) {
       return this.tavilyClient;
     }
@@ -127,6 +125,7 @@ class ToolExecutionService {
       return null;
     }
 
+    const { TavilyClient } = await import('tavily');
     this.tavilyClient = new TavilyClient({ apiKey: this.tavilyApiKey });
     return this.tavilyClient;
   }
