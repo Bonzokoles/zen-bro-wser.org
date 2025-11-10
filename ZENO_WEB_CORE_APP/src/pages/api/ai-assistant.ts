@@ -22,8 +22,8 @@ export const POST: APIRoute = async ({ request }) => {
     // Sprawdź czy request ma body
     const contentType = request.headers.get('content-type');
     if (!contentType || !contentType.includes('application/json')) {
-      return new Response(JSON.stringify({ 
-        error: 'Content-Type must be application/json' 
+      return new Response(JSON.stringify({
+        error: 'Content-Type must be application/json'
       }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' }
@@ -35,8 +35,8 @@ export const POST: APIRoute = async ({ request }) => {
     try {
       const text = await request.text();
       if (!text || text.trim() === '') {
-        return new Response(JSON.stringify({ 
-          error: 'Request body is empty' 
+        return new Response(JSON.stringify({
+          error: 'Request body is empty'
         }), {
           status: 400,
           headers: { 'Content-Type': 'application/json' }
@@ -44,7 +44,7 @@ export const POST: APIRoute = async ({ request }) => {
       }
       body = JSON.parse(text);
     } catch (parseError) {
-      return new Response(JSON.stringify({ 
+      return new Response(JSON.stringify({
         error: 'Invalid JSON in request body',
         details: parseError.message
       }), {
