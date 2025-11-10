@@ -792,7 +792,7 @@ const WelcomePage: React.FC = () => {
 
       {/* Retro Mode Button - Fixed above bottom nav, right side */}
       <button
-        onClick={() => window.location.href = 'https://retro.zeno-browser.pages.dev'}
+        onClick={() => window.location.href = 'https://retro.zeno-browser.pages.dev?v=' + Date.now()}
         style={{
           position: 'fixed',
           bottom: '150px',
