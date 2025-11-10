@@ -116,9 +116,18 @@ const WelcomePage: React.FC = () => {
             { name: '🌐 Example.com', url: 'https://example.com' },
             { name: '🔧 HTTPBin API', url: 'https://httpbin.org' },
             { name: '📰 Wikipedia', url: 'https://en.wikipedia.org' },
-            { name: '🎓 W3Schools', url: 'https://www.w3schools.com' },
+            { name: '📚 Archive Blog', url: 'https://blog.archive.org' },
+            { name: '🎨 Art UK', url: 'https://artuk.org' },
+            { name: '💻 Carbon', url: 'https://carbon.now.sh' },
+            { name: '� CSS Tricks', url: 'https://css-tricks.com' },
+            { name: '📺 Dailymotion', url: 'https://www.dailymotion.com' },
+            { name: '🖼️ Digital Art', url: 'https://digitalartarchive.at/home/' },
+            { name: '🎬 Movie Widget', url: 'https://elfsight.com/movie-widget/iframe/' },
+            { name: '⏱️ Epoch Conv', url: 'https://www.epochconverter.com' },
+            { name: '🏛️ Europeana', url: 'https://www.europeana.eu' },
+            { name: '⚡ Glitch', url: 'https://glitch.com' },
             { name: '⚡ JSFiddle', url: 'https://jsfiddle.net' },
-            { name: '🔍 DuckDuckGo', url: 'https://duckduckgo.com' }
+            { name: '🔍 DuckDuckGo', url: 'https://duckduckgo.com/?kae=d' }
           ].map(site => (
             <button
               key={site.url}
