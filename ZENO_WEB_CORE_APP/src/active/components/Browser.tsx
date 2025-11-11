@@ -73,6 +73,9 @@ const Browser: React.FC = () => {
 	const [isChatOpen, setIsChatOpen] = useState(false);
 	const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 	const [isLibraryOpen, setIsLibraryOpen] = useState(false); // Changed back to false - start on main page
+	const [librarySize, setLibrarySize] = useState({ width: 800, height: 600 });
+	const [isResizing, setIsResizing] = useState(false);
+	const [resizeStart, setResizeStart] = useState({ x: 0, y: 0, width: 0, height: 0 });
 	const [localSearchQuery, setLocalSearchQuery] = useState('');
 	const [webSearchQuery, setWebSearchQuery] = useState('');
 	const [theme, setTheme] = useState<Theme>('dark');
@@ -131,9 +134,32 @@ const Browser: React.FC = () => {
 			}
 		};
 
+		const handleMouseMove = (e: MouseEvent) => {
+			if (isResizing) {
+				const deltaX = resizeStart.x - e.clientX;
+				const deltaY = e.clientY - resizeStart.y;
+
+				setLibrarySize({
+					width: Math.max(600, Math.min(window.innerWidth * 0.9, resizeStart.width + deltaX)),
+					height: Math.max(400, Math.min(window.innerHeight * 0.85, resizeStart.height + deltaY))
+				});
+			}
+		};
+
+		const handleMouseUp = () => {
+			setIsResizing(false);
+		};
+
 		window.addEventListener('navigate', handleNavigate as EventListener);
-		return () => window.removeEventListener('navigate', handleNavigate as EventListener);
-	}, []);
+		window.addEventListener('mousemove', handleMouseMove);
+		window.addEventListener('mouseup', handleMouseUp);
+
+		return () => {
+			window.removeEventListener('navigate', handleNavigate as EventListener);
+			window.removeEventListener('mousemove', handleMouseMove);
+			window.removeEventListener('mouseup', handleMouseUp);
+		};
+	}, [isResizing, resizeStart]);
 
 	const activeTab = useMemo(() => tabs.find(tab => tab.isActive), [tabs]);
 
@@ -1052,9 +1078,8 @@ const Browser: React.FC = () => {
 						top: '50px',
 						bottom: '70px',
 						right: '180px',
-						width: '65%',
-						maxWidth: '1200px',
-						height: 'auto',
+						width: `${librarySize.width}px`,
+						height: `${librarySize.height}px`,
 						background: 'linear-gradient(135deg, #1e293b, #0f172a)',
 						border: '1px solid #fbbf24',
 						boxShadow: '-4px 0 20px rgba(0, 0, 0, 0.5)',
@@ -1062,7 +1087,29 @@ const Browser: React.FC = () => {
 						overflow: 'hidden',
 						padding: '20px',
 						display: 'flex',
-						flexDirection: 'column'
+						flexDirection: 'column',
+						resize: 'both',
+						minWidth: '600px',
+						minHeight: '400px',
+						maxWidth: '90vw',
+						maxHeight: '85vh'
+					}}
+					onMouseDown={(e) => {
+						const rect = e.currentTarget.getBoundingClientRect();
+						const isRightEdge = e.clientX > rect.right - 10;
+						const isBottomEdge = e.clientY > rect.bottom - 10;
+						const isLeftEdge = e.clientX < rect.left + 10;
+						const isTopEdge = e.clientY < rect.top + 10;
+
+						if (isRightEdge || isBottomEdge || isLeftEdge || isTopEdge) {
+							setIsResizing(true);
+							setResizeStart({
+								x: e.clientX,
+								y: e.clientY,
+								width: librarySize.width,
+								height: librarySize.height
+							});
+						}
 					}}
 				>
 					<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
@@ -1103,6 +1150,62 @@ const Browser: React.FC = () => {
 							<MetadataEditor />
 						</div>
 					</div>
+
+					{/* Resize Handles */}
+					<div
+						style={{
+							position: 'absolute',
+							right: 0,
+							top: 0,
+							bottom: 0,
+							width: '10px',
+							cursor: 'ew-resize',
+							background: isResizing ? 'rgba(251, 191, 36, 0.3)' : 'transparent',
+							transition: 'background 0.2s ease'
+						}}
+						onMouseEnter={(e) => {
+							e.currentTarget.style.background = 'rgba(251, 191, 36, 0.2)';
+						}}
+						onMouseLeave={(e) => {
+							if (!isResizing) e.currentTarget.style.background = 'transparent';
+						}}
+					/>
+					<div
+						style={{
+							position: 'absolute',
+							left: 0,
+							bottom: 0,
+							right: 0,
+							height: '10px',
+							cursor: 'ns-resize',
+							background: isResizing ? 'rgba(251, 191, 36, 0.3)' : 'transparent',
+							transition: 'background 0.2s ease'
+						}}
+						onMouseEnter={(e) => {
+							e.currentTarget.style.background = 'rgba(251, 191, 36, 0.2)';
+						}}
+						onMouseLeave={(e) => {
+							if (!isResizing) e.currentTarget.style.background = 'transparent';
+						}}
+					/>
+					<div
+						style={{
+							position: 'absolute',
+							right: 0,
+							bottom: 0,
+							width: '20px',
+							height: '20px',
+							cursor: 'nwse-resize',
+							background: isResizing ? 'rgba(251, 191, 36, 0.5)' : 'rgba(251, 191, 36, 0.2)',
+							transition: 'background 0.2s ease'
+						}}
+						onMouseEnter={(e) => {
+							e.currentTarget.style.background = 'rgba(251, 191, 36, 0.4)';
+						}}
+						onMouseLeave={(e) => {
+							if (!isResizing) e.currentTarget.style.background = 'rgba(251, 191, 36, 0.2)';
+						}}
+					/>
 				</div>
 			)}
 		</div>
