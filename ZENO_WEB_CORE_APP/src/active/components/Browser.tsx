@@ -72,7 +72,7 @@ const Browser: React.FC = () => {
 	const [showHistory, setShowHistory] = useState(false);
 	const [isChatOpen, setIsChatOpen] = useState(false);
 	const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-	const [isLibraryOpen, setIsLibraryOpen] = useState(false);
+	const [isLibraryOpen, setIsLibraryOpen] = useState(true); // FORCED OPEN for testing
 	const [localSearchQuery, setLocalSearchQuery] = useState('');
 	const [webSearchQuery, setWebSearchQuery] = useState('');
 	const [theme, setTheme] = useState<Theme>('dark');
