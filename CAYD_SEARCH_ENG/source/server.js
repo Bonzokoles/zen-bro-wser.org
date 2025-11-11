@@ -19,6 +19,23 @@ const io = new Server(server, {
 app.use(cors()); // STEP_04: Enable CORS for frontend communication
 app.use(bodyParser.json());
 
+/**
+ * CAYD Search Engine - Port Configuration
+ * Reserved ports: 6040-6050 (11 ports total)
+ * 
+ * Port allocation:
+ * - 6040: Main CAYD API Server (current)
+ * - 6041: Reserved for Search Index Service
+ * - 6042: Reserved for Cache Service
+ * - 6043: Reserved for WebSocket Real-time Updates
+ * - 6044: Reserved for File Watcher Service
+ * - 6045: Reserved for Analytics Service
+ * - 6046: Reserved for Admin Dashboard
+ * - 6047: Reserved for Backup Service
+ * - 6048: Reserved for Preview Service
+ * - 6049: Reserved for Testing/Development
+ * - 6050: Reserved for Load Balancer
+ */
 const port = 6040;
 
 const { getCatalog } = require('./catalog');

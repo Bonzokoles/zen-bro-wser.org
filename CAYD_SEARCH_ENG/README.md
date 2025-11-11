@@ -6,6 +6,15 @@ Projekt modularnej, retro-w stylizowanej przeglądarki/katalogu z wyszukiwarką 
 
 Własna wyszukiwarka internetowa oparta na Wiby (GPLv2) do późniejszej integracji z ZENO Browser.
 
+## Port Configuration
+
+**Reserved Port Range: 6040-6050** (11 portów)
+
+- **6040**: Main API Server (Express) - ✅ **ACTIVE**
+- **6041-6050**: Reserved for future services
+
+Zobacz: `PORT_ALLOCATION.md` dla szczegółowej dokumentacji alokacji portów.
+
 ## Struktura projektu
 
 ```
