@@ -7,17 +7,15 @@
  */
 
 interface Env {
-    DB: D1Database;
-    AGENT_STATE: KVNamespace;
     OPENAI_API_KEY?: string;
     GOOGLE_GEMINI_API_KEY?: string;
     ANTHROPIC_API_KEY?: string;
     TAVILY_API_KEY?: string;
-    ENVIRONMENT: string;
+    ENVIRONMENT?: string;
 }
 
 export default {
-    async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+    async fetch(request: Request, env: Env): Promise<Response> {
         const url = new URL(request.url);
 
         // CORS headers
