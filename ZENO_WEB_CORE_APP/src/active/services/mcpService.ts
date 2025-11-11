@@ -105,11 +105,11 @@ class MCPService {
       // Retrieve search API keys from environment variables
       const tavilyApiKey = import.meta.env.VITE_TAVILY_API_KEY;
       const braveApiKey = import.meta.env.VITE_BRAVE_API_KEY;
-      
+
       if (!tavilyApiKey && !braveApiKey) {
         console.warn('No search API keys found. Add VITE_TAVILY_API_KEY or VITE_BRAVE_API_KEY to .env');
       }
-      
+
       this.toolExecutionService = new ToolExecutionService(tavilyApiKey, braveApiKey);
 
       switch (config.provider) {
@@ -162,7 +162,7 @@ class MCPService {
     }
 
     try {
-      const context = webContext 
+      const context = webContext
         ? `Current page: ${webContext.title} (${webContext.url})`
         : undefined;
 
@@ -180,7 +180,7 @@ class MCPService {
         messages.push({ role: 'user', content: message });
 
         const responseText = await this.currentProvider.sendMessage(messages, context);
-        
+
         response = {
           role: 'assistant',
           content: responseText,
@@ -189,7 +189,7 @@ class MCPService {
       } else {
         response = await this.currentProvider.sendMessage(message, context);
       }
-      
+
       // Add to session history
       this.session.messages.push({
         role: 'user',
@@ -217,7 +217,7 @@ class MCPService {
         .map(tool => tool.id);
 
       const response = await this.currentProvider.executeMCPCommand(command, enabledTools);
-      
+
       // Log command execution
       this.session.messages.push({
         role: 'system',
@@ -263,7 +263,7 @@ class MCPService {
 
     try {
       const analysis = await this.currentProvider.analyzeWebContent(url, content);
-      
+
       if (this.session) {
         this.session.messages.push(analysis);
       }
