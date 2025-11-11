@@ -48,7 +48,7 @@ app.post('/api/execute', async (req, res) => {
             })
         });
 
-        const result = await response.json();
+        const result = await response.json() as { response: string };
 
         res.json({
             success: true,
