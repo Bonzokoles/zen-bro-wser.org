@@ -72,7 +72,7 @@ const Browser: React.FC = () => {
 	const [showHistory, setShowHistory] = useState(false);
 	const [isChatOpen, setIsChatOpen] = useState(false);
 	const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-	const [isLibraryOpen, setIsLibraryOpen] = useState(true); // FORCED OPEN for testing
+	const [isLibraryOpen, setIsLibraryOpen] = useState(false); // Changed back to false - start on main page
 	const [localSearchQuery, setLocalSearchQuery] = useState('');
 	const [webSearchQuery, setWebSearchQuery] = useState('');
 	const [theme, setTheme] = useState<Theme>('dark');
@@ -1044,51 +1044,62 @@ const Browser: React.FC = () => {
 				}}
 			/>
 
-			{/* CAYD Library Panel */}
+			{/* JIMBO_FLOW Library Panel */}
 			{isLibraryOpen && (
 				<div
 					style={{
 						position: 'fixed',
-						top: '60px',
-						bottom: '80px',
+						top: '50px',
+						bottom: '70px',
 						right: '180px',
 						width: '65%',
 						maxWidth: '1200px',
 						height: 'auto',
 						background: 'linear-gradient(135deg, #1e293b, #0f172a)',
+						border: '1px solid #fbbf24',
 						boxShadow: '-4px 0 20px rgba(0, 0, 0, 0.5)',
 						zIndex: 1000,
-						overflowY: 'auto',
+						overflow: 'hidden',
 						padding: '20px',
-						borderLeft: '2px solid #f59e0b'
+						display: 'flex',
+						flexDirection: 'column'
 					}}
 				>
 					<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-						<h2 style={{ color: '#f59e0b', margin: 0 }}>📚 Biblioteka CAYD</h2>
+						<h2 style={{ color: '#fbbf24', margin: 0, fontWeight: '700', letterSpacing: '1px' }}>⚡ JIMBO_FLOW_data_system_WSK</h2>
 						<button
 							onClick={() => setIsLibraryOpen(false)}
+							onMouseEnter={(e) => {
+								e.currentTarget.style.background = 'rgba(251, 191, 36, 0.2)';
+								e.currentTarget.style.boxShadow = '0 0 10px rgba(251, 191, 36, 0.5)';
+							}}
+							onMouseLeave={(e) => {
+								e.currentTarget.style.background = 'transparent';
+								e.currentTarget.style.boxShadow = 'none';
+							}}
 							style={{
 								background: 'transparent',
-								border: '2px solid #f59e0b',
-								borderRadius: '8px',
+								border: '1px solid #fbbf24',
+								borderRadius: '0',
 								padding: '8px 16px',
-								color: '#f59e0b',
+								color: '#fbbf24',
 								cursor: 'pointer',
 								fontSize: '14px',
-								fontWeight: 'bold'
+								fontWeight: 'bold',
+								transition: 'all 0.3s ease'
 							}}
 						>
 							✕ Zamknij
 						</button>
 					</div>
 
-					<div style={{ display: 'flex', gap: '20px', height: 'calc(100% - 80px)' }}>
-						<div style={{ flex: '1.5', background: 'rgba(0, 0, 0, 0.7)', border: '1px solid #f59e0b', borderRadius: '0', padding: '15px', overflowY: 'auto' }}>
-							<h3 style={{ color: 'white', marginTop: 0 }}>📂 Przeglądarka katalogów</h3>
+					<div style={{ display: 'flex', gap: '20px', flex: 1, minHeight: 0 }}>
+						<div style={{ flex: '1.5', background: 'rgba(0, 0, 0, 0.7)', border: '1px solid #fbbf24', borderRadius: '0', padding: '15px', overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
+							<h3 style={{ color: '#fbbf24', marginTop: 0, flexShrink: 0 }}>📂 Przeglądarka katalogów</h3>
 							<CatalogBrowser />
 						</div>
-						<div style={{ flex: '1', background: 'rgba(0, 0, 0, 0.7)', border: '1px solid #f59e0b', borderRadius: '0', padding: '15px', overflowY: 'auto' }}>
-							<h3 style={{ color: 'white', marginTop: 0 }}>✏️ Edytor metadanych</h3>
+						<div style={{ flex: '1', background: 'rgba(0, 0, 0, 0.7)', border: '1px solid #fbbf24', borderRadius: '0', padding: '15px', overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
+							<h3 style={{ color: '#fbbf24', marginTop: 0, flexShrink: 0 }}>✏️ Edytor metadanych</h3>
 							<MetadataEditor />
 						</div>
 					</div>
