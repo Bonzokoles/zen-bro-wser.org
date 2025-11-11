@@ -17,6 +17,8 @@ const ProviderSettings: React.FC<ProviderSettingsProps> = ({
   const [provider, setProvider] = useState<'gemini' | 'openrouter' | 'claude'>('gemini');
   const [apiKey, setApiKey] = useState('');
   const [tavilyApiKey, setTavilyApiKey] = useState('');
+  const [braveApiKey, setBraveApiKey] = useState('');
+  const [searchEngine, setSearchEngine] = useState<'tavily' | 'brave' | 'both'>('tavily');
   const [model, setModel] = useState('');
   const [isConnecting, setIsConnecting] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<string | null>(null);
@@ -30,6 +32,16 @@ const ProviderSettings: React.FC<ProviderSettingsProps> = ({
       const savedTavilyKey = localStorage.getItem('tavily_api_key');
       if (savedTavilyKey) {
         setTavilyApiKey(savedTavilyKey);
+      }
+
+      const savedBraveKey = localStorage.getItem('brave_api_key');
+      if (savedBraveKey) {
+        setBraveApiKey(savedBraveKey);
+      }
+
+      const savedSearchEngine = localStorage.getItem('search_engine') as 'tavily' | 'brave' | 'both';
+      if (savedSearchEngine) {
+        setSearchEngine(savedSearchEngine);
       }
 
       // Load saved settings from localStorage
@@ -87,6 +99,14 @@ const ProviderSettings: React.FC<ProviderSettingsProps> = ({
         if (tavilyApiKey.trim()) {
           localStorage.setItem('tavily_api_key', tavilyApiKey.trim());
         }
+        
+        // Save Brave API key
+        if (braveApiKey.trim()) {
+          localStorage.setItem('brave_api_key', braveApiKey.trim());
+        }
+
+        // Save search engine preference
+        localStorage.setItem('search_engine', searchEngine);
         
         // Save configuration to localStorage
         localStorage.setItem('mcp_config', JSON.stringify(config));
@@ -313,33 +333,120 @@ const ProviderSettings: React.FC<ProviderSettingsProps> = ({
           </div>
 
 
-          {/* Tavily API Key */}
-          <div style={{ marginBottom: '24px' }}>
+          {/* Search Engine Selection */}
+          <div style={{ marginBottom: '24px', padding: '16px', border: '1px solid #334155', borderRadius: '8px', backgroundColor: '#0b1220' }}>
             <label style={{
               display: 'block',
               color: '#f1f5f9',
               fontSize: '14px',
               fontWeight: '600',
-              marginBottom: '8px'
+              marginBottom: '12px'
             }}>
-              Tavily API Key (for Web Search)
+              🔍 Search Engine
             </label>
-            <input
-              type="password"
-              value={tavilyApiKey}
-              onChange={(e) => setTavilyApiKey(e.target.value)}
-              placeholder="Enter your Tavily API key..."
-              disabled={isConnecting}
-              style={{
-                width: '100%',
-                padding: '12px',
-                border: '1px solid #334155',
-                borderRadius: '8px',
-                backgroundColor: '#0f172a',
-                color: 'white',
-                fontSize: '14px'
-              }}
-            />
+            <div style={{ display: 'grid', gap: '8px', marginBottom: '16px' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', padding: '8px', borderRadius: '6px', backgroundColor: searchEngine === 'tavily' ? '#1e3a8a' : '#1e293b' }}>
+                <input
+                  type="radio"
+                  name="searchEngine"
+                  value="tavily"
+                  checked={searchEngine === 'tavily'}
+                  onChange={(e) => setSearchEngine(e.target.value as 'tavily')}
+                  style={{ cursor: 'pointer' }}
+                />
+                <span style={{ color: '#f1f5f9', fontSize: '13px', fontWeight: 500 }}>Tavily (AI-optimized search)</span>
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', padding: '8px', borderRadius: '6px', backgroundColor: searchEngine === 'brave' ? '#1e3a8a' : '#1e293b' }}>
+                <input
+                  type="radio"
+                  name="searchEngine"
+                  value="brave"
+                  checked={searchEngine === 'brave'}
+                  onChange={(e) => setSearchEngine(e.target.value as 'brave')}
+                  style={{ cursor: 'pointer' }}
+                />
+                <span style={{ color: '#f1f5f9', fontSize: '13px', fontWeight: 500 }}>Brave (Privacy-focused)</span>
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', padding: '8px', borderRadius: '6px', backgroundColor: searchEngine === 'both' ? '#1e3a8a' : '#1e293b' }}>
+                <input
+                  type="radio"
+                  name="searchEngine"
+                  value="both"
+                  checked={searchEngine === 'both'}
+                  onChange={(e) => setSearchEngine(e.target.value as 'both')}
+                  style={{ cursor: 'pointer' }}
+                />
+                <span style={{ color: '#f1f5f9', fontSize: '13px', fontWeight: 500 }}>Both (Tavily first, Brave fallback)</span>
+              </label>
+            </div>
+
+            {/* Tavily API Key */}
+            {(searchEngine === 'tavily' || searchEngine === 'both') && (
+              <div style={{ marginBottom: '12px' }}>
+                <label style={{
+                  display: 'block',
+                  color: '#f1f5f9',
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  marginBottom: '6px'
+                }}>
+                  Tavily API Key
+                </label>
+                <input
+                  type="password"
+                  value={tavilyApiKey}
+                  onChange={(e) => setTavilyApiKey(e.target.value)}
+                  placeholder="Enter Tavily API key..."
+                  disabled={isConnecting}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    border: '1px solid #334155',
+                    borderRadius: '6px',
+                    backgroundColor: '#0f172a',
+                    color: 'white',
+                    fontSize: '13px'
+                  }}
+                />
+                <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '4px' }}>
+                  Get key from <a href="https://tavily.com" target="_blank" style={{ color: '#60a5fa' }}>tavily.com</a>
+                </div>
+              </div>
+            )}
+
+            {/* Brave API Key */}
+            {(searchEngine === 'brave' || searchEngine === 'both') && (
+              <div>
+                <label style={{
+                  display: 'block',
+                  color: '#f1f5f9',
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  marginBottom: '6px'
+                }}>
+                  Brave API Key
+                </label>
+                <input
+                  type="password"
+                  value={braveApiKey}
+                  onChange={(e) => setBraveApiKey(e.target.value)}
+                  placeholder="Enter Brave Search API key..."
+                  disabled={isConnecting}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    border: '1px solid #334155',
+                    borderRadius: '6px',
+                    backgroundColor: '#0f172a',
+                    color: 'white',
+                    fontSize: '13px'
+                  }}
+                />
+                <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '4px' }}>
+                  Get key from <a href="https://brave.com/search/api/" target="_blank" style={{ color: '#60a5fa' }}>Brave Search API</a>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Model */}

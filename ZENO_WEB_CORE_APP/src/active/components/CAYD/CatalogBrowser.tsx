@@ -296,7 +296,7 @@ export default function CatalogBrowser({ apiUrl = '', searchResults }: CatalogBr
                                         }
                                     }}
                                 >
-                                    <div style={{ 
+                                    <div style={{
                                         color: result.matchInName ? '#fbbf24' : '#60a5fa',
                                         fontWeight: result.matchInName ? 'bold' : 'normal',
                                         marginBottom: '4px'

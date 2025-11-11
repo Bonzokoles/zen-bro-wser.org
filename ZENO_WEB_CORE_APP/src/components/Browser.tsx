@@ -2534,10 +2534,10 @@ const Browser: React.FC = () => {
 				/>
 			)}
 
-		{/* Music Player (Webamp) - FLOATING BEZ BACKDROP */}
-		{isMusicPlayerOpen && (
-			<MusicPlayer onClose={() => setIsMusicPlayerOpen(false)} />
-		)}			{/* Floating Windows */}
+			{/* Music Player (Webamp) - FLOATING BEZ BACKDROP */}
+			{isMusicPlayerOpen && (
+				<MusicPlayer onClose={() => setIsMusicPlayerOpen(false)} />
+			)}			{/* Floating Windows */}
 			{floatingWindows.map(window => (
 				<FloatingWindow
 					key={window.id}

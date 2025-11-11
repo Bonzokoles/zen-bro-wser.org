@@ -104,7 +104,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       width: '400px',
       height: '100vh',
       backgroundColor: '#1e293b',
-      borderLeft: '1px solid #334155',
+      borderLeft: '2px solid #94a3b8',
       display: 'flex',
       flexDirection: 'column',
       zIndex: 1000,

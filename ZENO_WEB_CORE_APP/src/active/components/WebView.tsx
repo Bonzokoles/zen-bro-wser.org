@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import WelcomePage from './WelcomePage';
-import LocalSearchResults from './LocalSearchResults';
 
 interface WebViewProps {
 	url: string;
@@ -47,14 +46,6 @@ const WebView: React.FC<WebViewProps> = ({ url, isLoading, title, topOffset = 80
 	// TYLKO TEN JEDEN BLOK dla about:welcome
 	if (url === 'about:welcome') {
 		return <WelcomePage />;
-	}
-
-	// Obsługa about:local-search
-	if (url.startsWith('about:local-search')) {
-		const searchParams = new URLSearchParams(url.split('?')[1] || '');
-		const query = searchParams.get('q') || '';
-		
-		return <LocalSearchResults query={query} />;
 	}
 
 	// TYLKO TEN JEDEN BLOK dla isLoading
