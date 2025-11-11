@@ -122,6 +122,19 @@ const Browser: React.FC = () => {
 		addConsoleMessage('MCP Tools loaded: ' + mockTools.length + ' tools available');
 	}, []);
 
+	// Listen for navigation events from WelcomePage buttons
+	useEffect(() => {
+		const handleNavigate = (event: CustomEvent) => {
+			const { url } = event.detail;
+			if (url === 'about:library') {
+				setIsLibraryOpen(true);
+			}
+		};
+
+		window.addEventListener('navigate', handleNavigate as EventListener);
+		return () => window.removeEventListener('navigate', handleNavigate as EventListener);
+	}, []);
+
 	const activeTab = useMemo(() => tabs.find(tab => tab.isActive), [tabs]);
 
 	const handleCreateTab = (url: string = 'about:blank') => {

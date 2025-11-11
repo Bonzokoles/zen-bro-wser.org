@@ -1234,6 +1234,47 @@ const WelcomePage: React.FC = () => {
           <span>Video Player</span>
         </button>
 
+        {/* Biblioteka CAYD Button */}
+        <button
+          onClick={() => {
+            const event = new CustomEvent('navigate', {
+              detail: { url: 'about:library' }
+            });
+            window.dispatchEvent(event);
+          }}
+          style={{
+            padding: '12px 16px',
+            backgroundColor: 'rgba(245, 158, 11, 0.2)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(245, 158, 11, 0.5)',
+            borderRadius: '12px',
+            color: '#fde68a',
+            cursor: 'pointer',
+            fontSize: '13px',
+            fontWeight: '500',
+            transition: 'all 0.3s',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            boxShadow: '0 4px 15px rgba(245, 158, 11, 0.3)',
+            minWidth: '160px'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = 'rgba(245, 158, 11, 0.3)';
+            e.currentTarget.style.transform = 'translateX(-5px)';
+            e.currentTarget.style.boxShadow = '0 6px 20px rgba(245, 158, 11, 0.5)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'rgba(245, 158, 11, 0.2)';
+            e.currentTarget.style.transform = 'translateX(0)';
+            e.currentTarget.style.boxShadow = '0 4px 15px rgba(245, 158, 11, 0.3)';
+          }}
+          title="Biblioteka CAYD - Przeglądaj pliki"
+        >
+          <span style={{ fontSize: '16px' }}>📚</span>
+          <span>Biblioteka</span>
+        </button>
+
         {/* MCP Tools Button */}
         <button
           onClick={() => {
