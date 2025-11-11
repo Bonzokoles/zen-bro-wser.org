@@ -7,6 +7,7 @@ interface CacheEntry<T> {
 
 export class Cache<T> {
   private storage = new Map<string, CacheEntry<T>>();
+  private gcInterval: number | null = null;
 
   set(key: string, data: T, ttlMs = 3600000) { // Default TTL: 1 hour
     this.storage.set(key, {
@@ -45,7 +46,12 @@ export class Cache<T> {
 
   // Periodically clear out expired entries
   startGarbageCollection(intervalMs = 600000) { // Default: 10 minutes
-    setInterval(() => {
+    // Clear any existing interval first
+    if (this.gcInterval !== null) {
+      clearInterval(this.gcInterval);
+    }
+    
+    this.gcInterval = window.setInterval(() => {
       const now = Date.now();
       for (const [key, entry] of this.storage.entries()) {
         if (now - entry.timestamp > entry.ttl) {
@@ -53,6 +59,20 @@ export class Cache<T> {
         }
       }
     }, intervalMs);
+  }
+
+  // Stop garbage collection and cleanup
+  stopGarbageCollection(): void {
+    if (this.gcInterval !== null) {
+      clearInterval(this.gcInterval);
+      this.gcInterval = null;
+    }
+  }
+
+  // Cleanup method for proper memory management
+  destroy(): void {
+    this.stopGarbageCollection();
+    this.clear();
   }
 }
 

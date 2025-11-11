@@ -104,26 +104,35 @@ export class AIContextMenu {
       </button>
     `).join('');
 
-    menu.addEventListener('click', async (e) => {
+    const clickHandler = async (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       const id = target.dataset.id;
       const item = itemsToShow.find(i => i.id === id);
 
       if (item) {
         await item.action(selection);
-        menu.remove();
+        cleanup();
       }
-    });
+    };
+    
+    menu.addEventListener('click', clickHandler);
 
     document.body.appendChild(menu);
 
     // Remove on click outside
     const removeMenu = (e: MouseEvent) => {
       if (!menu.contains(e.target as Node)) {
-        menu.remove();
-        document.removeEventListener('click', removeMenu);
+        cleanup();
       }
     };
+    
+    // Cleanup function to prevent memory leaks
+    const cleanup = () => {
+      menu.removeEventListener('click', clickHandler);
+      document.removeEventListener('click', removeMenu);
+      menu.remove();
+    };
+    
     setTimeout(() => {
       document.addEventListener('click', removeMenu);
     }, 0);

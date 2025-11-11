@@ -20,6 +20,7 @@ export class PostMessageService {
   private iframeWindow: Window | null = null;
   private origin: string = '*';
   private listeners: Map<MsgType, ((payload: any) => void)[]> = new Map();
+  private boundHandleMessage: ((event: MessageEvent) => void) | null = null;
 
   /**
    * Konstruktor - przyjmuje iframe i dozwolone origin
@@ -27,7 +28,9 @@ export class PostMessageService {
   constructor(iframe: HTMLIFrameElement, origin: string = '*') {
     this.iframeWindow = iframe.contentWindow;
     this.origin = origin;
-    window.addEventListener('message', this.handleMessage.bind(this));
+    // Store bound reference for proper cleanup
+    this.boundHandleMessage = this.handleMessage.bind(this);
+    window.addEventListener('message', this.boundHandleMessage);
     console.log('[PostMessageService] Initialized for origin:', origin);
   }
 
@@ -79,8 +82,12 @@ export class PostMessageService {
    * Cleanup - usuń nasłuchiwanie
    */
   destroy() {
-    window.removeEventListener('message', this.handleMessage.bind(this));
+    if (this.boundHandleMessage) {
+      window.removeEventListener('message', this.boundHandleMessage);
+      this.boundHandleMessage = null;
+    }
     this.listeners.clear();
+    this.iframeWindow = null;
   }
 }
 

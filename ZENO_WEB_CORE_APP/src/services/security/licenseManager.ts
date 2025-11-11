@@ -375,8 +375,9 @@ class LicenseManager {
    * Zatrzymaj walidację
    */
   destroy(): void {
-    if (this.validationInterval) {
+    if (this.validationInterval !== null) {
       clearInterval(this.validationInterval);
+      this.validationInterval = null;
     }
   }
 }

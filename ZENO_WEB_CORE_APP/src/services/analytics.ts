@@ -17,6 +17,7 @@ class AnalyticsService {
   private queue: TrackEvent[] = [];
   private flushInterval: number = 5000; // 5 seconds
   private intervalId?: number;
+  private beforeUnloadHandler?: () => void;
 
   constructor() {
     // Get or create userId (only in browser)
@@ -47,10 +48,11 @@ class AnalyticsService {
       this.flush();
     }, this.flushInterval);
     
-    // Flush on page unload
-    window.addEventListener('beforeunload', () => {
+    // Flush on page unload - store reference for cleanup
+    this.beforeUnloadHandler = () => {
       this.flush();
-    });
+    };
+    window.addEventListener('beforeunload', this.beforeUnloadHandler);
   }
 
   /**
@@ -173,6 +175,11 @@ class AnalyticsService {
   destroy() {
     if (this.intervalId) {
       clearInterval(this.intervalId);
+      this.intervalId = undefined;
+    }
+    if (this.beforeUnloadHandler && typeof window !== 'undefined') {
+      window.removeEventListener('beforeunload', this.beforeUnloadHandler);
+      this.beforeUnloadHandler = undefined;
     }
     this.flush();
   }
@@ -206,8 +213,17 @@ function getAnalyticsInstance(): AnalyticsService {
 export const analytics = getAnalyticsInstance();
 
 // Auto-track page views
+let pageViewHandler: (() => void) | undefined;
 if (typeof window !== 'undefined') {
-  window.addEventListener('load', () => {
+  pageViewHandler = () => {
     analytics.trackPageView(window.location.href);
+  };
+  window.addEventListener('load', pageViewHandler);
+  
+  // Cleanup on unload (for proper memory management)
+  window.addEventListener('beforeunload', () => {
+    if (pageViewHandler) {
+      window.removeEventListener('load', pageViewHandler);
+    }
   });
 }

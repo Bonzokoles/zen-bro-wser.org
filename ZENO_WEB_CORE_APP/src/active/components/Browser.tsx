@@ -75,6 +75,9 @@ const Browser: React.FC = () => {
 	]);
 
 	const [history, setHistory] = useState<HistoryItem[]>([]);
+	
+	// Track active timeouts for cleanup
+	const timeoutsRef = React.useRef<Set<NodeJS.Timeout>>(new Set());
 
 	// Initialize MCP Service automatically
 	useEffect(() => {
@@ -141,6 +144,15 @@ const Browser: React.FC = () => {
 		};
 
 		initMCP();
+	}, []);
+
+	// Cleanup all timeouts on unmount
+	useEffect(() => {
+		return () => {
+			// Clear all tracked timeouts
+			timeoutsRef.current.forEach(timeout => clearTimeout(timeout));
+			timeoutsRef.current.clear();
+		};
 	}, []);
 
 	const activeTab = useMemo(() => tabs.find(tab => tab.isActive), [tabs]);
@@ -314,13 +326,15 @@ const Browser: React.FC = () => {
 		addToHistory(finalUrl, pageTitle, getPageFavicon(finalUrl));
 
 		// Simulate page load
-		setTimeout(() => {
+		const timeoutId = setTimeout(() => {
 			setTabs(prev => prev.map(tab => 
 				tab.isActive 
 					? { ...tab, isLoading: false, title: pageTitle }
 					: tab
 			));
+			timeoutsRef.current.delete(timeoutId);
 		}, 1000);
+		timeoutsRef.current.add(timeoutId);
 
 		addConsoleMessage(`Navigating to: ${finalUrl}`);
 	};
@@ -351,9 +365,11 @@ const Browser: React.FC = () => {
 		addConsoleMessage(`MCP Command: ${command}`);
 		// Here we would integrate with actual MCP tools
 		// For now, simulate some responses
-		setTimeout(() => {
+		const timeoutId = setTimeout(() => {
 			addConsoleMessage(`MCP Response: Command "${command}" executed successfully`);
+			timeoutsRef.current.delete(timeoutId);
 		}, 500);
+		timeoutsRef.current.add(timeoutId);
 	};
 
 

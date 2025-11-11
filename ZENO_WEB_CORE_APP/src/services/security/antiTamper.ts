@@ -6,6 +6,12 @@
 class AntiTamper {
   private devToolsOpen: boolean = false;
   private checkInterval: number | null = null;
+  private debuggerInterval: number | null = null;
+  private resizeHandler: (() => void) | null = null;
+  private contextMenuHandler: ((e: Event) => boolean) | null = null;
+  private keydownHandler: ((e: KeyboardEvent) => boolean) | null = null;
+  private clickHandler: (() => void) | null = null;
+  private copyHandler: ((e: ClipboardEvent) => void) | null = null;
   private integrityChecksum: string = '';
 
   constructor() {
@@ -75,8 +81,9 @@ class AntiTamper {
       console.log(element); // Triggeruje getter jeśli console jest otwarty
     }, 1000);
 
-    // Sprawdź też przy resize
-    window.addEventListener('resize', checkDevTools);
+    // Sprawdź też przy resize - store handler reference
+    this.resizeHandler = checkDevTools;
+    window.addEventListener('resize', this.resizeHandler);
   }
 
   /**
@@ -106,17 +113,18 @@ class AntiTamper {
    * Blokowanie prawego przycisku myszy (opcjonalne)
    */
   private disableContextMenu(): void {
-    document.addEventListener('contextmenu', e => {
+    this.contextMenuHandler = (e: Event) => {
       e.preventDefault();
       return false;
-    });
+    };
+    document.addEventListener('contextmenu', this.contextMenuHandler);
   }
 
   /**
    * Blokowanie skrótów klawiszowych do DevTools
    */
   private disableKeyboardShortcuts(): void {
-    document.addEventListener('keydown', e => {
+    this.keydownHandler = (e: KeyboardEvent) => {
       // F12
       if (e.keyCode === 123) {
         e.preventDefault();
@@ -146,7 +154,10 @@ class AntiTamper {
         e.preventDefault();
         return false;
       }
-    });
+      
+      return true;
+    };
+    document.addEventListener('keydown', this.keydownHandler);
   }
 
   /**
@@ -154,7 +165,7 @@ class AntiTamper {
    */
   private antiDebugger(): void {
     // Infinite debugger loop (ostrożnie - może wpłynąć na performance)
-    setInterval(() => {
+    this.debuggerInterval = window.setInterval(() => {
       (function () {
         return false;
       }
@@ -213,7 +224,7 @@ class AntiTamper {
     let lastClickTime = 0;
 
     // Wykrywanie szybkich kliknięć (może oznaczać automatyzację)
-    document.addEventListener('click', () => {
+    this.clickHandler = () => {
       const now = Date.now();
       if (now - lastClickTime < 100) {
         rapidClicks++;
@@ -225,16 +236,18 @@ class AntiTamper {
         rapidClicks = 0;
       }
       lastClickTime = now;
-    });
+    };
+    document.addEventListener('click', this.clickHandler);
 
     // Wykrywanie copy-paste kodu (opcjonalne)
-    document.addEventListener('copy', e => {
+    this.copyHandler = (e: ClipboardEvent) => {
       const selection = window.getSelection()?.toString() || '';
       if (selection.length > 500) {
         console.warn('⚠️ Large text copied');
         // Możesz dodać watermark do skopiowanego tekstu
       }
-    });
+    };
+    document.addEventListener('copy', this.copyHandler);
   }
 
   /**
@@ -301,6 +314,31 @@ class AntiTamper {
   destroy(): void {
     if (this.checkInterval) {
       clearInterval(this.checkInterval);
+      this.checkInterval = null;
+    }
+    if (this.debuggerInterval) {
+      clearInterval(this.debuggerInterval);
+      this.debuggerInterval = null;
+    }
+    if (this.resizeHandler) {
+      window.removeEventListener('resize', this.resizeHandler);
+      this.resizeHandler = null;
+    }
+    if (this.contextMenuHandler) {
+      document.removeEventListener('contextmenu', this.contextMenuHandler);
+      this.contextMenuHandler = null;
+    }
+    if (this.keydownHandler) {
+      document.removeEventListener('keydown', this.keydownHandler);
+      this.keydownHandler = null;
+    }
+    if (this.clickHandler) {
+      document.removeEventListener('click', this.clickHandler);
+      this.clickHandler = null;
+    }
+    if (this.copyHandler) {
+      document.removeEventListener('copy', this.copyHandler);
+      this.copyHandler = null;
     }
   }
 }
