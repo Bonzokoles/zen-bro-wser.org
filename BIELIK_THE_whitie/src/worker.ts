@@ -7,6 +7,8 @@
  */
 
 interface Env {
+    DB?: any; // D1Database - simplified for now
+    AGENT_STATE?: any; // KVNamespace - simplified for now
     OPENAI_API_KEY?: string;
     GOOGLE_GEMINI_API_KEY?: string;
     ANTHROPIC_API_KEY?: string;
