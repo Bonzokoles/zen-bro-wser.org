@@ -89,6 +89,24 @@ export default {
           todo: 'Calculate from KV purchase data'
         }, { status: 501 });
       }
+      // Root endpoint - API info
+      else if (url.pathname === '/') {
+        response = Response.json({
+          name: 'ZENO Browser API',
+          version: '1.0.0',
+          status: 'operational',
+          endpoints: {
+            health: '/health',
+            admin: '/api/admin/*',
+            iframe: '/api/iframe/sites',
+            ai: '/api/ai-assistant',
+            agents: '/api/agents/*',
+            stats: '/api/stats',
+            payments: '/api/checkout (disabled)',
+          },
+          documentation: 'https://github.com/Bonzokoles/zen-bro-wser.org',
+        });
+      }
       // Health check
       else if (url.pathname === '/health') {
         response = Response.json({ status: 'ok', timestamp: Date.now() });
