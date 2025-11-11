@@ -1,47 +1,23 @@
 /**
  * CAYD Library API - Catalog Tree Endpoint
- * Zwraca strukturę drzewa katalogów biblioteki
+ * Proxy do CAYD_SEARCH_ENG Express Server (port 6040)
  */
 
 import type { APIRoute } from 'astro';
-import fs from 'fs';
-import path from 'path';
 
 export const prerender = false;
 
-const librariesRoot = process.env.LIBRARIES_ROOT || 'V:/PROTO_TYpy/ZENO_web_CORE/LIBRARIES';
-
-function buildTree(dir: string): any[] {
-    if (!fs.existsSync(dir)) {
-        return [];
-    }
-
-    const items = fs.readdirSync(dir, { withFileTypes: true });
-    const results: any[] = [];
-
-    for (const item of items) {
-        const fullPath = path.join(dir, item.name);
-
-        if (item.isDirectory()) {
-            results.push({
-                type: 'folder',
-                name: item.name,
-                children: buildTree(fullPath)
-            });
-        } else if (item.isFile() && ['.md', '.json'].includes(path.extname(item.name))) {
-            results.push({
-                type: 'file',
-                name: item.name,
-                path: path.relative(librariesRoot, fullPath)
-            });
-        }
-    }
-    return results;
-}
+const CAYD_SERVER_URL = 'http://localhost:6040';
 
 export const GET: APIRoute = async () => {
     try {
-        const tree = buildTree(librariesRoot);
+        const response = await fetch(`${CAYD_SERVER_URL}/api/catalogTree`);
+
+        if (!response.ok) {
+            throw new Error(`CAYD Server error: ${response.statusText}`);
+        }
+
+        const tree = await response.json();
 
         return new Response(JSON.stringify(tree), {
             status: 200,
@@ -51,7 +27,7 @@ export const GET: APIRoute = async () => {
         });
     } catch (err: any) {
         return new Response(JSON.stringify({
-            error: 'Błąd odczytu katalogu: ' + err.message
+            error: 'Błąd połączenia z CAYD Server: ' + err.message
         }), {
             status: 500,
             headers: {

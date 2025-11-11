@@ -1,15 +1,13 @@
 /**
  * CAYD Library API - Save Metadata Endpoint
- * Zapisuje lub aktualizuje plik metadanych w bibliotece
+ * Proxy do CAYD_SEARCH_ENG Express Server (port 6040)
  */
 
 import type { APIRoute } from 'astro';
-import fs from 'fs';
-import path from 'path';
 
 export const prerender = false;
 
-const librariesRoot = process.env.LIBRARIES_ROOT || 'V:/PROTO_TYpy/ZENO_web_CORE/LIBRARIES';
+const CAYD_SERVER_URL = 'http://localhost:6040';
 
 export const POST: APIRoute = async ({ request }) => {
     try {
@@ -23,53 +21,27 @@ export const POST: APIRoute = async ({ request }) => {
             });
         }
 
-        const { relativePath, content } = await request.json();
+        const body = await request.json();
 
-        if (!relativePath || content === undefined) {
-            return new Response(JSON.stringify({
-                error: 'Brak relativePath lub content'
-            }), {
-                status: 400,
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-        }
+        const response = await fetch(`${CAYD_SERVER_URL}/api/saveMetadata`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(body)
+        });
 
-        const fullPath = path.join(librariesRoot, relativePath);
-        const dir = path.dirname(fullPath);
+        const data = await response.json();
 
-        // Sprawdzenie bezpieczeństwa ścieżki
-        if (!fullPath.startsWith(librariesRoot)) {
-            return new Response(JSON.stringify({
-                error: 'Dostęp zabroniony'
-            }), {
-                status: 403,
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-        }
-
-        // Tworzenie katalogów jeśli nie istnieją
-        fs.mkdirSync(dir, { recursive: true });
-
-        // Zapis pliku
-        fs.writeFileSync(fullPath, content, 'utf8');
-
-        return new Response(JSON.stringify({
-            status: 'success',
-            path: relativePath,
-            message: 'Plik zapisany pomyślnie'
-        }), {
-            status: 200,
+        return new Response(JSON.stringify(data), {
+            status: response.status,
             headers: {
                 'Content-Type': 'application/json'
             }
         });
     } catch (err: any) {
         return new Response(JSON.stringify({
-            error: 'Błąd zapisu pliku: ' + err.message
+            error: 'Błąd połączenia z CAYD Server: ' + err.message
         }), {
             status: 500,
             headers: {

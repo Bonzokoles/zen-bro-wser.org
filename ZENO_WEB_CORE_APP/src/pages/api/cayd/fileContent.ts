@@ -1,15 +1,13 @@
 /**
  * CAYD Library API - File Content Endpoint
- * Pobiera zawartość pliku z biblioteki
+ * Proxy do CAYD_SEARCH_ENG Express Server (port 6040)
  */
 
 import type { APIRoute } from 'astro';
-import fs from 'fs';
-import path from 'path';
 
 export const prerender = false;
 
-const librariesRoot = process.env.LIBRARIES_ROOT || 'V:/PROTO_TYpy/ZENO_web_CORE/LIBRARIES';
+const CAYD_SERVER_URL = 'http://localhost:6040';
 
 export const GET: APIRoute = async ({ url }) => {
     const filePath = url.searchParams.get('path');
@@ -26,34 +24,21 @@ export const GET: APIRoute = async ({ url }) => {
     }
 
     try {
-        const fullPath = path.join(librariesRoot, filePath);
+        const response = await fetch(`${CAYD_SERVER_URL}/api/fileContent?path=${encodeURIComponent(filePath)}`);
 
-        // Sprawdzenie bezpieczeństwa ścieżki
-        if (!fullPath.startsWith(librariesRoot)) {
-            return new Response(JSON.stringify({
-                error: 'Dostęp zabroniony'
-            }), {
-                status: 403,
+        if (!response.ok) {
+            const errorData = await response.json();
+            return new Response(JSON.stringify(errorData), {
+                status: response.status,
                 headers: {
                     'Content-Type': 'application/json'
                 }
             });
         }
 
-        if (!fs.existsSync(fullPath)) {
-            return new Response(JSON.stringify({
-                error: 'Plik nie istnieje'
-            }), {
-                status: 404,
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-        }
+        const data = await response.json();
 
-        const content = fs.readFileSync(fullPath, 'utf8');
-
-        return new Response(JSON.stringify({ content }), {
+        return new Response(JSON.stringify(data), {
             status: 200,
             headers: {
                 'Content-Type': 'application/json'
@@ -61,7 +46,7 @@ export const GET: APIRoute = async ({ url }) => {
         });
     } catch (err: any) {
         return new Response(JSON.stringify({
-            error: 'Błąd odczytu pliku: ' + err.message
+            error: 'Błąd połączenia z CAYD Server: ' + err.message
         }), {
             status: 500,
             headers: {
