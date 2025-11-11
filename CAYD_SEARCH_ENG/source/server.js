@@ -71,6 +71,83 @@ app.get('/api/config/paths', (req, res) => {
     }
 });
 
+// STEP_05: Search endpoint
+app.get('/api/search', (req, res) => {
+    const query = req.query.q;
+    
+    if (!query) {
+        return res.status(400).json({ error: 'Search query required' });
+    }
+
+    try {
+        const config = getPathsConfig();
+        const librariesRoot = config.librariesRoot;
+        const results = [];
+        
+        // Recursive search function
+        function searchInDirectory(dir) {
+            if (!fs.existsSync(dir)) {
+                return;
+            }
+
+            const items = fs.readdirSync(dir, { withFileTypes: true });
+
+            for (const item of items) {
+                const fullPath = path.join(dir, item.name);
+
+                if (item.isDirectory()) {
+                    searchInDirectory(fullPath);
+                } else if (item.isFile() && ['.md', '.json', '.txt'].includes(path.extname(item.name))) {
+                    try {
+                        const content = fs.readFileSync(fullPath, 'utf8');
+                        const lowerQuery = query.toLowerCase();
+                        const lowerContent = content.toLowerCase();
+                        const lowerName = item.name.toLowerCase();
+                        
+                        // Search in filename or content
+                        if (lowerName.includes(lowerQuery) || lowerContent.includes(lowerQuery)) {
+                            const relativePath = path.relative(librariesRoot, fullPath);
+                            
+                            // Get context around match
+                            let context = '';
+                            const index = lowerContent.indexOf(lowerQuery);
+                            if (index !== -1) {
+                                const start = Math.max(0, index - 50);
+                                const end = Math.min(content.length, index + query.length + 50);
+                                context = content.substring(start, end);
+                            }
+                            
+                            results.push({
+                                name: item.name,
+                                path: relativePath,
+                                type: path.extname(item.name),
+                                context: context || content.substring(0, 100),
+                                matchInName: lowerName.includes(lowerQuery)
+                            });
+                        }
+                    } catch (err) {
+                        console.error(`Error reading file ${fullPath}:`, err.message);
+                    }
+                }
+            }
+        }
+
+        searchInDirectory(librariesRoot);
+        
+        // Limit results to 50
+        const limitedResults = results.slice(0, 50);
+        
+        res.json({
+            query,
+            count: limitedResults.length,
+            total: results.length,
+            results: limitedResults
+        });
+    } catch (err) {
+        res.status(500).json({ error: 'Search error: ' + err.message });
+    }
+});
+
 // STEP_03: Endpoint drzewa katalogów (bez pełnej zawartości plików)
 app.get('/api/catalogTree', (req, res) => {
     try {

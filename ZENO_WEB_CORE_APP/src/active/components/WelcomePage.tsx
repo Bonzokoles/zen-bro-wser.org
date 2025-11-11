@@ -246,21 +246,40 @@ const WelcomePage: React.FC = () => {
               </h4>
             </div>
             <form
-              onSubmit={(e) => {
+              onSubmit={async (e) => {
                 e.preventDefault();
-                const input = e.currentTarget.querySelector('input');
+                const input = e.currentTarget.querySelector('input') as HTMLInputElement;
                 if (input && input.value.trim()) {
-                  const event = new CustomEvent('navigate', {
-                    detail: { url: `https://www.google.com/search?q=${encodeURIComponent(input.value)}` }
-                  });
-                  window.dispatchEvent(event);
+                  try {
+                    // Search in CAYD library
+                    const response = await fetch(`/api/cayd/search?q=${encodeURIComponent(input.value)}`);
+                    if (response.ok) {
+                      const results = await response.json();
+                      // Show results in library panel
+                      const event = new CustomEvent('cayd-search-results', { detail: results });
+                      window.dispatchEvent(event);
+                    } else {
+                      // Fallback to Google search
+                      const event = new CustomEvent('navigate', {
+                        detail: { url: `https://www.google.com/search?q=${encodeURIComponent(input.value)}` }
+                      });
+                      window.dispatchEvent(event);
+                    }
+                  } catch (error) {
+                    console.error('Search error:', error);
+                    // Fallback to Google
+                    const event = new CustomEvent('navigate', {
+                      detail: { url: `https://www.google.com/search?q=${encodeURIComponent(input.value)}` }
+                    });
+                    window.dispatchEvent(event);
+                  }
                 }
               }}
               style={{ display: 'flex', gap: '8px' }}
             >
               <input
                 type="text"
-                placeholder="Szukaj w Google..."
+                placeholder="Szukaj w CAYD_search_hub..."
                 style={{
                   flex: 1,
                   padding: '12px 16px',
