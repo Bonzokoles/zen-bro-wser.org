@@ -1049,11 +1049,12 @@ const Browser: React.FC = () => {
 				<div
 					style={{
 						position: 'fixed',
-						top: 0,
+						top: '60px',
+						bottom: '80px',
 						right: '180px',
 						width: '65%',
 						maxWidth: '1200px',
-						height: '100vh',
+						height: 'auto',
 						background: 'linear-gradient(135deg, #1e293b, #0f172a)',
 						boxShadow: '-4px 0 20px rgba(0, 0, 0, 0.5)',
 						zIndex: 1000,
@@ -1081,12 +1082,12 @@ const Browser: React.FC = () => {
 						</button>
 					</div>
 
-					<div style={{ display: 'flex', gap: '20px', height: 'calc(100vh - 120px)' }}>
-						<div style={{ flex: '1.5', background: 'rgba(0, 0, 0, 0.7)', border: '1px solid #f59e0b', borderRadius: '0', padding: '15px' }}>
+					<div style={{ display: 'flex', gap: '20px', height: 'calc(100% - 80px)' }}>
+						<div style={{ flex: '1.5', background: 'rgba(0, 0, 0, 0.7)', border: '1px solid #f59e0b', borderRadius: '0', padding: '15px', overflowY: 'auto' }}>
 							<h3 style={{ color: 'white', marginTop: 0 }}>📂 Przeglądarka katalogów</h3>
 							<CatalogBrowser />
 						</div>
-						<div style={{ flex: '1', background: 'rgba(0, 0, 0, 0.7)', border: '1px solid #f59e0b', borderRadius: '0', padding: '15px' }}>
+						<div style={{ flex: '1', background: 'rgba(0, 0, 0, 0.7)', border: '1px solid #f59e0b', borderRadius: '0', padding: '15px', overflowY: 'auto' }}>
 							<h3 style={{ color: 'white', marginTop: 0 }}>✏️ Edytor metadanych</h3>
 							<MetadataEditor />
 						</div>
