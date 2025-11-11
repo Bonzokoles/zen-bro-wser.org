@@ -3,24 +3,25 @@
  * Entry point dla backend API
  */
 
-import Stripe from 'stripe';
+// Stripe removed - incompatible with Workers runtime
+// Use Stripe REST API with fetch() instead of SDK
 
 export interface Env {
-  DB: D1Database;
-  CACHE: KVNamespace;
+  DB: any; // D1Database
+  CACHE: any; // KVNamespace
   AI: any; // Cloudflare Workers AI
-  BIELIK_AGENTS: Fetcher; // Service binding to BIELIK agent system
+  BIELIK_AGENTS: any; // Fetcher - Service binding to BIELIK agent system
   GEMINI_API_KEY: string;
   OPENAI_API_KEY: string;
   ANTHROPIC_API_KEY: string;
-  STRIPE_SECRET_KEY: string;
-  STRIPE_WEBHOOK_SECRET: string;
-  STRIPE_PRICE_MONTHLY: string;
-  STRIPE_PRICE_YEARLY: string;
+  STRIPE_SECRET_KEY?: string;
+  STRIPE_WEBHOOK_SECRET?: string;
+  STRIPE_PRICE_MONTHLY?: string;
+  STRIPE_PRICE_YEARLY?: string;
 }
 
 export default {
-  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+  async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
 
     // CORS headers
@@ -67,17 +68,26 @@ export default {
       else if (url.pathname === '/api/stats' && request.method === 'GET') {
         response = await handleStats(request, env);
       }
-      // Stripe - Checkout
+      // Stripe - Checkout (TODO: Implement with Stripe REST API)
       else if (url.pathname === '/api/checkout' && request.method === 'POST') {
-        response = await handleCheckout(request, env);
+        response = Response.json({
+          error: 'Stripe checkout not implemented yet - use REST API',
+          todo: 'Implement with fetch() to Stripe API'
+        }, { status: 501 });
       }
-      // Stripe - Webhook
+      // Stripe - Webhook (TODO: Implement with Stripe REST API)
       else if (url.pathname === '/api/webhook' && request.method === 'POST') {
-        response = await handleWebhook(request, env);
+        response = Response.json({
+          error: 'Stripe webhooks not implemented yet',
+          todo: 'Verify signature and handle events with fetch()'
+        }, { status: 501 });
       }
-      // Revenue - Statistics
+      // Revenue - Statistics (TODO: Implement with KV data)
       else if (url.pathname === '/api/revenue-stats' && request.method === 'GET') {
-        response = await handleRevenueStats(request, env);
+        response = Response.json({
+          error: 'Revenue stats not implemented yet',
+          todo: 'Calculate from KV purchase data'
+        }, { status: 501 });
       }
       // Health check
       else if (url.pathname === '/health') {
@@ -481,294 +491,9 @@ async function handleStats(request: Request, env: Env): Promise<Response> {
 
 // ============================================
 // STRIPE API - Checkout & Webhooks
+// TODO: Implement using Stripe REST API with fetch()
+// Stripe SDK doesn't work in Workers runtime
 // ============================================
-
-/**
- * Create Stripe checkout session for subscription
- * POST /api/checkout
- */
-async function handleCheckout(request: Request, env: Env): Promise<Response> {
-  try {
-    const body = await request.json<any>();
-    const { priceId, userId, plan } = body;
-
-    if (!priceId || !userId) {
-      return Response.json(
-        { error: 'priceId and userId are required' },
-        { status: 400 }
-      );
-    }
-
-    // Initialize Stripe
-    const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
-      apiVersion: '2024-11-20.acacia',
-    });
-
-    // Create checkout session
-    const session = await stripe.checkout.sessions.create({
-      mode: 'subscription',
-      payment_method_types: ['card'],
-      line_items: [{
-        price: priceId,
-        quantity: 1,
-      }],
-      success_url: 'https://zeno-browser.com/success?session_id={CHECKOUT_SESSION_ID}',
-      cancel_url: 'https://zeno-browser.com/cancel',
-      customer_email: body.email || undefined,
-      metadata: {
-        userId,
-        plan: plan || 'monthly',
-      },
-      subscription_data: {
-        metadata: {
-          userId,
-          plan: plan || 'monthly',
-        },
-      },
-    });
-
-    console.log('Checkout session created:', session.id);
-
-    return Response.json({
-      success: true,
-      sessionId: session.id,
-      url: session.url,
-    });
-
-  } catch (error: any) {
-    console.error('Checkout error:', error);
-    return Response.json(
-      { error: 'Checkout failed', message: error.message },
-      { status: 500 }
-    );
-  }
-}
-
-/**
- * Handle Stripe webhook events
- * POST /api/webhook
- */
-async function handleWebhook(request: Request, env: Env): Promise<Response> {
-  try {
-    const signature = request.headers.get('stripe-signature');
-    if (!signature) {
-      return Response.json({ error: 'Missing signature' }, { status: 400 });
-    }
-
-    const body = await request.text();
-
-    // Initialize Stripe
-    const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
-      apiVersion: '2024-11-20.acacia',
-    });
-
-    // Verify webhook signature
-    let event: Stripe.Event;
-    try {
-      event = stripe.webhooks.constructEvent(
-        body,
-        signature,
-        env.STRIPE_WEBHOOK_SECRET
-      );
-    } catch (err: any) {
-      console.error('Webhook signature verification failed:', err.message);
-      return Response.json(
-        { error: 'Invalid signature' },
-        { status: 400 }
-      );
-    }
-
-    console.log('Webhook event:', event.type);
-
-    // Handle events
-    switch (event.type) {
-      case 'checkout.session.completed': {
-        const session = event.data.object as Stripe.Checkout.Session;
-
-        // Generate API key
-        const apiKey = `zeno_${crypto.randomUUID().replace(/-/g, '')}`;
-
-        // Store API key in KV
-        await env.CACHE.put(
-          `apikey:${apiKey}`,
-          JSON.stringify({
-            userId: session.metadata?.userId,
-            email: session.customer_details?.email,
-            subscriptionId: session.subscription,
-            plan: session.metadata?.plan || 'monthly',
-            status: 'active',
-            createdAt: Date.now(),
-          }),
-          { expirationTtl: 31536000 } // 1 year
-        );
-
-        // Track purchase
-        await env.CACHE.put(
-          `purchase:${Date.now()}:${crypto.randomUUID()}`,
-          JSON.stringify({
-            userId: session.metadata?.userId,
-            email: session.customer_details?.email,
-            amount: session.amount_total ? session.amount_total / 100 : 0,
-            currency: session.currency,
-            plan: session.metadata?.plan || 'monthly',
-            subscriptionId: session.subscription,
-            timestamp: Date.now(),
-          }),
-          { expirationTtl: 31536000 } // 1 year
-        );
-
-        console.log('API key generated:', apiKey, 'for user:', session.metadata?.userId);
-        break;
-      }
-
-      case 'customer.subscription.updated': {
-        const subscription = event.data.object as Stripe.Subscription;
-
-        // Find API key by subscription ID
-        const list = await env.CACHE.list({ prefix: 'apikey:' });
-        for (const key of list.keys) {
-          const data = await env.CACHE.get(key.name, 'json');
-          if (data && (data as any).subscriptionId === subscription.id) {
-            // Update status
-            await env.CACHE.put(
-              key.name,
-              JSON.stringify({
-                ...(data as any),
-                status: subscription.status,
-              }),
-              { expirationTtl: 31536000 }
-            );
-            console.log('Subscription updated:', subscription.id, subscription.status);
-            break;
-          }
-        }
-        break;
-      }
-
-      case 'customer.subscription.deleted': {
-        const subscription = event.data.object as Stripe.Subscription;
-
-        // Find and delete API key
-        const list = await env.CACHE.list({ prefix: 'apikey:' });
-        for (const key of list.keys) {
-          const data = await env.CACHE.get(key.name, 'json');
-          if (data && (data as any).subscriptionId === subscription.id) {
-            await env.CACHE.delete(key.name);
-            console.log('API key revoked for subscription:', subscription.id);
-            break;
-          }
-        }
-        break;
-      }
-
-      case 'invoice.payment_succeeded': {
-        const invoice = event.data.object as Stripe.Invoice;
-        console.log('Payment succeeded:', invoice.id, invoice.amount_paid / 100);
-        break;
-      }
-
-      case 'invoice.payment_failed': {
-        const invoice = event.data.object as Stripe.Invoice;
-        console.log('Payment failed:', invoice.id);
-
-        // Could send email notification here
-        break;
-      }
-    }
-
-    return Response.json({ received: true });
-
-  } catch (error: any) {
-    console.error('Webhook error:', error);
-    return Response.json(
-      { error: 'Webhook failed', message: error.message },
-      { status: 500 }
-    );
-  }
-}
-
-/**
- * Get revenue statistics
- * GET /api/revenue-stats
- */
-async function handleRevenueStats(request: Request, env: Env): Promise<Response> {
-  try {
-    // Check API key (optional - can be public or protected)
-    const apiKey = request.headers.get('X-API-Key');
-    if (apiKey && !(await checkApiKey(apiKey, env))) {
-      return Response.json({ error: 'Invalid API key' }, { status: 401 });
-    }
-
-    // Get all API keys (active subscriptions)
-    const apiKeys = await env.CACHE.list({ prefix: 'apikey:' });
-    const activeKeys = [];
-
-    for (const key of apiKeys.keys) {
-      const data = await env.CACHE.get(key.name, 'json');
-      if (data && (data as any).status === 'active') {
-        activeKeys.push(data);
-      }
-    }
-
-    // Calculate MRR (Monthly Recurring Revenue)
-    let mrr = 0;
-    const planCounts = { monthly: 0, yearly: 0 };
-
-    for (const key of activeKeys) {
-      const plan = (key as any).plan || 'monthly';
-      if (plan === 'monthly') {
-        mrr += 5.0;
-        planCounts.monthly++;
-      } else if (plan === 'yearly') {
-        mrr += 4.17; // $50/12 months
-        planCounts.yearly++;
-      }
-    }
-
-    // Get all purchases
-    const purchases = await env.CACHE.list({ prefix: 'purchase:' });
-    const purchaseData = [];
-
-    for (const purchase of purchases.keys.slice(0, 100)) {
-      const data = await env.CACHE.get(purchase.name, 'json');
-      if (data) {
-        purchaseData.push(data);
-      }
-    }
-
-    // Calculate total revenue
-    const totalRevenue = purchaseData.reduce(
-      (sum, p: any) => sum + (p.amount || 0),
-      0
-    );
-
-    return Response.json({
-      success: true,
-      stats: {
-        activeSubscriptions: activeKeys.length,
-        mrr: parseFloat(mrr.toFixed(2)),
-        totalRevenue: parseFloat(totalRevenue.toFixed(2)),
-        plans: planCounts,
-        recentPurchases: purchaseData
-          .sort((a: any, b: any) => b.timestamp - a.timestamp)
-          .slice(0, 10)
-          .map((p: any) => ({
-            userId: p.userId,
-            amount: p.amount,
-            plan: p.plan,
-            date: new Date(p.timestamp).toISOString(),
-          })),
-      },
-    });
-
-  } catch (error: any) {
-    console.error('Revenue stats error:', error);
-    return Response.json(
-      { error: 'Stats retrieval failed', message: error.message },
-      { status: 500 }
-    );
-  }
-}
 
 /**
  * Check if API key is valid
