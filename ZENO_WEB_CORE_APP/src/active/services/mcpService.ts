@@ -251,7 +251,7 @@ class MCPService {
     } catch (error) {
       return {
         success: false,
-        error: `Command execution failed: ${error.message}`
+        error: `Command execution failed: ${error instanceof Error ? error.message : 'Unknown error'}`
       };
     }
   }
@@ -270,7 +270,7 @@ class MCPService {
 
       return analysis;
     } catch (error) {
-      throw new Error(`Page analysis failed: ${error.message}`);
+      throw new Error(`Page analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 

@@ -1,6 +1,7 @@
 // src/active/components/DownloadManager.tsx
 import React, { useState, useEffect, useMemo } from 'react';
-import { Download, DownloadManager as DownloadManagerClass } from '../services/download-manager';
+import type { Download } from '../services/download-manager';
+import { DownloadManager as DownloadManagerClass } from '../services/download-manager';
 
 interface DownloadManagerProps {
   isOpen: boolean;

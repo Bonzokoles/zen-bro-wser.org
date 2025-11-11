@@ -78,7 +78,7 @@ export class GeminiProvider {
 
       return assistantMessage;
     } catch (error) {
-      throw new Error(`Gemini API error: ${error.message}`);
+      throw new Error(`Gemini API error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -125,7 +125,7 @@ If no tool is needed, just respond to the user's command directly.
     } catch (error) {
       return {
         success: false,
-        error: `MCP execution failed: ${error.message}`
+        error: `MCP execution failed: ${error instanceof Error ? error.message : 'Unknown error'}`
       };
     }
   }
@@ -157,7 +157,7 @@ Keep the analysis concise but comprehensive.
         timestamp: new Date()
       };
     } catch (error) {
-      throw new Error(`Content analysis failed: ${error.message}`);
+      throw new Error(`Content analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -182,7 +182,7 @@ Keep the analysis concise but comprehensive.
       console.log('Gemini response:', text);
       return text && text.length > 0;
     } catch (error) {
-      console.error('Gemini connection test failed:', error.message || error);
+      console.error('Gemini connection test failed:', error instanceof Error ? error.message : error);
       throw error; // Re-throw to get more specific error info
     }
   }
