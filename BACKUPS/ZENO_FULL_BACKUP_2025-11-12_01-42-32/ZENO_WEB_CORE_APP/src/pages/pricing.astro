@@ -1,0 +1,353 @@
+---
+// Pricing Page - Subscribe to ZENO Browser Pro
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ZENO Browser Pro - Pricing</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Oxygen, Ubuntu, Cantarell, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 2rem;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .header {
+        text-align: center;
+        color: white;
+        margin-bottom: 3rem;
+      }
+
+      .header h1 {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      .header p {
+        font-size: 1.25rem;
+        opacity: 0.9;
+      }
+
+      .pricing-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-bottom: 3rem;
+      }
+
+      .features-section {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .features-section h2 {
+        font-size: 2rem;
+        margin-bottom: 1.5rem;
+        color: #1f2937;
+      }
+
+      .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+      }
+
+      .feature-item {
+        display: flex;
+        align-items: flex-start;
+      }
+
+      .feature-icon {
+        font-size: 1.5rem;
+        margin-right: 0.75rem;
+        flex-shrink: 0;
+      }
+
+      .feature-content h3 {
+        font-size: 1.125rem;
+        margin-bottom: 0.5rem;
+        color: #1f2937;
+      }
+
+      .feature-content p {
+        color: #6b7280;
+        font-size: 0.875rem;
+      }
+
+      .faq-section {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-top: 2rem;
+      }
+
+      .faq-section h2 {
+        font-size: 2rem;
+        margin-bottom: 1.5rem;
+        color: #1f2937;
+      }
+
+      .faq-item {
+        margin-bottom: 1.5rem;
+      }
+
+      .faq-question {
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+        color: #1f2937;
+      }
+
+      .faq-answer {
+        color: #6b7280;
+      }
+
+      .cta-section {
+        text-align: center;
+        color: white;
+        margin-top: 3rem;
+      }
+
+      .cta-section p {
+        font-size: 1.125rem;
+        margin-bottom: 1rem;
+      }
+
+      .test-card-info {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 8px;
+        padding: 1rem;
+        margin-top: 1rem;
+        color: white;
+      }
+
+      .test-card-info code {
+        background: rgba(0, 0, 0, 0.2);
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-family: monospace;
+      }
+
+      @media (max-width: 768px) {
+        .header h1 {
+          font-size: 2rem;
+        }
+
+        .pricing-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>🚀 ZENO Browser Pro</h1>
+        <p>Unlock unlimited iframe testing, analytics, and priority support</p>
+      </div>
+
+      <div class="pricing-grid" id="pricing-cards"></div>
+
+      <div class="features-section">
+        <h2>✨ What's Included</h2>
+        <div class="feature-grid">
+          <div class="feature-item">
+            <div class="feature-icon">🔄</div>
+            <div class="feature-content">
+              <h3>Unlimited Testing</h3>
+              <p>Test as many websites as you want without restrictions</p>
+            </div>
+          </div>
+
+          <div class="feature-item">
+            <div class="feature-icon">📊</div>
+            <div class="feature-content">
+              <h3>Advanced Analytics</h3>
+              <p>Track performance, errors, and user behavior</p>
+            </div>
+          </div>
+
+          <div class="feature-item">
+            <div class="feature-icon">🔍</div>
+            <div class="feature-content">
+              <h3>Site Search</h3>
+              <p>Powerful search with filters and favorites</p>
+            </div>
+          </div>
+
+          <div class="feature-item">
+            <div class="feature-icon">💾</div>
+            <div class="feature-content">
+              <h3>Session Management</h3>
+              <p>Save and restore your testing sessions</p>
+            </div>
+          </div>
+
+          <div class="feature-item">
+            <div class="feature-icon">🎨</div>
+            <div class="feature-content">
+              <h3>Custom Themes</h3>
+              <p>Personalize your browser experience</p>
+            </div>
+          </div>
+
+          <div class="feature-item">
+            <div class="feature-icon">🚀</div>
+            <div class="feature-content">
+              <h3>Priority Support</h3>
+              <p>Get help faster with dedicated support</p>
+            </div>
+          </div>
+
+          <div class="feature-item">
+            <div class="feature-icon">🔐</div>
+            <div class="feature-content">
+              <h3>API Access</h3>
+              <p>Integrate with your tools via REST API</p>
+            </div>
+          </div>
+
+          <div class="feature-item">
+            <div class="feature-icon">📱</div>
+            <div class="feature-content">
+              <h3>Mobile Friendly</h3>
+              <p>Access your tests from any device</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-section">
+        <h2>❓ Frequently Asked Questions</h2>
+
+        <div class="faq-item">
+          <div class="faq-question">Can I cancel anytime?</div>
+          <div class="faq-answer">
+            Yes! Cancel your subscription anytime from your account settings. No
+            questions asked.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">What payment methods do you accept?</div>
+          <div class="faq-answer">
+            We accept all major credit cards (Visa, MasterCard, American
+            Express) through Stripe.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">Is my payment information secure?</div>
+          <div class="faq-answer">
+            Absolutely! We use Stripe for payment processing. We never see or
+            store your card details.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">Can I upgrade from Monthly to Yearly?</div>
+          <div class="faq-answer">
+            Yes! Contact support and we'll help you switch plans with prorated
+            billing.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">Do you offer refunds?</div>
+          <div class="faq-answer">
+            We offer a 14-day money-back guarantee. If you're not satisfied,
+            we'll refund you fully.
+          </div>
+        </div>
+      </div>
+
+      <div class="cta-section">
+        <p>
+          Join hundreds of developers testing their websites with ZENO Browser
+        </p>
+        <div class="test-card-info">
+          <p>
+            <strong>Testing?</strong> Use card: <code>4242 4242 4242 4242</code>
+          </p>
+          <p>Any future date • Any CVC • Any ZIP</p>
+        </div>
+      </div>
+    </div>
+
+    <script type="module">
+      import { createRoot } from "react-dom/client";
+      import React from "react";
+      import PricingCard from "../components/PricingCard";
+
+      const container = document.getElementById("pricing-cards");
+      const root = createRoot(container);
+
+      const monthlyFeatures = [
+        "Unlimited iframe tests",
+        "Advanced analytics dashboard",
+        "Site search & favorites",
+        "Session management",
+        "API access (1000 req/day)",
+        "Email support: JimBoZen@proton.me",
+        "Custom themes",
+        "Mobile access",
+      ];
+
+      const yearlyFeatures = [
+        "Everything in Monthly",
+        "API access (10,000 req/day)",
+        "Priority support (24h)",
+        "Advanced reporting",
+        "Team collaboration (5 users)",
+        "Custom integrations",
+        "Beta feature access",
+        "Save $10 per year",
+      ];
+
+      root.render(
+        React.createElement(
+          "div",
+          {
+            style: {
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+              gap: "2rem",
+            },
+          },
+          React.createElement(PricingCard, {
+            plan: "monthly",
+            price: 5,
+            priceId: "price_1SPy7sRtD21KYuw9U9XFnLRz",
+            features: monthlyFeatures,
+          }),
+          React.createElement(PricingCard, {
+            plan: "yearly",
+            price: 50,
+            priceId: "price_1SPy7tRtD21KYuw93Vs5849G",
+            features: yearlyFeatures,
+          })
+        )
+      );
+    </script>
+  </body>
+</html>

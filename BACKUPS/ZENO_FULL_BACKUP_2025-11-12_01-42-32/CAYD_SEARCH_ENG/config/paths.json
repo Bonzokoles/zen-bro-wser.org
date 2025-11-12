@@ -1,0 +1,8 @@
+{
+    "librariesRoot": "V:/PROTO_TYpy/ZENO_web_CORE/LIBRARIES",
+    "metadataExtensions": [
+        ".md",
+        ".json"
+    ],
+    "syncIntervalMinutes": 60
+}

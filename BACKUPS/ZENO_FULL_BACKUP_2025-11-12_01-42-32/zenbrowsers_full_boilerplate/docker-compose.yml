@@ -1,0 +1,38 @@
+version: "3.8"
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: zenbrowsers
+      POSTGRES_PASSWORD: example
+      POSTGRES_DB: zenbrowsersdb
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      DATABASE_URL: postgres://zenbrowsers:example@postgres:5432/zenbrowsersdb
+      REDIS_URL: redis://redis:6379
+    ports:
+      - "5000:5000"
+  frontend:
+    build:
+      context: ../
+      dockerfile: zenbrowsers_full_boilerplate/frontend/Dockerfile
+    depends_on:
+      - backend
+    ports:
+      - "4321:5173"
+volumes:
+  pgdata:

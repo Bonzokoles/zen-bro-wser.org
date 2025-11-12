@@ -1,0 +1,26 @@
+---
+import Layout from "../layouts/Layout.astro";
+import SiteSearch from "../components/iframe/SiteSearch";
+---
+
+<Layout
+  title="ZENO - Site Search Demo"
+  description="Advanced site search with React"
+>
+  <main class="page-content">
+    <div class="page-header">
+      <h1>🔍 Advanced Site Search</h1>
+      <p>Find iframe-testable sites with powerful filters</p>
+    </div>
+    <SiteSearch
+      client:load
+      onSelectSite={(site) => {
+        console.log("Selected site:", site);
+        alert(`Selected: ${site.name}\nURL: ${site.url}`);
+      }}
+      enableFavorites={true}
+      enableHistory={true}
+      pageSize={15}
+    />
+  </main>
+</Layout>

@@ -1,0 +1,30 @@
+{
+  "name": "zeno-browser-backend",
+  "version": "1.0.0",
+  "description": "ZENO Browser - Backend API",
+  "main": "dist/server.js",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail",
+    "d1:create": "wrangler d1 create zeno-browser-db",
+    "d1:execute": "wrangler d1 execute zeno-browser-db --file=./schema.sql",
+    "kv:create": "wrangler kv:namespace create CACHE"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "pg": "^8.11.3",
+    "redis": "^4.6.11"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20241127.0",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.10.5",
+    "tsx": "^4.7.0",
+    "wrangler": "^3.87.0",
+    "typescript": "^5.7.2"
+  }
+}

@@ -274,6 +274,87 @@ class MCPService {
     }
   }
 
+  /**
+   * Advanced Web Search - with custom parameters
+   * @param query - Search query
+   * @param options - Search options
+   */
+  async advancedSearch(query: string, options: {
+    maxResults?: number;           // 1-20 results (default: 5)
+    searchDepth?: 'basic' | 'advanced'; // basic = faster, advanced = more thorough
+    includeAnswer?: boolean;       // AI-generated answer (default: true)
+    includeImages?: boolean;       // Include image results (default: false)
+    includeRawContent?: boolean;   // Include raw HTML (default: false)
+    days?: number;                 // Time range in days (e.g., 7 for last week)
+    includeDomains?: string[];     // Only search these domains
+    excludeDomains?: string[];     // Exclude these domains
+    topic?: 'general' | 'news' | 'finance'; // Topic focus
+  } = {}): Promise<MCPResponse> {
+    if (!this.toolExecutionService) {
+      return {
+        success: false,
+        error: 'Tool execution service not initialized'
+      };
+    }
+
+    try {
+      const result = await this.toolExecutionService.execute('web_search', {
+        query,
+        ...options
+      });
+
+      return {
+        success: result.success,
+        data: result.data,
+        error: result.error,
+        toolsUsed: ['web_search']
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: `Advanced search failed: ${error.message}`
+      };
+    }
+  }
+
+  /**
+   * Quick search presets
+   */
+  async searchNews(query: string, days: number = 7): Promise<MCPResponse> {
+    return this.advancedSearch(query, {
+      topic: 'news',
+      days,
+      searchDepth: 'advanced',
+      includeAnswer: true,
+      maxResults: 10
+    });
+  }
+
+  async searchWithImages(query: string): Promise<MCPResponse> {
+    return this.advancedSearch(query, {
+      includeImages: true,
+      includeAnswer: true,
+      maxResults: 10
+    });
+  }
+
+  async deepSearch(query: string): Promise<MCPResponse> {
+    return this.advancedSearch(query, {
+      searchDepth: 'advanced',
+      includeAnswer: true,
+      includeRawContent: true,
+      maxResults: 15
+    });
+  }
+
+  async searchDomain(query: string, domains: string[]): Promise<MCPResponse> {
+    return this.advancedSearch(query, {
+      includeDomains: domains,
+      includeAnswer: true,
+      maxResults: 10
+    });
+  }
+
   getSession(): MCPSession | null {
     return this.session;
   }

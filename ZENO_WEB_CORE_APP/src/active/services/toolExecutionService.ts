@@ -49,16 +49,47 @@ class ToolExecutionService {
     const client = this.getTavilyClient();
     if (client) {
       try {
-        const response = await client.search({
+        const searchParams: any = {
           query: args.query,
-          ...(typeof args.maxResults === 'number' ? { max_results: args.maxResults } : { max_results: 5 }),
-          ...(typeof args.searchDepth === 'string' ? { search_depth: args.searchDepth } : {}),
-          ...(typeof args.includeAnswer === 'boolean' ? { include_answer: args.includeAnswer } : {}),
-          ...(typeof args.includeImages === 'boolean' ? { include_images: args.includeImages } : {}),
-          ...(Array.isArray(args.includeDomains) ? { include_domains: args.includeDomains } : {}),
-          ...(Array.isArray(args.excludeDomains) ? { exclude_domains: args.excludeDomains } : {})
-        });
-        return { success: true, data: response };
+          // Max results (1-20)
+          max_results: typeof args.maxResults === 'number' ? args.maxResults : 5,
+          // Search depth: 'basic' (faster) or 'advanced' (more thorough)
+          search_depth: args.searchDepth || 'basic',
+          // Include AI-generated answer
+          include_answer: args.includeAnswer !== false,
+          // Include images in results
+          include_images: args.includeImages === true,
+          // Include raw page content
+          include_raw_content: args.includeRawContent === true,
+          // Time range: 'd' (day), 'w' (week), 'm' (month), 'y' (year)
+          ...(args.days && { days: args.days }),
+          // Domain filters
+          ...(Array.isArray(args.includeDomains) && args.includeDomains.length > 0
+            ? { include_domains: args.includeDomains }
+            : {}),
+          ...(Array.isArray(args.excludeDomains) && args.excludeDomains.length > 0
+            ? { exclude_domains: args.excludeDomains }
+            : {}),
+          // Topic filtering
+          ...(args.topic && { topic: args.topic }), // 'general', 'news', 'finance'
+        };
+
+        const response = await client.search(searchParams);
+
+        // Enhance response with metadata
+        return {
+          success: true,
+          data: {
+            ...response,
+            searchParams: {
+              query: args.query,
+              depth: searchParams.search_depth,
+              maxResults: searchParams.max_results,
+              hasAnswer: searchParams.include_answer,
+              hasImages: searchParams.include_images
+            }
+          }
+        };
       } catch (error: any) {
         console.warn('Tavily search failed, trying Brave...', error);
       }
@@ -83,7 +114,7 @@ class ToolExecutionService {
         }
 
         const data = await response.json();
-        
+
         // Transform Brave response to match Tavily format
         const results = (data.web?.results || []).map((item: any) => ({
           title: item.title,
@@ -92,8 +123,8 @@ class ToolExecutionService {
           score: item.relevance || 1
         }));
 
-        return { 
-          success: true, 
+        return {
+          success: true,
           data: {
             results,
             answer: data.discussions?.[0]?.data?.summary || null,
@@ -106,10 +137,10 @@ class ToolExecutionService {
       }
     }
 
-    return { 
-      success: false, 
-      data: null, 
-      error: 'No search API configured. Add VITE_TAVILY_API_KEY or VITE_BRAVE_API_KEY to .env' 
+    return {
+      success: false,
+      data: null,
+      error: 'No search API configured. Add VITE_TAVILY_API_KEY or VITE_BRAVE_API_KEY to .env'
     };
   }
 
@@ -203,7 +234,7 @@ class ToolExecutionService {
           if (!args.id && !args.url) {
             return { success: false, data: null, error: 'Missing id or url for bookmark removal' };
           }
-          const filtered = bookmarks.filter((b: any) => 
+          const filtered = bookmarks.filter((b: any) =>
             b.id !== args.id && b.url !== args.url
           );
           localStorage.setItem('zeno_bookmarks', JSON.stringify(filtered));
@@ -225,12 +256,12 @@ class ToolExecutionService {
         case 'list':
           const limit = args.limit || 50;
           const offset = args.offset || 0;
-          return { 
-            success: true, 
-            data: { 
+          return {
+            success: true,
+            data: {
               bookmarks: bookmarks.slice(offset, offset + limit),
-              total: bookmarks.length 
-            } 
+              total: bookmarks.length
+            }
           };
 
         default:
@@ -252,7 +283,7 @@ class ToolExecutionService {
 
       // Extract first N characters for summary
       const sentences = content.split(/[.!?]+/).filter((s: string) => s.trim().length > 0);
-      
+
       let summary = '';
       let currentLength = 0;
 
@@ -318,10 +349,10 @@ class ToolExecutionService {
       );
 
       // Categorize links
-      const internal = uniqueLinks.filter(l => 
+      const internal = uniqueLinks.filter(l =>
         l.url.startsWith('/') || l.url.startsWith('#')
       );
-      const external = uniqueLinks.filter(l => 
+      const external = uniqueLinks.filter(l =>
         l.url.startsWith('http') && !l.url.startsWith('/')
       );
 

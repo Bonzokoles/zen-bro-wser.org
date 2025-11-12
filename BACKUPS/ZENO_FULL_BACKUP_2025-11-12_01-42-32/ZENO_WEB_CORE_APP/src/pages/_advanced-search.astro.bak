@@ -1,0 +1,398 @@
+---
+/**
+ * Advanced Search Demo
+ * Pokazuje wszystkie możliwości wyszukiwarki z pełną dokumentacją
+ */
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout
+  title="ZENO - Advanced Search System"
+  description="Full-featured site search with all filters"
+>
+  <div id="app-root"></div>
+</Layout>
+
+<style is:global>
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+      sans-serif;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    min-height: 100vh;
+    color: white;
+  }
+
+  #app-root {
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  .page-header {
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+
+  .page-header h1 {
+    font-size: 3.5rem;
+    font-weight: 900;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, #60a5fa, #a78bfa, #ec4899);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: gradient 3s ease infinite;
+  }
+
+  @keyframes gradient {
+    0%,
+    100% {
+      filter: hue-rotate(0deg);
+    }
+    50% {
+      filter: hue-rotate(20deg);
+    }
+  }
+
+  .page-header p {
+    color: #94a3b8;
+    font-size: 1.3rem;
+    max-width: 600px;
+    margin: 0 auto 1rem;
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .feature-badge {
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    border-radius: 12px;
+    padding: 1rem;
+    text-align: center;
+    transition: all 0.3s;
+  }
+
+  .feature-badge:hover {
+    background: rgba(59, 130, 246, 0.2);
+    border-color: rgba(59, 130, 246, 0.5);
+    transform: translateY(-2px);
+  }
+
+  .feature-badge .icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .feature-badge .title {
+    font-weight: 600;
+    color: #60a5fa;
+    font-size: 0.9rem;
+  }
+
+  .search-container {
+    background: white;
+    border-radius: 20px;
+    padding: 2.5rem;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
+    margin-bottom: 2rem;
+  }
+
+  .stats-bar {
+    display: flex;
+    gap: 2rem;
+    justify-content: center;
+    padding: 1.5rem;
+    background: rgba(59, 130, 246, 0.1);
+    border-radius: 12px;
+    margin-bottom: 2rem;
+  }
+
+  .stat-item {
+    text-align: center;
+  }
+
+  .stat-value {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #60a5fa;
+  }
+
+  .stat-label {
+    font-size: 0.85rem;
+    color: #94a3b8;
+    margin-top: 0.25rem;
+  }
+
+  .api-docs {
+    background: rgba(30, 41, 59, 0.8);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-top: 2rem;
+  }
+
+  .api-docs h3 {
+    color: #60a5fa;
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+  }
+
+  .api-endpoint {
+    background: rgba(15, 23, 42, 0.6);
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    font-family: "Courier New", monospace;
+    font-size: 0.9rem;
+    color: #e2e8f0;
+  }
+
+  .api-endpoint .method {
+    color: #10b981;
+    font-weight: 700;
+  }
+
+  .api-endpoint .param {
+    color: #a78bfa;
+  }
+
+  @media (max-width: 768px) {
+    .page-header h1 {
+      font-size: 2rem;
+    }
+
+    .features-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .stats-bar {
+      flex-direction: column;
+      gap: 1rem;
+    }
+  }
+</style>
+
+<script>
+  import { createRoot } from "react-dom/client";
+  import { createElement } from "react";
+  import SiteSearch from "../components/iframe/SiteSearch";
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const root = document.getElementById("app-root");
+    if (!root) return;
+
+    // Build page structure
+    root.innerHTML = `
+      <div class="page-header">
+        <h1>🔍 Advanced Search System</h1>
+        <p>Kompleksowa wyszukiwarka stron testowych z pełną funkcjonalnością filtrowania, sortowania i paginacji</p>
+      </div>
+
+      <div class="features-grid">
+        <div class="feature-badge">
+          <div class="icon">⚡</div>
+          <div class="title">Real-time Search</div>
+        </div>
+        <div class="feature-badge">
+          <div class="icon">🔄</div>
+          <div class="title">Auto-complete</div>
+        </div>
+        <div class="feature-badge">
+          <div class="icon">⭐</div>
+          <div class="title">Favorites</div>
+        </div>
+        <div class="feature-badge">
+          <div class="icon">📜</div>
+          <div class="title">Search History</div>
+        </div>
+        <div class="feature-badge">
+          <div class="icon">🎯</div>
+          <div class="title">Smart Filters</div>
+        </div>
+        <div class="feature-badge">
+          <div class="icon">📊</div>
+          <div class="title">Sorting Options</div>
+        </div>
+        <div class="feature-badge">
+          <div class="icon">♾️</div>
+          <div class="title">Infinite Scroll</div>
+        </div>
+        <div class="feature-badge">
+          <div class="icon">📱</div>
+          <div class="title">Responsive</div>
+        </div>
+      </div>
+
+      <div class="stats-bar">
+        <div class="stat-item">
+          <div class="stat-value" id="total-sites">0</div>
+          <div class="stat-label">Total Sites</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="iframe-friendly">0</div>
+          <div class="stat-label">iFrame Friendly</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="total-tests">0</div>
+          <div class="stat-label">Total Tests</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="categories">0</div>
+          <div class="stat-label">Categories</div>
+        </div>
+      </div>
+
+      <div class="search-container" id="search-mount"></div>
+
+      <div class="api-docs">
+        <h3>📡 API Endpoints</h3>
+        
+        <div class="api-endpoint">
+          <span class="method">GET</span> /api/iframe/sites?<span class="param">q</span>=wikipedia
+          <div style="margin-top: 0.5rem; color: #94a3b8; font-size: 0.85rem;">Search by name, description, or tags</div>
+        </div>
+
+        <div class="api-endpoint">
+          <span class="method">GET</span> /api/iframe/sites?<span class="param">category</span>=playground
+          <div style="margin-top: 0.5rem; color: #94a3b8; font-size: 0.85rem;">Filter by category</div>
+        </div>
+
+        <div class="api-endpoint">
+          <span class="method">GET</span> /api/iframe/sites?<span class="param">iframeAllowed</span>=true
+          <div style="margin-top: 0.5rem; color: #94a3b8; font-size: 0.85rem;">Show only iframe-friendly sites</div>
+        </div>
+
+        <div class="api-endpoint">
+          <span class="method">GET</span> /api/iframe/sites?<span class="param">sort</span>=alphabet|added|popular
+          <div style="margin-top: 0.5rem; color: #94a3b8; font-size: 0.85rem;">Sort results (A-Z, date added, or popularity)</div>
+        </div>
+
+        <div class="api-endpoint">
+          <span class="method">GET</span> /api/iframe/sites?<span class="param">page</span>=1&<span class="param">limit</span>=20
+          <div style="margin-top: 0.5rem; color: #94a3b8; font-size: 0.85rem;">Pagination with custom page size</div>
+        </div>
+
+        <div class="api-endpoint">
+          <span class="method">POST</span> /api/iframe/sites
+          <div style="margin-top: 0.5rem; color: #94a3b8; font-size: 0.85rem;">Add new site (requires: name, url)</div>
+        </div>
+      </div>
+    `;
+
+    // Load stats from API
+    fetch("/api/iframe/sites")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          const sites = data.data;
+          const iframeFriendly = sites.filter(
+            (s: any) => s.iframeAllowed
+          ).length;
+          const totalTests = sites.reduce(
+            (sum: number, s: any) => sum + (s.testCount || 0),
+            0
+          );
+          const categories = new Set(
+            sites.map((s: any) => s.category).filter(Boolean)
+          ).size;
+
+          document.getElementById("total-sites")!.textContent =
+            sites.length.toString();
+          document.getElementById("iframe-friendly")!.textContent =
+            iframeFriendly.toString();
+          document.getElementById("total-tests")!.textContent =
+            totalTests.toString();
+          document.getElementById("categories")!.textContent =
+            categories.toString();
+        }
+      })
+      .catch((err) => console.error("Stats load failed:", err));
+
+    // Mount React component
+    const searchMount = document.getElementById("search-mount");
+    if (!searchMount) return;
+
+    const reactRoot = createRoot(searchMount);
+    reactRoot.render(
+      createElement(SiteSearch, {
+        onSelectSite: (site) => {
+          console.log("Selected site:", site);
+
+          // Show notification
+          const notification = document.createElement("div");
+          notification.style.cssText = `
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 1.5rem 2rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            z-index: 10000;
+            animation: slideIn 0.3s ease;
+            max-width: 400px;
+          `;
+          notification.innerHTML = `
+            <div style="font-weight: 700; font-size: 1.1rem; margin-bottom: 0.5rem;">✅ Site Selected</div>
+            <div style="margin-bottom: 0.25rem;"><strong>${site.name}</strong></div>
+            <div style="font-size: 0.9rem; opacity: 0.9;">${site.url}</div>
+            ${site.tags ? `<div style="margin-top: 0.5rem; font-size: 0.85rem;">${site.tags.map((t: string) => `#${t}`).join(" ")}</div>` : ""}
+          `;
+          document.body.appendChild(notification);
+
+          setTimeout(() => {
+            notification.style.animation = "slideOut 0.3s ease";
+            setTimeout(() => notification.remove(), 300);
+          }, 4000);
+        },
+        enableFavorites: true,
+        enableHistory: true,
+        pageSize: 10,
+      })
+    );
+
+    // Mount Instructions Panel
+    import { InstructionsPanel, type Instruction } from "../components/InstructionsPanel";
+
+    const instructions: Instruction[] = [
+      {
+        step: 1,
+        title: "Real-time Search",
+        description: "Search updates as you type with auto-complete suggestions. Find sites by name, URL, description, tags, or category."
+      },
+      {
+        step: 2,
+        title: "Smart Filters & Sorting",
+        description: "Filter by category and iframe compatibility. Sort results alphabetically, by date added, or by popularity for optimal discovery."
+      },
+      {
+        step: 3,
+        title: "Favorites & History",
+        description: "Star your favorite sites for quick access. View search history to revisit previously discovered sites efficiently."
+      },
+      {
+        step: 4,
+        title: "API Integration",
+        description: "Use the documented API endpoints below for programmatic access. Supports pagination, filtering, sorting, and site management."
+      }
+    ];
+
+    const instructionsContainer = document.createElement("div");
+    document.body.appendChild(instructionsContainer);
+    const instructionsRoot = createRoot(instructionsContainer);
+    instructionsRoot.render(
+      createElement(InstructionsPanel, {
+        title: "Advanced Search Guide",
+        instructions,
+        defaultOpen: false
+      })
+    );
+  });
+</script>

@@ -1,0 +1,551 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="ZENO - Iframe Tester" description="Advanced iframe testing tool">
+  <div id="iframe-tester-root"></div>
+</Layout>
+
+<style is:global>
+  body {
+    margin: 0;
+    padding: 0;
+    font-family:
+      "Inter",
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      sans-serif;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    color: white;
+    min-height: 100vh;
+  }
+
+  #iframe-tester-root {
+    padding: 2rem;
+    max-width: 1600px;
+    margin: 0 auto;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes slideIn {
+    from {
+      transform: translateX(400px);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideOut {
+    from {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    to {
+      transform: translateX(400px);
+      opacity: 0;
+    }
+  }
+</style>
+
+<script>
+  import type {
+    IframeSite,
+    IframeTestResult,
+    ExportFormat,
+  } from "../types/iframe/core.types";
+
+  class IframeTesterApp {
+    private sites: IframeSite[] = [];
+    private currentSite: IframeSite | null = null;
+    private currentIframe: HTMLIFrameElement | null = null;
+    private selectedText: string = "";
+    private testHistory: IframeTestResult[] = [];
+    private autoRotateInterval: number | null = null;
+
+    async init() {
+      await this.loadSites();
+      this.render();
+      this.setupEventListeners();
+    }
+
+    private async loadSites() {
+      try {
+        const response = await fetch("/api/iframe/sites");
+        const data = await response.json();
+        if (data.success) {
+          this.sites = data.data;
+        }
+      } catch (error) {
+        console.error("Failed to load sites:", error);
+        this.sites = [];
+      }
+    }
+
+    private render() {
+      const root = document.getElementById("iframe-tester-root")!;
+      root.innerHTML = `
+        <div style="margin-bottom: 2rem;">
+          <h1 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 0.5rem; background: linear-gradient(135deg, #60a5fa, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+            🧪 ZENO Iframe Tester v2.0
+          </h1>
+          <p style="color: #94a3b8; font-size: 1rem;">
+            Advanced iframe testing with PostMessage API, auto-rotation, and text selection
+          </p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 300px 1fr; gap: 2rem;">
+          <!-- Sidebar -->
+          <div style="background: #1e293b; border-radius: 12px; padding: 1.5rem; height: fit-content;">
+            <h3 style="font-size: 1.2rem; margin-bottom: 1rem; color: #60a5fa;">📋 Test Sites</h3>
+            
+            <input 
+              type="text" 
+              id="search-input" 
+              placeholder="Search sites..."
+              style="width: 100%; padding: 0.75rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: white; margin-bottom: 1rem;"
+            />
+
+            <div id="sites-list" style="max-height: 500px; overflow-y: auto; margin-bottom: 1.5rem;">
+              ${this.renderSitesList()}
+            </div>
+
+            <div style="border-top: 1px solid #334155; padding-top: 1rem; margin-top: 1rem;">
+              <button id="auto-rotate-btn" style="width: 100%; padding: 0.75rem; background: #334155; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; margin-bottom: 0.5rem;">
+                🔄 Auto-Rotate (OFF)
+              </button>
+              
+              <button id="add-site-btn" style="width: 100%; padding: 0.75rem; background: #7c3aed; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                ➕ Add Site
+              </button>
+            </div>
+          </div>
+
+          <!-- Main Content -->
+          <div>
+            <div id="iframe-container" style="background: #1e293b; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
+              ${this.renderEmptyState()}
+            </div>
+
+            <div id="text-selection-panel" style="background: #1e293b; border-radius: 12px; padding: 1.5rem; display: none;">
+              <h3 style="font-size: 1.2rem; color: #60a5fa; margin-bottom: 1rem;">📝 Text Selection</h3>
+              
+              <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                <button id="get-selection-btn" style="flex: 1; padding: 0.75rem; background: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                  📋 Get Selection
+                </button>
+                <button id="clear-selection-btn" style="padding: 0.75rem 1rem; background: #334155; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                  🗑️
+                </button>
+              </div>
+
+              <div id="selected-text-output" style="background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 1rem; max-height: 200px; overflow-y: auto; white-space: pre-wrap; font-family: monospace; font-size: 0.9rem; color: #e2e8f0; margin-bottom: 1rem;">
+                <span style="color: #64748b; font-style: italic;">No selection. Select text in iframe and click "Get Selection".</span>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 1rem; align-items: end;">
+                <div>
+                  <label style="display: block; margin-bottom: 0.5rem; color: #94a3b8; font-size: 0.85rem;">Format</label>
+                  <select id="format-select" style="width: 100%; padding: 0.75rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: white;">
+                    <option value="md">Markdown (.md)</option>
+                    <option value="txt">Text (.txt)</option>
+                    <option value="json">JSON (.json)</option>
+                    <option value="html">HTML (.html)</option>
+                  </select>
+                </div>
+                <div>
+                  <label style="display: block; margin-bottom: 0.5rem; color: #94a3b8; font-size: 0.85rem;">Filename</label>
+                  <input id="filename-input" type="text" value="selection" style="width: 100%; padding: 0.75rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: white;" />
+                </div>
+                <button id="save-file-btn" disabled style="padding: 0.75rem 1.5rem; background: #059669; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; opacity: 0.5;">
+                  💾 Save
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    private renderSitesList(): string {
+      if (this.sites.length === 0) {
+        return '<div style="color: #64748b; text-align: center; padding: 2rem;">No sites available</div>';
+      }
+
+      return this.sites
+        .map(
+          (site) => `
+        <div 
+          class="site-item" 
+          data-site-id="${site.id}"
+          style="padding: 1rem; margin-bottom: 0.5rem; background: #0f172a; border-radius: 8px; cursor: pointer; transition: all 0.2s; border: 2px solid transparent;"
+        >
+          <div style="font-weight: 600; color: #e2e8f0; margin-bottom: 0.25rem;">${site.name}</div>
+          <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 0.5rem;">${site.category}</div>
+          <div style="font-size: 0.75rem; color: #475569; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${site.url}</div>
+        </div>
+      `
+        )
+        .join("");
+    }
+
+    private renderEmptyState(): string {
+      return `
+        <div style="text-align: center; padding: 4rem 2rem; color: #64748b;">
+          <div style="font-size: 4rem; margin-bottom: 1rem;">🎯</div>
+          <h3 style="font-size: 1.5rem; color: #94a3b8; margin-bottom: 0.5rem;">Select a site to test</h3>
+          <p style="color: #64748b;">Choose from the list or add your own</p>
+        </div>
+      `;
+    }
+
+    private setupEventListeners() {
+      // Site selection
+      document.querySelectorAll(".site-item").forEach((item) => {
+        item.addEventListener("click", () => {
+          const siteId = (item as HTMLElement).dataset.siteId!;
+          const site = this.sites.find((s) => s.id === siteId);
+          if (site) this.loadSite(site);
+        });
+
+        item.addEventListener("mouseenter", (e) => {
+          (e.target as HTMLElement).style.background = "#1e40af";
+          (e.target as HTMLElement).style.borderColor = "#3b82f6";
+        });
+
+        item.addEventListener("mouseleave", (e) => {
+          (e.target as HTMLElement).style.background = "#0f172a";
+          (e.target as HTMLElement).style.borderColor = "transparent";
+        });
+      });
+
+      // Auto-rotate
+      document
+        .getElementById("auto-rotate-btn")
+        ?.addEventListener("click", () => {
+          this.toggleAutoRotate();
+        });
+
+      // Add site
+      document.getElementById("add-site-btn")?.addEventListener("click", () => {
+        this.showAddSiteDialog();
+      });
+
+      // Text selection
+      document
+        .getElementById("get-selection-btn")
+        ?.addEventListener("click", () => {
+          this.getSelection();
+        });
+
+      document
+        .getElementById("clear-selection-btn")
+        ?.addEventListener("click", () => {
+          this.clearSelection();
+        });
+
+      document
+        .getElementById("save-file-btn")
+        ?.addEventListener("click", () => {
+          this.saveFile();
+        });
+
+      // Search
+      document
+        .getElementById("search-input")
+        ?.addEventListener("input", (e) => {
+          this.filterSites((e.target as HTMLInputElement).value);
+        });
+    }
+
+    private async loadSite(site: IframeSite) {
+      this.currentSite = site;
+      const container = document.getElementById("iframe-container")!;
+      const startTime = performance.now();
+
+      container.innerHTML = `
+        <div style="margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <h3 style="font-size: 1.3rem; color: #e2e8f0; margin-bottom: 0.5rem;">${site.name}</h3>
+            <div style="font-size: 0.85rem; color: #64748b;">
+              <span style="padding: 0.25rem 0.75rem; background: #334155; border-radius: 4px; margin-right: 0.5rem;">${site.category}</span>
+              ${site.url}
+            </div>
+          </div>
+          <button id="reload-btn" style="padding: 0.5rem 1rem; background: #334155; border: none; border-radius: 6px; color: white; cursor: pointer;">
+            🔄 Reload
+          </button>
+        </div>
+
+        <div style="position: relative; background: white; border-radius: 8px; overflow: hidden;">
+          <div id="loading-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.8); display: flex; align-items: center; justify-content: center; z-index: 10;">
+            <div style="text-align: center;">
+              <div style="width: 48px; height: 48px; border: 4px solid #334155; border-top-color: #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem;"></div>
+              <div style="color: #94a3b8;">Loading...</div>
+            </div>
+          </div>
+          <iframe 
+            id="test-iframe"
+            src="${site.url}"
+            sandbox="${site.sandbox}"
+            ${site.allow ? `allow="${site.allow}"` : ""}
+            allowfullscreen
+            style="width: 100%; height: ${site.height || "500px"}; border: none; display: block;"
+          ></iframe>
+        </div>
+
+        <div style="margin-top: 1rem; padding: 1rem; background: #0f172a; border-radius: 8px; font-size: 0.85rem; color: #94a3b8;">
+          <div><strong style="color: #60a5fa;">Sandbox:</strong> ${site.sandbox}</div>
+          ${site.allow ? `<div style="margin-top: 0.5rem;"><strong style="color: #60a5fa;">Allow:</strong> ${site.allow}</div>` : ""}
+          <div style="margin-top: 0.5rem;"><strong style="color: #60a5fa;">Status:</strong> <span id="load-status">⏳ Loading...</span></div>
+        </div>
+      `;
+
+      const iframe = document.getElementById(
+        "test-iframe"
+      ) as HTMLIFrameElement;
+      this.currentIframe = iframe;
+
+      const overlay = document.getElementById("loading-overlay")!;
+      const statusEl = document.getElementById("load-status")!;
+
+      // Show text selection panel
+      document.getElementById("text-selection-panel")!.style.display = "block";
+
+      // Timeout handler
+      const timeout = setTimeout(() => {
+        overlay.remove();
+        statusEl.innerHTML = "⚠️ Timeout (5s)";
+      }, 5000);
+
+      iframe.addEventListener("load", () => {
+        clearTimeout(timeout);
+        overlay.remove();
+        const loadTime = Math.round(performance.now() - startTime);
+        statusEl.innerHTML = `✅ Loaded (${loadTime}ms)`;
+      });
+
+      iframe.addEventListener("error", () => {
+        clearTimeout(timeout);
+        overlay.remove();
+        statusEl.innerHTML = "❌ Load error";
+      });
+
+      document.getElementById("reload-btn")?.addEventListener("click", () => {
+        this.loadSite(site);
+      });
+    }
+
+    private toggleAutoRotate() {
+      const btn = document.getElementById("auto-rotate-btn")!;
+
+      if (this.autoRotateInterval) {
+        clearInterval(this.autoRotateInterval);
+        this.autoRotateInterval = null;
+        btn.textContent = "🔄 Auto-Rotate (OFF)";
+        btn.style.background = "#334155";
+      } else {
+        let index = 0;
+        this.loadSite(this.sites[index]);
+
+        this.autoRotateInterval = window.setInterval(() => {
+          index = (index + 1) % this.sites.length;
+          this.loadSite(this.sites[index]);
+        }, 10000);
+
+        btn.textContent = "⏸️ Auto-Rotate (ON)";
+        btn.style.background = "linear-gradient(135deg, #10b981, #059669)";
+      }
+    }
+
+    private getSelection() {
+      if (!this.currentIframe) return;
+
+      try {
+        const iframeWindow = this.currentIframe.contentWindow;
+        if (!iframeWindow) throw new Error("No iframe window");
+
+        const selection = iframeWindow.getSelection();
+        const text = selection?.toString() || "";
+
+        const output = document.getElementById("selected-text-output")!;
+        const saveBtn = document.getElementById(
+          "save-file-btn"
+        ) as HTMLButtonElement;
+
+        if (!text.trim()) {
+          output.innerHTML =
+            '<span style="color: #f59e0b;">⚠️ No selection found</span>';
+          saveBtn.disabled = true;
+          saveBtn.style.opacity = "0.5";
+        } else {
+          this.selectedText = text;
+          output.textContent = text;
+          saveBtn.disabled = false;
+          saveBtn.style.opacity = "1";
+        }
+      } catch (error) {
+        const output = document.getElementById("selected-text-output")!;
+        output.innerHTML = `<span style="color: #ef4444;">❌ Cannot access iframe content (CORS)</span>`;
+      }
+    }
+
+    private clearSelection() {
+      this.selectedText = "";
+      const output = document.getElementById("selected-text-output")!;
+      output.innerHTML =
+        '<span style="color: #64748b; font-style: italic;">No selection</span>';
+
+      const saveBtn = document.getElementById(
+        "save-file-btn"
+      ) as HTMLButtonElement;
+      saveBtn.disabled = true;
+      saveBtn.style.opacity = "0.5";
+    }
+
+    private saveFile() {
+      if (!this.selectedText) return;
+
+      const formatSelect = document.getElementById(
+        "format-select"
+      ) as HTMLSelectElement;
+      const filenameInput = document.getElementById(
+        "filename-input"
+      ) as HTMLInputElement;
+
+      const format = formatSelect.value as ExportFormat;
+      const filename = `${filenameInput.value}.${format}`;
+
+      let content = this.selectedText;
+      let mimeType = "text/plain";
+
+      switch (format) {
+        case "md":
+          content = `# Selected Text\n\n**Source:** ${this.currentSite?.name}\n**URL:** ${this.currentSite?.url}\n**Date:** ${new Date().toLocaleString()}\n\n---\n\n${this.selectedText}`;
+          mimeType = "text/markdown";
+          break;
+        case "json":
+          content = JSON.stringify(
+            {
+              text: this.selectedText,
+              source: this.currentSite?.name,
+              url: this.currentSite?.url,
+              timestamp: new Date().toISOString(),
+            },
+            null,
+            2
+          );
+          mimeType = "application/json";
+          break;
+        case "html":
+          content = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${this.currentSite?.name}</title></head><body><pre>${this.escapeHtml(this.selectedText)}</pre></body></html>`;
+          mimeType = "text/html";
+          break;
+      }
+
+      const blob = new Blob([content], { type: mimeType });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+
+      this.showNotification(`✅ Saved: ${filename}`);
+    }
+
+    private escapeHtml(text: string): string {
+      const div = document.createElement("div");
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    private filterSites(query: string) {
+      const items = document.querySelectorAll(".site-item");
+      const lowerQuery = query.toLowerCase();
+
+      items.forEach((item) => {
+        const text = item.textContent?.toLowerCase() || "";
+        if (text.includes(lowerQuery)) {
+          (item as HTMLElement).style.display = "block";
+        } else {
+          (item as HTMLElement).style.display = "none";
+        }
+      });
+    }
+
+    private showAddSiteDialog() {
+      alert("Add Site feature - use POST /api/iframe/sites endpoint");
+    }
+
+    private showNotification(message: string) {
+      const notification = document.createElement("div");
+      notification.style.cssText =
+        "position: fixed; top: 2rem; right: 2rem; background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 1rem 1.5rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 10000; animation: slideIn 0.3s ease;";
+      notification.textContent = message;
+      document.body.appendChild(notification);
+
+      setTimeout(() => {
+        notification.style.animation = "slideOut 0.3s ease";
+        setTimeout(() => notification.remove(), 300);
+      }, 3000);
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const app = new IframeTesterApp();
+    app.init();
+  });
+
+  // Mount Instructions Panel
+  import { createRoot } from "react-dom/client";
+  import { createElement } from "react";
+  import { InstructionsPanel, type Instruction } from "../components/InstructionsPanel";
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const instructions: Instruction[] = [
+      {
+        step: 1,
+        title: "Select a Test Site",
+        description: "Choose a site from the list on the left. Use the search box to filter sites by name, category, or URL.",
+        shortcut: "Ctrl+F"
+      },
+      {
+        step: 2,
+        title: "Test Iframe Loading",
+        description: "Watch the loading status and performance metrics. The iframe will show security sandbox settings and load time in milliseconds."
+      },
+      {
+        step: 3,
+        title: "Select Text from Iframe",
+        description: "Select text inside the loaded iframe and click 'Get Selection' to extract it. Choose export format (Markdown, Text, JSON, HTML) and save to file.",
+        shortcut: "Ctrl+S"
+      },
+      {
+        step: 4,
+        title: "Use Auto-Rotation",
+        description: "Click 'Auto-Rotate' to automatically cycle through all sites every 10 seconds. Perfect for testing multiple iframes sequentially.",
+        shortcut: "Ctrl+R"
+      }
+    ];
+
+    const instructionsContainer = document.createElement("div");
+    document.body.appendChild(instructionsContainer);
+    const instructionsRoot = createRoot(instructionsContainer);
+    instructionsRoot.render(
+      createElement(InstructionsPanel, {
+        title: "Iframe Tester Guide",
+        instructions,
+        defaultOpen: false
+      })
+    );
+  });
+</script>

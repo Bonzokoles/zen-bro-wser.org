@@ -1,0 +1,20 @@
+services:
+  # MCP Server - Model Context Protocol
+  # Connects to Ollama running natively on Windows host
+  mcp-server:
+    build:
+      context: ./BIELIK_THE_whitie
+      dockerfile: Dockerfile.mcp
+    container_name: zeno-mcp-server
+    ports:
+      - "8788:8788"
+    environment:
+      - OLLAMA_BASE_URL=http://host.docker.internal:11434
+      - MCP_PORT=8788
+      - NODE_ENV=production
+    volumes:
+      - ./BIELIK_THE_whitie:/app
+      - /app/node_modules
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
