@@ -74,7 +74,7 @@ app.get('/api/config/paths', (req, res) => {
 // STEP_05: Search endpoint
 app.get('/api/search', (req, res) => {
     const query = req.query.q;
-    
+
     if (!query) {
         return res.status(400).json({ error: 'Search query required' });
     }
@@ -83,7 +83,7 @@ app.get('/api/search', (req, res) => {
         const config = getPathsConfig();
         const librariesRoot = config.librariesRoot;
         const results = [];
-        
+
         // Recursive search function
         function searchInDirectory(dir) {
             if (!fs.existsSync(dir)) {
@@ -103,11 +103,11 @@ app.get('/api/search', (req, res) => {
                         const lowerQuery = query.toLowerCase();
                         const lowerContent = content.toLowerCase();
                         const lowerName = item.name.toLowerCase();
-                        
+
                         // Search in filename or content
                         if (lowerName.includes(lowerQuery) || lowerContent.includes(lowerQuery)) {
                             const relativePath = path.relative(librariesRoot, fullPath);
-                            
+
                             // Get context around match
                             let context = '';
                             const index = lowerContent.indexOf(lowerQuery);
@@ -116,7 +116,7 @@ app.get('/api/search', (req, res) => {
                                 const end = Math.min(content.length, index + query.length + 50);
                                 context = content.substring(start, end);
                             }
-                            
+
                             results.push({
                                 name: item.name,
                                 path: relativePath,
@@ -133,10 +133,10 @@ app.get('/api/search', (req, res) => {
         }
 
         searchInDirectory(librariesRoot);
-        
+
         // Limit results to 50
         const limitedResults = results.slice(0, 50);
-        
+
         res.json({
             query,
             count: limitedResults.length,

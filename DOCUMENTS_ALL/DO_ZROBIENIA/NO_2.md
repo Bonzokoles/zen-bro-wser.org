@@ -1,67 +1,113 @@
-// /api/track endpoint
-app.post('/api/track', async (c) => {
-  const { url, action } = await c.req.json()
-  const key = `track:${Date.now()}:${crypto.randomUUID()}`
-  await c.env.EDGE_CACHE.put(key, JSON.stringify({
-    url, action,
-    ip: c.req.header('CF-Connecting-IP'),
-    country: c.req.header('CF-IPCountry'),
-    ts: Date.now()
-  }), { expirationTtl: 86400 * 7 })
-  return c.json({ ok: true })
-})
+Oto rozbudowany, wielomodułowy plan wdrożenia kompletnego systemu, łączącego lokalne i internetowe wyszukiwanie, analizę powiązań, AI-tagowanie oraz panel sterowania agentami i przepływem danych – w połączeniu z nowoczesnymi technologiami (Astro + React + API + Crawler/Scraper).
 
-// /stats endpoint  
-app.get('/stats', async (c) => {
-  const keys = await c.env.EDGE_CACHE.list({ prefix: 'track:' })
-  const data = await Promise.all(
-    keys.keys.slice(0, 100).map(k => c.env.EDGE_CACHE.get(k.name, 'json'))
-  )
-  
-  const stats = {
-    total: data.length,
-    byUrl: data.reduce((acc, d) => {
-      acc[d.url] = (acc[d.url] || 0) + 1
-      return acc
-    }, {}),
-    byCountry: data.reduce((acc, d) => {
-      acc[d.country] = (acc[d.country] || 0) + 1
-      return acc
-    }, {})
-  }
-  
-  return c.json(stats)
-})
-```
+1. Architektura systemu – podział funkcjonalny
+Panel Astro/React: integruje lokalne i internetowe wyszukiwanie z wizualizacją, AI i analizą powiązań.
 
-### Realistyczny Timeline:
+Backend API (Astro routes, Node.js): obsługuje lokalne katalogowanie, proxy do searx/ng, zarządza agentami, synchronizuje dane, monitoruje statusy.
 
-**Week 1 (4-7 Nov):**
-- ✅ Day 1: Analytics + backup (DZIŚ)
-- Day 2: Test analytics, Stripe setup
-- Day 3: Paywall MVP (bez email, tylko KV check)
-- Day 4: Affiliate links
+Crawler/Scraper (Node.js/Python): oddzielny mikroserwis do skanowania internetu, integracji z proxy/VPN, generowania opisów i tagów przez AI.
 
-**Week 2 (8-14 Nov):**
-- Day 5-7: Cleanup (workers, KV, D1, R2)
-- Day 8-10: ZenProxy MVP (bez landing page, tylko API)
-- Day 11: Test API z 10 klientami ręcznie
+Moduł integracyjny: API i WebSocket do przesyłania statusów, plików, efektów pracy agentów.
 
-**Week 3 (15-18 Nov):**
-- Day 12-14: Landing page + Stripe
-- Day 15: Soft launch (Twitter, no ProductHunt yet)
-- Day 16-18: Bug fixes, optimizacja
+2. Strukturę katalogową projektu
+text
+ZENO_BRO_wser_CORE/
+├── astro.config.mjs
+├── package.json
+├── .env
+├── /src
+│   ├── /components                # Frontend React
+│   │   ├── LocalSearch.jsx
+│   │   ├── RemoteSearch.jsx
+│   │   ├── PathMap.jsx
+│   │   ├── CrawlProgress.jsx
+│   │   └── Dashboard.jsx
+│   ├── /pages
+│   │   ├── index.astro
+│   │   └── /api
+│   │       ├── localSearch.js
+│   │       ├── remoteSearch.js
+│   │       ├── fileContent.js
+│   │       ├── saveMetadata.js
+│   │       ├── catalogTree.js
+│   │       ├── launchAgent.js
+│   │       └── ws.js
+│   ├── /utils
+│   │   └── fs-helpers.js
+├── /crawler                       # Oddzielny katalog crawlerów
+│   ├── searx_agent.py
+│   ├── local_agent.py
+│   ├── scheduler.py
+│   └── vpn_manager.py
+├── /public
+│   └── styles.css
+└── README.md
+3. Komponenty frontendu (React)
+3.1. Dashboard.jsx
+Wyświetlanie statusów agentów (kto aktywny, jakie zadanie)
 
-**💰 Conservative Revenue:**
-```
-Week 1: $0 (testing)
-Week 2: $10 (2 early customers)
-Week 3: $25 (5 customers × $5)
-Month 2: $100 (organic growth)
+Wykres przepływu danych, liczba znalezionych plików/wyników
 
-🚨 CRITICAL PATH (musisz to zrobić DZIŚ!):
+Mapy powiązań (drzewo ścieżek + relacje wyników)
 
-✅ Backup wszystkich workerów (już masz MCP access)
-⚠️ Przeczytaj Cloudflare ToS sekcja "Proxying"
-✅ Setup Stripe test mode
-✅ Deploy analytics endpoint
+3.2. CrawlProgress.jsx
+Na żywo logi i progres od agentów przez WebSocket
+
+Kolorystyka stanów (start, crawling, analyzing, done, error)
+
+3.3. LocalSearch & RemoteSearch
+Opcje filtrowania po typach plików, drzewo folderów
+
+Przeszukiwanie full-text, fuzzy, filtr po tagach i atrybutach AI
+
+4. Backend API: przykładowe endpointy i integracja agentów
+4.1. /api/launchAgent.js
+Wyzwala start zadania agenta (np. crawling wybranej domeny/obszaru sieci).
+
+Przyjmuje: query, zakres URL, opcje (proxy/VPN, głębokość crawl).
+
+js
+export async function post({ request }) {
+  const { query, crawlArea, useProxy } = await request.json();
+  // Logika uruchomienia subprocess (np. spawn crawler.py z parametrami)
+  // Zwraca ID zadania i status
+  // ...
+}
+4.2. /api/ws.js
+Websocket do wysyłania statusów, progresu, przesyłania logów i błędów z agentów:
+
+js
+import { Server } from "ws";
+const wss = new Server({ noServer: true });
+wss.on('connection', ws => {
+  ws.send(JSON.stringify({status: 'connected'}));
+  // odbiór komunikatów od agentów
+});
+export default wss;
+5. Crawler/Scraper – agent internetowy (Python/Node)
+Obsługuje searxng API lub własny scraping + obsługa proxy/VPN/IP-rotation
+
+Moduł AI do tagowania i ekstrakcji clue z treści przez np. Ollama/OpenAI API
+
+Harmonogram (scheduler) i system retry/error management
+
+Komunikacja z backendem webowym przez REST/WebSocket (dla przesyłania wyników i logów)
+
+6. Rozbudowana synchronizacja i workflow
+Lokalna sync: agent kataloguje nowe pliki na dysku, odświeża index dla webapp.
+
+Internet sync: agent pobiera listy linków z SearX/favourites, uruchamia prefetch i tagowanie.
+
+Panel monitoringu: podgląd ile agentów aktywnych, progres w procentach, błędy, lista plików „do przetworzenia”, „nowe wyniki”, „powiązane tematy”.
+
+Manualne zarządzanie: uruchamianie/stopowanie agentów, podgląd logów, przeglądanie ścieżek i połączeń tematycznych.
+
+7. Rozszerzenie AI i automatyzacji
+Tagowanie treści: każdy plik lub wynik crawlingu otrzymuje automatyczny opis, listę tagów i podpowiedzi dalszych ścieżek (gpt/ollama/falcon/mistral).
+
+Mapa powiązań: generuj graf zależności między wynikami (np. force-directed graph D3.js).
+
+Auto-retry: failed task management, kolejkowanie trudnych źródeł, polityka IP banów, informowanie użytkownika.
+
+Eksport/import: możliwość eksportu całych ścieżek, wyników crawlingu, plików do json/csv/md i importu do bibliotek przez agentów lokalnych.
+
