@@ -259,17 +259,17 @@ const WelcomePage: React.FC = () => {
                       const event = new CustomEvent('cayd-search-results', { detail: results });
                       window.dispatchEvent(event);
                     } else {
-                      // Fallback to Google search
-                      const event = new CustomEvent('navigate', {
-                        detail: { url: `https://www.google.com/search?q=${encodeURIComponent(input.value)}` }
+                      // Use ZENO search instead of Google
+                      const event = new CustomEvent('zeno-search', {
+                        detail: { query: input.value }
                       });
                       window.dispatchEvent(event);
                     }
                   } catch (error) {
                     console.error('Search error:', error);
-                    // Fallback to Google
-                    const event = new CustomEvent('navigate', {
-                      detail: { url: `https://www.google.com/search?q=${encodeURIComponent(input.value)}` }
+                    // Use ZENO search as fallback
+                    const event = new CustomEvent('zeno-search', {
+                      detail: { query: input.value }
                     });
                     window.dispatchEvent(event);
                   }

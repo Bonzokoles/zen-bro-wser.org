@@ -25,7 +25,7 @@ interface ShortcutsWidgetProps {
 }
 
 const DEFAULT_SHORTCUTS: Shortcut[] = [
-    { icon: '🔍', label: 'Google', url: 'https://google.com' },
+    { icon: '🔍', label: 'ZENO Search', url: 'about:search' },
     { icon: '🐙', label: 'GitHub', url: 'https://github.com' },
     { icon: '📺', label: 'YouTube', url: 'https://youtube.com' },
     { icon: '🎨', label: 'ChatGPT', url: 'https://chat.openai.com' }

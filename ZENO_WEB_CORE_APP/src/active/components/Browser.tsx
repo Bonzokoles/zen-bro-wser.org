@@ -112,7 +112,7 @@ const Browser: React.FC = () => {
 		{ id: '1', title: 'Example.com', url: 'https://example.com', favicon: '🌐' },
 		{ id: '2', title: 'GitHub', url: 'https://github.com', favicon: '🐙' },
 		{ id: '3', title: 'Stack Overflow', url: 'https://stackoverflow.com', favicon: '📚' },
-		{ id: '4', title: 'Google', url: 'https://google.com', favicon: '🔍' }
+		{ id: '4', title: 'ZENO Search', url: 'about:search', favicon: '🔍' }
 	]);
 
 	const [history, setHistory] = useState<HistoryItem[]>([]);
@@ -261,6 +261,18 @@ const Browser: React.FC = () => {
 
 		window.addEventListener('keydown', handleKeyPress);
 		return () => window.removeEventListener('keydown', handleKeyPress);
+	}, []);
+
+	// Listen for search events from AddressBar
+	useEffect(() => {
+		const handleSearch = (e: CustomEvent) => {
+			const query = e.detail.query;
+			addConsoleMessage(`🔍 Searching with Tavily: "${query}"`);
+			handleMCPCommand(`web_search: ${query}`);
+		};
+
+		window.addEventListener('zeno-search', handleSearch as EventListener);
+		return () => window.removeEventListener('zeno-search', handleSearch as EventListener);
 	}, []);
 
 	// Initialize MCP Service automatically
@@ -500,11 +512,9 @@ const Browser: React.FC = () => {
 			return `https://${query}`;
 		}
 
-		// Otherwise, it's a search query - use Tavily or Brave instead of Google
-		// For now, open in new tab with Google (since Google blocks iframe anyway)
-		const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
-		window.open(searchUrl, '_blank');
-		addConsoleMessage(`Search query opened in new tab: "${query}"`);
+		// Otherwise, it's a search query - use Tavily API for search
+		addConsoleMessage(`Searching with Tavily: "${query}"`);
+		handleMCPCommand(`web_search: ${query}`);
 		return currentUrl; // Stay on current page
 	};
 

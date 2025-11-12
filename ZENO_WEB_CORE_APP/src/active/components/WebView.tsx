@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import WelcomePage from './WelcomePage';
+import SearchPage from './SearchPage';
 
 interface WebViewProps {
 	url: string;
@@ -19,7 +20,7 @@ const WebView: React.FC<WebViewProps> = ({ url, isLoading, title, topOffset = 80
 		setIframeError(false);
 		setLoadTimeout(false);
 
-		if (url === 'about:welcome' || url === 'about:blank') {
+		if (url === 'about:welcome' || url === 'about:blank' || url === 'about:search') {
 			return;
 		}
 
@@ -94,6 +95,29 @@ const WebView: React.FC<WebViewProps> = ({ url, isLoading, title, topOffset = 80
 						Enter a URL or search term to get started
 					</p>
 				</div>
+			</div>
+		);
+	}
+
+	// Search page
+	if (url === 'about:search') {
+		return (
+			<div style={{
+				position: 'fixed',
+				top: `${topOffset}px`,
+				left: 0,
+				width: '100%',
+				height: `calc(100% - ${topOffset}px - 70px)`,
+				backgroundColor: 'var(--bg-secondary)',
+				zIndex: 50
+			}}>
+				<SearchPage 
+					onSearch={(query) => {
+						window.dispatchEvent(new CustomEvent('zeno-search', { 
+							detail: { query } 
+						}));
+					}}
+				/>
 			</div>
 		);
 	}

@@ -31,8 +31,11 @@ const AddressBar: React.FC<AddressBarProps> = ({
 			if (finalUrl.includes('.') && !finalUrl.includes(' ')) {
 				finalUrl = 'https://' + finalUrl;
 			} else {
-				// Treat as search query
-				finalUrl = `https://www.google.com/search?q=${encodeURIComponent(finalUrl)}`;
+				// Treat as search query - trigger custom search event instead of Google
+				window.dispatchEvent(new CustomEvent('zeno-search', { 
+					detail: { query: finalUrl } 
+				}));
+				return;
 			}
 		}
 		
