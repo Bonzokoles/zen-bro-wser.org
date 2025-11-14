@@ -271,8 +271,47 @@ const Browser: React.FC = () => {
 			handleMCPCommand(`web_search: ${query}`);
 		};
 
+		const handleCAYDResults = (e: CustomEvent) => {
+			const results = e.detail;
+			addConsoleMessage(`📚 CAYD found ${results.count} results in library`);
+			console.log('CAYD Results:', results);
+
+			// Show results in new tab or console
+			if (results.results && results.results.length > 0) {
+				// Create formatted output
+				const output = results.results.slice(0, 10).map((r: any, i: number) =>
+					`${i + 1}. ${r.name} (${r.type})\n   Path: ${r.path}`
+				).join('\n\n');
+
+				addConsoleMessage(`\n📋 Top 10 CAYD Results:\n${output}`);
+			}
+		};
+
+		const handleUnifiedSearch = (e: CustomEvent) => {
+			const results = e.detail;
+			const stats = results.stats;
+
+			addConsoleMessage(
+				`🎯 Unified Search Complete:\n` +
+				`   Sources: ${results.sources_used.join(', ')}\n` +
+				`   CAYD: ${stats.cayd_count} results\n` +
+				`   Web: ${stats.tavily_count} results\n` +
+				`   Total: ${stats.total_count} results\n` +
+				`   Time: ${stats.response_time_ms}ms`
+			);
+
+			console.log('Unified Search Results:', results);
+		};
+
 		window.addEventListener('zeno-search', handleSearch as EventListener);
-		return () => window.removeEventListener('zeno-search', handleSearch as EventListener);
+		window.addEventListener('cayd-search-results', handleCAYDResults as EventListener);
+		window.addEventListener('unified-search-complete', handleUnifiedSearch as EventListener);
+
+		return () => {
+			window.removeEventListener('zeno-search', handleSearch as EventListener);
+			window.removeEventListener('cayd-search-results', handleCAYDResults as EventListener);
+			window.removeEventListener('unified-search-complete', handleUnifiedSearch as EventListener);
+		};
 	}, []);
 
 	// Initialize MCP Service automatically
@@ -2544,10 +2583,10 @@ const Browser: React.FC = () => {
 				/>
 			)}
 
-		{/* Music Player (Webamp) - FLOATING BEZ BACKDROP */}
-		{isMusicPlayerOpen && (
-			<MusicPlayer onClose={() => setIsMusicPlayerOpen(false)} />
-		)}			{/* Floating Windows */}
+			{/* Music Player (Webamp) - FLOATING BEZ BACKDROP */}
+			{isMusicPlayerOpen && (
+				<MusicPlayer onClose={() => setIsMusicPlayerOpen(false)} />
+			)}			{/* Floating Windows */}
 			{floatingWindows.map(window => (
 				<FloatingWindow
 					key={window.id}

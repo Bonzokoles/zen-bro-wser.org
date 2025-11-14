@@ -10,12 +10,12 @@ interface ChatPanelProps {
   webContent?: string | null;
 }
 
-const ChatPanel: React.FC<ChatPanelProps> = ({ 
-  isOpen, 
-  onClose, 
-  currentUrl, 
-  currentTitle, 
-  webContent 
+const ChatPanel: React.FC<ChatPanelProps> = ({
+  isOpen,
+  onClose,
+  currentUrl,
+  currentTitle,
+  webContent
 }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputMessage, setInputMessage] = useState('');
@@ -118,12 +118,15 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
         color: 'white'
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
+          <div style={{ flex: 1 }}>
             <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '600' }}>
-              🤖 Gemini Chat
+              🤖 AI Chat
             </h3>
             <div style={{ fontSize: '12px', opacity: 0.8, marginTop: '4px' }}>
               {isConnected ? '✅ Connected' : '❌ Disconnected'}
+            </div>
+            <div style={{ fontSize: '11px', opacity: 0.7, marginTop: '8px' }}>
+              💡 Open Settings (⌘,) to configure providers
             </div>
           </div>
           <button
@@ -227,8 +230,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
               fontSize: '14px',
               lineHeight: '1.4'
             }}>
-              <div dangerouslySetInnerHTML={{ 
-                __html: formatMessage(message.content) 
+              <div dangerouslySetInnerHTML={{
+                __html: formatMessage(message.content)
               }} />
               {message.timestamp && (
                 <div style={{
@@ -268,12 +271,12 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
               fontSize: '14px'
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <div className="animate-spin" style={{ 
-                  width: '16px', 
-                  height: '16px', 
-                  border: '2px solid #94a3b8', 
-                  borderTopColor: 'transparent', 
-                  borderRadius: '50%' 
+                <div className="animate-spin" style={{
+                  width: '16px',
+                  height: '16px',
+                  border: '2px solid #94a3b8',
+                  borderTopColor: 'transparent',
+                  borderRadius: '50%'
                 }} />
                 Gemini is thinking...
               </div>

@@ -32,6 +32,15 @@ export default defineConfig({
     locales: ['en', 'pl', 'de', 'es', 'fr'],
   },
   vite: {
+    server: {
+      proxy: {
+        '/api/cayd': {
+          target: 'http://localhost:6040',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/api\/cayd/, '/api')
+        }
+      }
+    },
     ssr: {
       external: ['node:async_hooks'],
       noExternal: ['crypto-js', 'webamp']

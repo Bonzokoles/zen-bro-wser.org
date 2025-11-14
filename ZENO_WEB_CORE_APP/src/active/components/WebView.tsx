@@ -111,10 +111,10 @@ const WebView: React.FC<WebViewProps> = ({ url, isLoading, title, topOffset = 80
 				backgroundColor: 'var(--bg-secondary)',
 				zIndex: 50
 			}}>
-				<SearchPage 
+				<SearchPage
 					onSearch={(query) => {
-						window.dispatchEvent(new CustomEvent('zeno-search', { 
-							detail: { query } 
+						window.dispatchEvent(new CustomEvent('zeno-search', {
+							detail: { query }
 						}));
 					}}
 				/>

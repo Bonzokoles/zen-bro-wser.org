@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import UnifiedSearch from './UnifiedSearch';
 
 const WelcomePage: React.FC = () => {
   const [showMoreSites, setShowMoreSites] = useState(false);
@@ -136,10 +137,13 @@ const WelcomePage: React.FC = () => {
           🔍 Centrum Wyszukiwania
         </h3>
 
+        {/* Unified Search Component */}
+        <UnifiedSearch />
+
         <div style={{
           display: 'grid',
           gridTemplateColumns: '1fr 1fr',
-          gap: '20px'
+          gap: '6px'
         }}>
           {/* LOKALNA Wyszukiwarka */}
           <div style={{
@@ -149,15 +153,15 @@ const WelcomePage: React.FC = () => {
             padding: '16px'
           }}>
             <div style={{
-              display: 'flex',
+              display: 'inline-flex',
               alignItems: 'center',
-              gap: '8px',
-              marginBottom: '12px'
+              gap: '6px',
+              marginBottom: '10px'
             }}>
-              <span style={{ fontSize: '20px' }}>📚</span>
+              <span style={{ fontSize: '16px' }}>📚</span>
               <h4 style={{
                 color: '#10b981',
-                fontSize: '14px',
+                fontSize: '12px',
                 fontWeight: '700',
                 margin: 0
               }}>
@@ -230,15 +234,15 @@ const WelcomePage: React.FC = () => {
             padding: '16px'
           }}>
             <div style={{
-              display: 'flex',
+              display: 'inline-flex',
               alignItems: 'center',
-              gap: '8px',
-              marginBottom: '12px'
+              gap: '6px',
+              marginBottom: '10px'
             }}>
-              <span style={{ fontSize: '20px' }}>🌐</span>
+              <span style={{ fontSize: '16px' }}>🌐</span>
               <h4 style={{
                 color: '#3b82f6',
-                fontSize: '14px',
+                fontSize: '12px',
                 fontWeight: '700',
                 margin: 0
               }}>
@@ -251,14 +255,16 @@ const WelcomePage: React.FC = () => {
                 const input = e.currentTarget.querySelector('input') as HTMLInputElement;
                 if (input && input.value.trim()) {
                   try {
-                    // Search in CAYD library
-                    const response = await fetch(`/api/cayd/search?q=${encodeURIComponent(input.value)}`);
+                    // Direct connection to CAYD on port 6040
+                    const response = await fetch(`http://localhost:6040/api/search?q=${encodeURIComponent(input.value)}`);
                     if (response.ok) {
                       const results = await response.json();
+                      console.log('✅ CAYD results:', results);
                       // Show results in library panel
                       const event = new CustomEvent('cayd-search-results', { detail: results });
                       window.dispatchEvent(event);
                     } else {
+                      console.warn('⚠️ CAYD failed, using Tavily fallback');
                       // Use ZENO search instead of Google
                       const event = new CustomEvent('zeno-search', {
                         detail: { query: input.value }
@@ -266,7 +272,7 @@ const WelcomePage: React.FC = () => {
                       window.dispatchEvent(event);
                     }
                   } catch (error) {
-                    console.error('Search error:', error);
+                    console.error('❌ CAYD connection error:', error);
                     // Use ZENO search as fallback
                     const event = new CustomEvent('zeno-search', {
                       detail: { query: input.value }
@@ -331,12 +337,14 @@ const WelcomePage: React.FC = () => {
         textAlign: 'left'
       }}>
         <h3 style={{
-          fontSize: '35px',
+          fontSize: '18px',
           fontWeight: 'bold',
           color: 'white',
-          marginBottom: '16px'
+          marginBottom: '12px',
+          lineHeight: '1.3',
+          textAlign: 'left'
         }}>
-          🎯 Strony do przetestowania
+          🎯 Strony do<br />przetestowania
         </h3>
         <p style={{
           color: '#94a3b8',
