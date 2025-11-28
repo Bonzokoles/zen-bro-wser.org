@@ -22,6 +22,14 @@ import { analytics } from '../services/analytics';
 import { licenseManager, getLicensePlan } from '../services/security/licenseManager';
 import { hasFeatureAccess, TAB_LIMITS, FEATURES, type PlanType } from '../config/features';
 
+// New Components
+import { BrowserHeader } from './browser/BrowserHeader';
+import { BrowserTabs } from './browser/BrowserTabs';
+import { BrowserBottomNav } from './browser/BrowserBottomNav';
+import { BrowserBookmarksPanel } from './browser/BrowserBookmarksPanel';
+import { BrowserHistoryPanel } from './browser/BrowserHistoryPanel';
+import { BrowserToolsPanel } from './browser/BrowserToolsPanel';
+
 export interface Tab {
 	id: string;
 	title: string;
@@ -44,8 +52,8 @@ interface Bookmark {
 	title: string;
 	url: string;
 	favicon: string;
-	category?: string; // e.g. 'Praca', 'Hobby', 'Nauka', 'Rozrywka'
-	createdAt?: number; // timestamp
+	category?: string;
+	createdAt?: number;
 }
 
 interface HistoryItem {
@@ -90,17 +98,9 @@ const Browser: React.FC = () => {
 	const [isOnThisDayOpen, setIsOnThisDayOpen] = useState(false);
 	const [isBirthdaySongOpen, setIsBirthdaySongOpen] = useState(false);
 	const [theme, setTheme] = useState<Theme>('dark');
-	const [isAddingBookmark, setIsAddingBookmark] = useState(false);
-	const [bookmarkCategories, setBookmarkCategories] = useState<string[]>([
-		'Praca', 'Hobby', 'Nauka', 'Rozrywka', 'Narzędzia', 'Inne'
-	]);
-	const [selectedCategory, setSelectedCategory] = useState<string>('Wszystkie');
-	const [newBookmarkData, setNewBookmarkData] = useState({
-		title: '',
-		url: '',
-		favicon: '🌐',
-		category: 'Inne'
-	});
+
+	// Removed local bookmark form state as it's now in BrowserBookmarksPanel
+
 	const [consoleOutput, setConsoleOutput] = useState<string[]>([
 		'ZENO_WEB_CORE initialized successfully!',
 		'Advanced MCP integration ready...',
@@ -117,7 +117,7 @@ const Browser: React.FC = () => {
 
 	const [history, setHistory] = useState<HistoryItem[]>([]);
 
-	// License & Feature Gates - WSZYSTKO DOSTĘPNE (lifetime plan)
+	// License & Feature Gates
 	const [currentPlan, setCurrentPlan] = useState<PlanType>('lifetime');
 	const [isLicenseValid, setIsLicenseValid] = useState(true);
 	const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
@@ -462,43 +462,6 @@ const Browser: React.FC = () => {
 		addConsoleMessage(`Bookmark removed: ${bookmark?.title || 'Unknown'}`);
 	};
 
-	const addNewBookmarkManually = () => {
-		if (!newBookmarkData.title || !newBookmarkData.url) {
-			addConsoleMessage('⚠️ Title and URL are required');
-			return;
-		}
-
-		// Validate URL
-		try {
-			new URL(newBookmarkData.url.startsWith('http') ? newBookmarkData.url : `https://${newBookmarkData.url}`);
-		} catch {
-			addConsoleMessage('⚠️ Invalid URL format');
-			return;
-		}
-
-		const existingBookmark = bookmarks.find(b => b.url === newBookmarkData.url);
-		if (existingBookmark) {
-			addConsoleMessage('Page already bookmarked');
-			return;
-		}
-
-		const newBookmark: Bookmark = {
-			id: Date.now().toString(),
-			title: newBookmarkData.title,
-			url: newBookmarkData.url.startsWith('http') ? newBookmarkData.url : `https://${newBookmarkData.url}`,
-			favicon: newBookmarkData.favicon || '🌐',
-			category: newBookmarkData.category || 'Inne',
-			createdAt: Date.now()
-		};
-
-		setBookmarks(prev => [...prev, newBookmark]);
-		addConsoleMessage(`✅ Bookmark added: ${newBookmark.title} [${newBookmark.category}]`);
-
-		// Reset form
-		setNewBookmarkData({ title: '', url: '', favicon: '🌐', category: 'Inne' });
-		setIsAddingBookmark(false);
-	};
-
 	const addToHistory = (url: string, title: string, favicon: string = '🌐') => {
 		const historyItem: HistoryItem = {
 			id: Date.now().toString(),
@@ -562,27 +525,6 @@ const Browser: React.FC = () => {
 		setTheme(newTheme);
 		addConsoleMessage(`Theme switched to: ${newTheme} mode`);
 	};
-
-	const colors = useMemo(() => {
-		if (theme === 'light') {
-			return {
-				primary: '#ffffff',
-				secondary: '#f8fafc',
-				accent: '#e2e8f0',
-				text: '#1e293b',
-				muted: '#64748b',
-				border: '#cbd5e1'
-			};
-		}
-		return {
-			primary: '#0f172a',
-			secondary: '#1e293b',
-			accent: '#334155',
-			text: '#f1f5f9',
-			muted: '#94a3b8',
-			border: '#94a3b8'
-		};
-	}, [theme]);
 
 	const getPageFavicon = (url: string): string => {
 		if (url === 'about:welcome') return '⚡';
@@ -704,1248 +646,72 @@ const Browser: React.FC = () => {
 		handleCreateTab(url);
 	};
 
-
-
 	return (
-		<div style={{ position: 'relative', zIndex: 1 }}>
-			{/* Top Bar with Logo and Search */}
-			<div style={{
-				position: 'fixed',
-				top: 0,
-				left: 0,
-				right: 0,
-				backgroundColor: colors.secondary,
-				borderBottom: `1px solid ${colors.border}`,
-				zIndex: 100,
-				padding: '12px 20px',
-				backdropFilter: 'blur(10px)',
-				boxShadow: '0 2px 20px rgba(0,0,0,0.1)'
-			}}>
-				<div style={{
-					display: 'flex',
-					alignItems: 'center',
-					gap: '20px'
-				}}>
-					{/* Modern Logo */}
-					<div style={{
-						display: 'flex',
-						alignItems: 'center',
-						gap: '12px',
-						fontWeight: 'bold',
-						fontSize: '18px'
-					}}>
-						<div style={{
-							width: '40px',
-							height: '40px',
-							background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-							borderRadius: '12px',
-							display: 'flex',
-							alignItems: 'center',
-							justifyContent: 'center',
-							color: 'white',
-							fontSize: '20px',
-							boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)'
-						}}>⚡</div>
-						<span style={{ color: colors.text }}>ZENO_WEB_CORE</span>
-					</div>
+		<div className={`relative min-h-screen ${theme === 'dark' ? 'bg-slate-950' : 'bg-slate-50'}`}>
+			<BrowserHeader
+				theme={theme}
+				toggleTheme={toggleTheme}
+				currentPlan={currentPlan}
+				inputUrl={inputUrl}
+				setInputUrl={setInputUrl}
+				handleUrlSubmit={handleUrlSubmit}
+			/>
 
-					{/* Plan Badge */}
-					<div
-						onClick={() => {
-							if (currentPlan === 'free') {
-								window.open('/pricing', '_blank');
-							}
-						}}
-						style={{
-							background: currentPlan === 'free'
-								? 'linear-gradient(135deg, #94a3b8, #64748b)'
-								: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-							border: 'none',
-							borderRadius: '10px',
-							padding: '8px 16px',
-							color: 'white',
-							fontWeight: '700',
-							fontSize: '12px',
-							cursor: currentPlan === 'free' ? 'pointer' : 'default',
-							transition: 'all 0.3s ease',
-							boxShadow: currentPlan === 'free'
-								? '0 2px 10px rgba(148, 163, 184, 0.3)'
-								: '0 4px 15px rgba(102, 126, 234, 0.4)',
-							textTransform: 'uppercase',
-							letterSpacing: '0.5px',
-							display: 'flex',
-							alignItems: 'center',
-							gap: '6px'
-						}}
-						onMouseEnter={(e) => {
-							if (currentPlan === 'free') {
-								e.currentTarget.style.transform = 'scale(1.05)';
-								e.currentTarget.style.boxShadow = '0 4px 15px rgba(102, 126, 234, 0.4)';
-							}
-						}}
-						onMouseLeave={(e) => {
-							if (currentPlan === 'free') {
-								e.currentTarget.style.transform = 'scale(1)';
-								e.currentTarget.style.boxShadow = '0 2px 10px rgba(148, 163, 184, 0.3)';
-							}
-						}}
-					>
-						{currentPlan === 'free' && '⬆️'}
-						{currentPlan === 'monthly' && '⭐'}
-						{currentPlan === 'yearly' && '🚀'}
-						{currentPlan === 'lifetime' && '👑'}
-						{currentPlan.toUpperCase()}
-						{currentPlan === 'free' && ' - Upgrade'}
-					</div>
-
-					{/* Theme Toggle */}
-					<button
-						onClick={toggleTheme}
-						style={{
-							background: 'linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%)',
-							border: 'none',
-							borderRadius: '10px',
-							padding: '8px 16px',
-							color: 'white',
-							fontWeight: '600',
-							cursor: 'pointer',
-							transition: 'all 0.3s ease',
-							boxShadow: '0 4px 15px rgba(255, 234, 167, 0.4)'
-						}}
-					>
-						{theme === 'dark' ? '☀️' : '🌙'} {theme === 'dark' ? 'Light' : 'Dark'}
-					</button>
-
-					{/* Modern Search Bar */}
-					<form onSubmit={handleUrlSubmit} style={{ flex: 1, maxWidth: '600px' }}>
-						<div style={{ position: 'relative' }}>
-							<input
-								type="text"
-								value={inputUrl}
-								onChange={(e) => setInputUrl(e.target.value)}
-								style={{
-									width: '100%',
-									backgroundColor: colors.primary,
-									color: colors.text,
-									border: `2px solid ${colors.border}`,
-									borderRadius: '25px',
-									padding: '14px 50px 14px 20px',
-									fontSize: '16px',
-									outline: 'none',
-									transition: 'all 0.3s ease',
-									boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
-								}}
-								placeholder="Search or enter URL..."
-								onFocus={(e) => e.target.style.borderColor = '#667eea'}
-								onBlur={(e) => e.target.style.borderColor = colors.border}
-							/>
-							<button
-								type="submit"
-								style={{
-									position: 'absolute',
-									right: '8px',
-									top: '50%',
-									transform: 'translateY(-50%)',
-									background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-									border: 'none',
-									borderRadius: '50%',
-									width: '36px',
-									height: '36px',
-									color: 'white',
-									cursor: 'pointer',
-									display: 'flex',
-									alignItems: 'center',
-									justifyContent: 'center',
-									transition: 'all 0.3s ease'
-								}}
-							>
-								🔍
-							</button>
-						</div>
-					</form>
-				</div>
+			<div className="pt-[72px]">
+				<BrowserTabs
+					tabs={tabs}
+					activeTabId={activeTab?.id}
+					onSwitchTab={handleSwitchTab}
+					onCloseTab={handleCloseTab}
+					onCreateTab={() => handleCreateTab()}
+					theme={theme}
+				/>
 			</div>
 
-			{/* Bookmarks Panel */}
-			{showBookmarks && (
-				<div style={{
-					position: 'fixed',
-					top: '80px',
-					left: 0,
-					right: 0,
-					height: '240px',
-					backgroundColor: colors.secondary,
-					borderBottom: `1px solid ${colors.border}`,
-					zIndex: 99,
-					padding: '20px',
-					overflowY: 'auto',
-					backdropFilter: 'blur(10px)'
-				}}>
-					<div style={{
-						display: 'flex',
-						justifyContent: 'space-between',
-						alignItems: 'center',
-						marginBottom: '20px'
-					}}>
-						<h3 style={{ color: colors.text, fontSize: '20px', margin: 0, fontWeight: '600' }}>� Bookmarks</h3>
-						<div style={{ display: 'flex', gap: '12px' }}>
-							<button
-								onClick={() => setIsAddingBookmark(true)}
-								style={{
-									background: 'linear-gradient(135deg, #10b981, #059669)',
-									border: 'none',
-									color: 'white',
-									fontSize: '14px',
-									cursor: 'pointer',
-									borderRadius: '8px',
-									padding: '8px 16px',
-									fontWeight: '600',
-									transition: 'all 0.3s ease'
-								}}
-								onMouseEnter={(e) => {
-									e.currentTarget.style.transform = 'scale(1.05)';
-									e.currentTarget.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.4)';
-								}}
-								onMouseLeave={(e) => {
-									e.currentTarget.style.transform = 'scale(1)';
-									e.currentTarget.style.boxShadow = 'none';
-								}}
-							>
-								➕ Add New
-							</button>
-							<button
-								onClick={() => setShowBookmarks(false)}
-								style={{
-									background: colors.accent,
-									border: 'none',
-									color: colors.muted,
-									fontSize: '18px',
-									cursor: 'pointer',
-									borderRadius: '50%',
-									width: '32px',
-									height: '32px',
-									display: 'flex',
-									alignItems: 'center',
-									justifyContent: 'center'
-								}}
-							>
-								✕
-							</button>
-						</div>
-					</div>
+			<BrowserBookmarksPanel
+				isOpen={showBookmarks}
+				onClose={() => setShowBookmarks(false)}
+				bookmarks={bookmarks}
+				onAddBookmark={(data) => {
+					const newBookmark = {
+						id: Date.now().toString(),
+						...data,
+						createdAt: Date.now()
+					};
+					setBookmarks(prev => [...prev, newBookmark]);
+					addConsoleMessage(`✅ Bookmark added: ${newBookmark.title}`);
+				}}
+				onRemoveBookmark={removeBookmark}
+				onOpenBookmark={openBookmark}
+				theme={theme}
+			/>
 
-					{/* Add Bookmark Form */}
-					{isAddingBookmark && (
-						<div style={{
-							backgroundColor: colors.primary,
-							border: `2px solid ${colors.border}`,
-							borderRadius: '12px',
-							padding: '20px',
-							marginBottom: '20px'
-						}}>
-							<h4 style={{ color: colors.text, fontSize: '16px', margin: '0 0 16px 0', fontWeight: '600' }}>
-								Add New Bookmark
-							</h4>
-							<div style={{ display: 'grid', gap: '12px' }}>
-								<div>
-									<label style={{ color: colors.muted, fontSize: '12px', display: 'block', marginBottom: '6px' }}>
-										Title *
-									</label>
-									<input
-										type="text"
-										value={newBookmarkData.title}
-										onChange={(e) => setNewBookmarkData({ ...newBookmarkData, title: e.target.value })}
-										placeholder="e.g., My Favorite Site"
-										style={{
-											width: '100%',
-											backgroundColor: colors.accent,
-											border: `1px solid ${colors.border}`,
-											borderRadius: '8px',
-											padding: '10px 12px',
-											color: colors.text,
-											fontSize: '14px',
-											outline: 'none'
-										}}
-										onKeyPress={(e) => {
-											if (e.key === 'Enter') {
-												addNewBookmarkManually();
-											}
-										}}
-									/>
-								</div>
-								<div>
-									<label style={{ color: colors.muted, fontSize: '12px', display: 'block', marginBottom: '6px' }}>
-										URL *
-									</label>
-									<input
-										type="text"
-										value={newBookmarkData.url}
-										onChange={(e) => setNewBookmarkData({ ...newBookmarkData, url: e.target.value })}
-										placeholder="e.g., https://example.com"
-										style={{
-											width: '100%',
-											backgroundColor: colors.accent,
-											border: `1px solid ${colors.border}`,
-											borderRadius: '8px',
-											padding: '10px 12px',
-											color: colors.text,
-											fontSize: '14px',
-											outline: 'none',
-											fontFamily: 'monospace'
-										}}
-										onKeyPress={(e) => {
-											if (e.key === 'Enter') {
-												addNewBookmarkManually();
-											}
-										}}
-									/>
-								</div>
-								<div>
-									<label style={{ color: colors.muted, fontSize: '12px', display: 'block', marginBottom: '6px' }}>
-										Emoji/Icon (optional)
-									</label>
-									<input
-										type="text"
-										value={newBookmarkData.favicon}
-										onChange={(e) => setNewBookmarkData({ ...newBookmarkData, favicon: e.target.value })}
-										placeholder="🌐"
-										maxLength={2}
-										style={{
-											width: '80px',
-											backgroundColor: colors.accent,
-											border: `1px solid ${colors.border}`,
-											borderRadius: '8px',
-											padding: '10px 12px',
-											color: colors.text,
-											fontSize: '20px',
-											outline: 'none',
-											textAlign: 'center'
-										}}
-									/>
-								</div>
-								<div>
-									<label style={{ color: colors.muted, fontSize: '12px', display: 'block', marginBottom: '6px' }}>
-										Kategoria *
-									</label>
-									<select
-										value={newBookmarkData.category}
-										onChange={(e) => setNewBookmarkData({ ...newBookmarkData, category: e.target.value })}
-										style={{
-											width: '100%',
-											backgroundColor: colors.accent,
-											border: `1px solid ${colors.border}`,
-											borderRadius: '8px',
-											padding: '10px 12px',
-											color: colors.text,
-											fontSize: '14px',
-											outline: 'none',
-											cursor: 'pointer'
-										}}
-									>
-										{bookmarkCategories.map(cat => (
-											<option key={cat} value={cat}>{cat}</option>
-										))}
-									</select>
-								</div>
-								<div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
-									<button
-										onClick={addNewBookmarkManually}
-										style={{
-											flex: 1,
-											background: 'linear-gradient(135deg, #10b981, #059669)',
-											border: 'none',
-											color: 'white',
-											padding: '12px',
-											borderRadius: '8px',
-											fontSize: '14px',
-											fontWeight: '600',
-											cursor: 'pointer',
-											transition: 'all 0.3s ease'
-										}}
-										onMouseEnter={(e) => {
-											e.currentTarget.style.transform = 'scale(1.02)';
-										}}
-										onMouseLeave={(e) => {
-											e.currentTarget.style.transform = 'scale(1)';
-										}}
-									>
-										✓ Save Bookmark
-									</button>
-									<button
-										onClick={() => {
-											setIsAddingBookmark(false);
-											setNewBookmarkData({ title: '', url: '', favicon: '🌐', category: 'Inne' });
-										}}
-										style={{
-											flex: 1,
-											background: colors.accent,
-											border: `1px solid ${colors.border}`,
-											color: colors.muted,
-											padding: '12px',
-											borderRadius: '8px',
-											fontSize: '14px',
-											fontWeight: '600',
-											cursor: 'pointer',
-											transition: 'all 0.3s ease'
-										}}
-										onMouseEnter={(e) => {
-											e.currentTarget.style.backgroundColor = colors.secondary;
-										}}
-										onMouseLeave={(e) => {
-											e.currentTarget.style.backgroundColor = colors.accent;
-										}}
-									>
-										✕ Cancel
-									</button>
-								</div>
-							</div>
-						</div>
-					)}
+			<BrowserHistoryPanel
+				isOpen={showHistory}
+				onClose={() => setShowHistory(false)}
+				history={history}
+				onClearHistory={clearHistory}
+				onOpenHistoryItem={openFromHistory}
+				theme={theme}
+			/>
 
-					<div style={{
-						display: 'grid',
-						gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-						gap: '16px'
-					}}>
-						{bookmarks
-							.filter(b => selectedCategory === 'Wszystkie' || b.category === selectedCategory)
-							.map(bookmark => (
-								<div
-									key={bookmark.id}
-									style={{
-										backgroundColor: colors.primary,
-										border: `1px solid ${colors.border}`,
-										borderRadius: '12px',
-										padding: '16px',
-										cursor: 'pointer',
-										display: 'flex',
-										alignItems: 'center',
-										gap: '12px',
-										transition: 'all 0.3s ease',
-										boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
-									}}
-									onMouseEnter={(e) => {
-										e.currentTarget.style.transform = 'translateY(-2px)';
-										e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.15)';
-									}}
-									onMouseLeave={(e) => {
-										e.currentTarget.style.transform = 'translateY(0)';
-										e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
-									}}
-									onClick={() => openBookmark(bookmark.url)}
-								>
-									<div style={{
-										fontSize: '24px',
-										width: '40px',
-										height: '40px',
-										display: 'flex',
-										alignItems: 'center',
-										justifyContent: 'center',
-										background: colors.accent,
-										borderRadius: '10px'
-									}}>{bookmark.favicon}</div>
-									<div style={{ flex: 1, overflow: 'hidden' }}>
-										<div style={{
-											color: colors.text,
-											fontSize: '15px',
-											fontWeight: '600',
-											whiteSpace: 'nowrap',
-											overflow: 'hidden',
-											textOverflow: 'ellipsis',
-											marginBottom: '4px'
-										}}>
-											{bookmark.title}
-										</div>
-										<div style={{
-											color: colors.muted,
-											fontSize: '13px',
-											whiteSpace: 'nowrap',
-											overflow: 'hidden',
-											textOverflow: 'ellipsis'
-										}}>
-											{bookmark.url}
-										</div>
-									</div>
-									<button
-										onClick={(e) => {
-											e.stopPropagation();
-											removeBookmark(bookmark.id);
-										}}
-										style={{
-											background: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%)',
-											border: 'none',
-											color: 'white',
-											fontSize: '16px',
-											cursor: 'pointer',
-											borderRadius: '8px',
-											width: '32px',
-											height: '32px',
-											display: 'flex',
-											alignItems: 'center',
-											justifyContent: 'center',
-											transition: 'all 0.3s ease'
-										}}
-									>
-										🗑️
-									</button>
-								</div>
-							))}
-					</div>
-				</div>
-			)}
+			<BrowserToolsPanel
+				isOpen={showTools}
+				onClose={() => setShowTools(false)}
+				theme={theme}
+			/>
 
-			{/* History Panel */}
-			{showHistory && (
-				<div style={{
-					position: 'fixed',
-					top: '80px',
-					left: 0,
-					right: 0,
-					height: '300px',
-					backgroundColor: colors.secondary,
-					borderBottom: `1px solid ${colors.border}`,
-					zIndex: 99,
-					padding: '20px',
-					overflowY: 'auto',
-					backdropFilter: 'blur(10px)'
-				}}>
-					<div style={{
-						display: 'flex',
-						justifyContent: 'space-between',
-						alignItems: 'center',
-						marginBottom: '20px'
-					}}>
-						<h3 style={{ color: colors.text, fontSize: '20px', margin: 0, fontWeight: '600' }}>📈 History</h3>
-						<div style={{ display: 'flex', gap: '8px' }}>
-							<button
-								onClick={clearHistory}
-								style={{
-									background: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%)',
-									border: 'none',
-									color: 'white',
-									fontSize: '12px',
-									cursor: 'pointer',
-									borderRadius: '6px',
-									padding: '6px 12px'
-								}}
-							>
-								Clear All
-							</button>
-							<button
-								onClick={() => setShowHistory(false)}
-								style={{
-									background: colors.accent,
-									border: 'none',
-									color: colors.muted,
-									fontSize: '18px',
-									cursor: 'pointer',
-									borderRadius: '50%',
-									width: '32px',
-									height: '32px',
-									display: 'flex',
-									alignItems: 'center',
-									justifyContent: 'center'
-								}}
-							>
-								✕
-							</button>
-						</div>
-					</div>
-					<div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-						{history.length === 0 ? (
-							<div style={{
-								textAlign: 'center',
-								color: colors.muted,
-								padding: '40px',
-								fontSize: '16px'
-							}}>
-								No history yet. Start browsing!
-							</div>
-						) : (
-							history.map(item => (
-								<div
-									key={item.id}
-									style={{
-										backgroundColor: colors.primary,
-										border: `1px solid ${colors.border}`,
-										borderRadius: '8px',
-										padding: '12px',
-										cursor: 'pointer',
-										display: 'flex',
-										alignItems: 'center',
-										gap: '12px',
-										transition: 'all 0.3s ease'
-									}}
-									onMouseEnter={(e) => e.currentTarget.style.backgroundColor = colors.accent}
-									onMouseLeave={(e) => e.currentTarget.style.backgroundColor = colors.primary}
-									onClick={() => openFromHistory(item.url)}
-								>
-									<span style={{ fontSize: '20px' }}>{item.favicon}</span>
-									<div style={{ flex: 1, overflow: 'hidden' }}>
-										<div style={{
-											color: colors.text,
-											fontSize: '14px',
-											fontWeight: '500',
-											whiteSpace: 'nowrap',
-											overflow: 'hidden',
-											textOverflow: 'ellipsis'
-										}}>
-											{item.title}
-										</div>
-										<div style={{
-											color: colors.muted,
-											fontSize: '12px',
-											whiteSpace: 'nowrap',
-											overflow: 'hidden',
-											textOverflow: 'ellipsis'
-										}}>
-											{item.url}
-										</div>
-									</div>
-									<div style={{
-										color: colors.muted,
-										fontSize: '11px',
-										whiteSpace: 'nowrap'
-									}}>
-										{item.visitedAt.toLocaleTimeString()}
-									</div>
-								</div>
-							))
-						)}
-					</div>
-				</div>
-			)}
-
-			{/* Tools Panel */}
-			{showTools && (
-				<div style={{
-					position: 'fixed',
-					top: '80px',
-					left: 0,
-					right: 0,
-					height: '400px',
-					backgroundColor: colors.secondary,
-					borderBottom: `1px solid ${colors.border}`,
-					zIndex: 99,
-					padding: '20px',
-					overflowY: 'auto',
-					backdropFilter: 'blur(10px)'
-				}}>
-					<div style={{
-						display: 'flex',
-						justifyContent: 'space-between',
-						alignItems: 'center',
-						marginBottom: '20px'
-					}}>
-						<h3 style={{ color: colors.text, fontSize: '20px', margin: 0, fontWeight: '600' }}>🛠️ Tools & Features</h3>
-						<button
-							onClick={() => setShowTools(false)}
-							style={{
-								background: colors.accent,
-								border: 'none',
-								color: colors.muted,
-								fontSize: '18px',
-								cursor: 'pointer',
-								borderRadius: '50%',
-								width: '32px',
-								height: '32px',
-								display: 'flex',
-								alignItems: 'center',
-								justifyContent: 'center'
-							}}
-						>
-							✕
-						</button>
-					</div>
-					<div style={{
-						display: 'grid',
-						gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-						gap: '16px'
-					}}>
-						{/* Iframe Tester */}
-						<a
-							href="/iframe-tester"
-							style={{
-								backgroundColor: colors.primary,
-								border: `1px solid ${colors.border}`,
-								borderRadius: '12px',
-								padding: '20px',
-								cursor: 'pointer',
-								display: 'flex',
-								alignItems: 'flex-start',
-								gap: '12px',
-								transition: 'all 0.3s ease',
-								boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-								textDecoration: 'none'
-							}}
-							onMouseEnter={(e) => {
-								e.currentTarget.style.transform = 'translateY(-2px)';
-								e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.15)';
-							}}
-							onMouseLeave={(e) => {
-								e.currentTarget.style.transform = 'translateY(0)';
-								e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
-							}}
-						>
-							<div style={{
-								fontSize: '32px',
-								width: '50px',
-								height: '50px',
-								display: 'flex',
-								alignItems: 'center',
-								justifyContent: 'center',
-								background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-								borderRadius: '10px',
-								flexShrink: 0
-							}}>🧪</div>
-							<div style={{ flex: 1 }}>
-								<div style={{
-									color: colors.text,
-									fontSize: '16px',
-									fontWeight: '700',
-									marginBottom: '6px'
-								}}>
-									Iframe Tester
-								</div>
-								<div style={{
-									color: colors.muted,
-									fontSize: '13px',
-									lineHeight: '1.4'
-								}}>
-									Test iframe compatibility, measure load times, and manage test sessions
-								</div>
-							</div>
-						</a>
-
-						{/* Agents Manager */}
-						<a
-							href="/agents"
-							style={{
-								backgroundColor: colors.primary,
-								border: `1px solid ${colors.border}`,
-								borderRadius: '12px',
-								padding: '20px',
-								cursor: 'pointer',
-								display: 'flex',
-								alignItems: 'flex-start',
-								gap: '12px',
-								transition: 'all 0.3s ease',
-								boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-								textDecoration: 'none'
-							}}
-							onMouseEnter={(e) => {
-								e.currentTarget.style.transform = 'translateY(-2px)';
-								e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.15)';
-							}}
-							onMouseLeave={(e) => {
-								e.currentTarget.style.transform = 'translateY(0)';
-								e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
-							}}
-						>
-							<div style={{
-								fontSize: '32px',
-								width: '50px',
-								height: '50px',
-								display: 'flex',
-								alignItems: 'center',
-								justifyContent: 'center',
-								background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-								borderRadius: '10px',
-								flexShrink: 0
-							}}>🤖</div>
-							<div style={{ flex: 1 }}>
-								<div style={{
-									color: colors.text,
-									fontSize: '16px',
-									fontWeight: '700',
-									marginBottom: '6px'
-								}}>
-									Agents Manager
-								</div>
-								<div style={{
-									color: colors.muted,
-									fontSize: '13px',
-									lineHeight: '1.4'
-								}}>
-									Manage and monitor AI agents including BIELIK, Gemini, and more
-								</div>
-							</div>
-						</a>
-
-						{/* Admin Panel */}
-						<a
-							href="/admin"
-							style={{
-								backgroundColor: colors.primary,
-								border: `1px solid ${colors.border}`,
-								borderRadius: '12px',
-								padding: '20px',
-								cursor: 'pointer',
-								display: 'flex',
-								alignItems: 'flex-start',
-								gap: '12px',
-								transition: 'all 0.3s ease',
-								boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-								textDecoration: 'none'
-							}}
-							onMouseEnter={(e) => {
-								e.currentTarget.style.transform = 'translateY(-2px)';
-								e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.15)';
-							}}
-							onMouseLeave={(e) => {
-								e.currentTarget.style.transform = 'translateY(0)';
-								e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
-							}}
-						>
-							<div style={{
-								fontSize: '32px',
-								width: '50px',
-								height: '50px',
-								display: 'flex',
-								alignItems: 'center',
-								justifyContent: 'center',
-								background: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
-								borderRadius: '10px',
-								flexShrink: 0
-							}}>🛡️</div>
-							<div style={{ flex: 1 }}>
-								<div style={{
-									color: colors.text,
-									fontSize: '16px',
-									fontWeight: '700',
-									marginBottom: '6px'
-								}}>
-									Admin Panel
-								</div>
-								<div style={{
-									color: colors.muted,
-									fontSize: '13px',
-									lineHeight: '1.4'
-								}}>
-									Manage sites, users, statistics, and system configuration
-								</div>
-							</div>
-						</a>
-
-						{/* Advanced Search */}
-						<a
-							href="/advanced-search"
-							style={{
-								backgroundColor: colors.primary,
-								border: `1px solid ${colors.border}`,
-								borderRadius: '12px',
-								padding: '20px',
-								cursor: 'pointer',
-								display: 'flex',
-								alignItems: 'flex-start',
-								gap: '12px',
-								transition: 'all 0.3s ease',
-								boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-								textDecoration: 'none'
-							}}
-							onMouseEnter={(e) => {
-								e.currentTarget.style.transform = 'translateY(-2px)';
-								e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.15)';
-							}}
-							onMouseLeave={(e) => {
-								e.currentTarget.style.transform = 'translateY(0)';
-								e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
-							}}
-						>
-							<div style={{
-								fontSize: '32px',
-								width: '50px',
-								height: '50px',
-								display: 'flex',
-								alignItems: 'center',
-								justifyContent: 'center',
-								background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-								borderRadius: '10px',
-								flexShrink: 0
-							}}>🔍</div>
-							<div style={{ flex: 1 }}>
-								<div style={{
-									color: colors.text,
-									fontSize: '16px',
-									fontWeight: '700',
-									marginBottom: '6px'
-								}}>
-									Advanced Search
-								</div>
-								<div style={{
-									color: colors.muted,
-									fontSize: '13px',
-									lineHeight: '1.4'
-								}}>
-									Full-featured search with filters, sorting, and pagination
-								</div>
-							</div>
-						</a>
-
-						{/* Search Demo */}
-						<a
-							href="/search-demo"
-							style={{
-								backgroundColor: colors.primary,
-								border: `1px solid ${colors.border}`,
-								borderRadius: '12px',
-								padding: '20px',
-								cursor: 'pointer',
-								display: 'flex',
-								alignItems: 'flex-start',
-								gap: '12px',
-								transition: 'all 0.3s ease',
-								boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-								textDecoration: 'none'
-							}}
-							onMouseEnter={(e) => {
-								e.currentTarget.style.transform = 'translateY(-2px)';
-								e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.15)';
-							}}
-							onMouseLeave={(e) => {
-								e.currentTarget.style.transform = 'translateY(0)';
-								e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
-							}}
-						>
-							<div style={{
-								fontSize: '32px',
-								width: '50px',
-								height: '50px',
-								display: 'flex',
-								alignItems: 'center',
-								justifyContent: 'center',
-								background: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
-								borderRadius: '10px',
-								flexShrink: 0
-							}}>⚡</div>
-							<div style={{ flex: 1 }}>
-								<div style={{
-									color: colors.text,
-									fontSize: '16px',
-									fontWeight: '700',
-									marginBottom: '6px'
-								}}>
-									Search Demo
-								</div>
-								<div style={{
-									color: colors.muted,
-									fontSize: '13px',
-									lineHeight: '1.4'
-								}}>
-									Quick search interface for iframe-testable sites
-								</div>
-							</div>
-						</a>
-
-						{/* Debug Console */}
-						<a
-							href="/debug"
-							style={{
-								backgroundColor: colors.primary,
-								border: `1px solid ${colors.border}`,
-								borderRadius: '12px',
-								padding: '20px',
-								cursor: 'pointer',
-								display: 'flex',
-								alignItems: 'flex-start',
-								gap: '12px',
-								transition: 'all 0.3s ease',
-								boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-								textDecoration: 'none'
-							}}
-							onMouseEnter={(e) => {
-								e.currentTarget.style.transform = 'translateY(-2px)';
-								e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.15)';
-							}}
-							onMouseLeave={(e) => {
-								e.currentTarget.style.transform = 'translateY(0)';
-								e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
-							}}
-						>
-							<div style={{
-								fontSize: '32px',
-								width: '50px',
-								height: '50px',
-								display: 'flex',
-								alignItems: 'center',
-								justifyContent: 'center',
-								background: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
-								borderRadius: '10px',
-								flexShrink: 0
-							}}>🐛</div>
-							<div style={{ flex: 1 }}>
-								<div style={{
-									color: colors.text,
-									fontSize: '16px',
-									fontWeight: '700',
-									marginBottom: '6px'
-								}}>
-									Debug Console
-								</div>
-								<div style={{
-									color: colors.muted,
-									fontSize: '13px',
-									lineHeight: '1.4'
-								}}>
-									Developer tools, logs, and system diagnostics
-								</div>
-							</div>
-						</a>
-
-						{/* About */}
-						<a
-							href="/about"
-							style={{
-								backgroundColor: colors.primary,
-								border: `1px solid ${colors.border}`,
-								borderRadius: '12px',
-								padding: '20px',
-								cursor: 'pointer',
-								display: 'flex',
-								alignItems: 'flex-start',
-								gap: '12px',
-								transition: 'all 0.3s ease',
-								boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-								textDecoration: 'none'
-							}}
-							onMouseEnter={(e) => {
-								e.currentTarget.style.transform = 'translateY(-2px)';
-								e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.15)';
-							}}
-							onMouseLeave={(e) => {
-								e.currentTarget.style.transform = 'translateY(0)';
-								e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
-							}}
-						>
-							<div style={{
-								fontSize: '32px',
-								width: '50px',
-								height: '50px',
-								display: 'flex',
-								alignItems: 'center',
-								justifyContent: 'center',
-								background: 'linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)',
-								borderRadius: '10px',
-								flexShrink: 0
-							}}>ℹ️</div>
-							<div style={{ flex: 1 }}>
-								<div style={{
-									color: colors.text,
-									fontSize: '16px',
-									fontWeight: '700',
-									marginBottom: '6px'
-								}}>
-									About
-								</div>
-								<div style={{
-									color: colors.muted,
-									fontSize: '13px',
-									lineHeight: '1.4'
-								}}>
-									Learn about ZENO Web Core and its features
-								</div>
-							</div>
-						</a>
-
-						{/* Video Players Demo */}
-						<a
-							href="/video-demo"
-							style={{
-								backgroundColor: colors.primary,
-								border: `1px solid ${colors.border}`,
-								borderRadius: '12px',
-								padding: '20px',
-								cursor: 'pointer',
-								display: 'flex',
-								alignItems: 'flex-start',
-								gap: '12px',
-								transition: 'all 0.3s ease',
-								boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-								textDecoration: 'none'
-							}}
-							onMouseEnter={(e) => {
-								e.currentTarget.style.transform = 'translateY(-2px)';
-								e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.15)';
-							}}
-							onMouseLeave={(e) => {
-								e.currentTarget.style.transform = 'translateY(0)';
-								e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
-							}}
-						>
-							<div style={{
-								fontSize: '32px',
-								width: '50px',
-								height: '50px',
-								display: 'flex',
-								alignItems: 'center',
-								justifyContent: 'center',
-								background: 'linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%)',
-								borderRadius: '10px',
-								flexShrink: 0
-							}}>🎬</div>
-							<div style={{ flex: 1 }}>
-								<div style={{
-									color: colors.text,
-									fontSize: '16px',
-									fontWeight: '700',
-									marginBottom: '6px'
-								}}>
-									Video Players
-								</div>
-								<div style={{
-									color: colors.muted,
-									fontSize: '13px',
-									lineHeight: '1.4'
-								}}>
-									Internet Archive, YouTube & Elfsight integration
-								</div>
-							</div>
-						</a>
-
-						{/* Orchestrator */}
-						<a
-							href="/orchestrator"
-							style={{
-								backgroundColor: colors.primary,
-								border: `1px solid ${colors.border}`,
-								borderRadius: '12px',
-								padding: '20px',
-								cursor: 'pointer',
-								display: 'flex',
-								alignItems: 'flex-start',
-								gap: '12px',
-								transition: 'all 0.3s ease',
-								boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-								textDecoration: 'none'
-							}}
-							onMouseEnter={(e) => {
-								e.currentTarget.style.transform = 'translateY(-2px)';
-								e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.15)';
-							}}
-							onMouseLeave={(e) => {
-								e.currentTarget.style.transform = 'translateY(0)';
-								e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
-							}}
-						>
-							<div style={{
-								fontSize: '32px',
-								width: '50px',
-								height: '50px',
-								display: 'flex',
-								alignItems: 'center',
-								justifyContent: 'center',
-								background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-								borderRadius: '10px',
-								flexShrink: 0
-							}}>🎭</div>
-							<div style={{ flex: 1 }}>
-								<div style={{
-									color: colors.text,
-									fontSize: '16px',
-									fontWeight: '700',
-									marginBottom: '6px'
-								}}>
-									Orchestrator + AI Assistant
-								</div>
-								<div style={{
-									color: colors.muted,
-									fontSize: '13px',
-									lineHeight: '1.4'
-								}}>
-									AI-powered content classification & OpenAI chat
-								</div>
-							</div>
-						</a>
-
-						{/* Home */}
-						<a
-							href="/"
-							style={{
-								backgroundColor: colors.primary,
-								border: `2px solid ${colors.border}`,
-								borderRadius: '12px',
-								padding: '20px',
-								cursor: 'pointer',
-								display: 'flex',
-								alignItems: 'flex-start',
-								gap: '12px',
-								transition: 'all 0.3s ease',
-								boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-								textDecoration: 'none'
-							}}
-							onMouseEnter={(e) => {
-								e.currentTarget.style.transform = 'translateY(-2px)';
-								e.currentTarget.style.boxShadow = '0 4px 20px rgba(102, 126, 234, 0.4)';
-							}}
-							onMouseLeave={(e) => {
-								e.currentTarget.style.transform = 'translateY(0)';
-								e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
-							}}
-						>
-							<div style={{
-								fontSize: '32px',
-								width: '50px',
-								height: '50px',
-								display: 'flex',
-								alignItems: 'center',
-								justifyContent: 'center',
-								background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-								borderRadius: '10px',
-								flexShrink: 0
-							}}>🏠</div>
-							<div style={{ flex: 1 }}>
-								<div style={{
-									color: colors.text,
-									fontSize: '16px',
-									fontWeight: '700',
-									marginBottom: '6px'
-								}}>
-									Home
-								</div>
-								<div style={{
-									color: colors.muted,
-									fontSize: '13px',
-									lineHeight: '1.4'
-								}}>
-									Return to main browser interface
-								</div>
-							</div>
-						</a>
-					</div>
-				</div>
-			)}
-
-			{/* WebView renders with position: fixed, no wrapper needed */}
 			<WebView
 				url={currentUrl}
 				isLoading={activeTab?.isLoading || false}
 				title={activeTab?.title || ''}
-				topOffset={showTools ? 480 : (showBookmarks || showHistory ? 320 : 80)}
+				topOffset={showTools ? 480 : (showBookmarks || showHistory ? 320 : 120)}
 			/>
 
 			{isConsoleOpen && (
-				<div style={{
-					position: 'fixed',
-					bottom: 0,
-					left: 0,
-					right: 0,
-					height: '200px',
-					backgroundColor: '#0f172a',
-					borderTop: '1px solid #334155',
-					zIndex: 101,
-					color: 'white',
-					padding: '16px',
-					overflow: 'auto'
-				}}>
+				<div className="fixed bottom-[80px] left-0 right-0 h-[200px] bg-slate-900 border-t border-slate-700 z-[101] text-white p-4 overflow-auto">
 					<h3>MCP Console</h3>
-					<div style={{
-						backgroundColor: '#1e293b',
-						padding: '8px',
-						borderRadius: '4px',
-						fontFamily: 'monospace',
-						fontSize: '12px',
-						marginTop: '8px'
-					}}>
+					<div className="bg-slate-800 p-2 rounded mt-2 font-mono text-xs">
 						{consoleOutput.map((line, i) => (
 							<div key={i}>{line}</div>
 						))}
@@ -1953,582 +719,58 @@ const Browser: React.FC = () => {
 				</div>
 			)}
 
-			{/* Bottom Navigation Bar */}
-			<div style={{
-				position: 'fixed',
-				bottom: 0,
-				left: 0,
-				right: 0,
-				height: '70px',
-				background: `linear-gradient(135deg, ${colors.primary}20, ${colors.secondary}20)`,
-				backdropFilter: 'blur(20px)',
-				borderTop: `1px solid ${colors.border}`,
-				display: 'flex',
-				alignItems: 'center',
-				justifyContent: 'space-around',
-				padding: '0 20px',
-				zIndex: 1000,
-				boxShadow: `0 -4px 20px ${colors.primary}10`
-			}}>
-				{/* MCP Tools Button */}
-				<button
-					onClick={() => {
-						// Check if user has access to MCP tools
-						if (!checkFeatureAccess('mcp_tools')) {
-							promptUpgrade('MCP Tools Integration', '🔧', 'monthly');
-							return;
-						}
-						setIsConsoleOpen(!isConsoleOpen);
-					}}
-					style={{
-						background: isConsoleOpen
-							? `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`
-							: `linear-gradient(135deg, ${colors.primary}40, ${colors.secondary}40)`,
-						border: 'none',
-						borderRadius: '15px',
-						padding: '12px 16px',
-						color: 'white',
-						cursor: 'pointer',
-						display: 'flex',
-						flexDirection: 'column',
-						alignItems: 'center',
-						gap: '4px',
-						fontSize: '11px',
-						fontWeight: '500',
-						minWidth: '80px',
-						transition: 'all 0.3s ease',
-						backdropFilter: 'blur(10px)',
-						boxShadow: isConsoleOpen ? `0 4px 15px ${colors.primary}40` : 'none'
-					}}
-					onMouseEnter={(e) => {
-						e.currentTarget.style.transform = 'translateY(-2px)';
-						e.currentTarget.style.boxShadow = `0 6px 20px ${colors.primary}60`;
-					}}
-					onMouseLeave={(e) => {
-						e.currentTarget.style.transform = 'translateY(0)';
-						e.currentTarget.style.boxShadow = isConsoleOpen ? `0 4px 15px ${colors.primary}40` : 'none';
-					}}
-				>
-					<span style={{ fontSize: '16px' }}>🔧</span>
-					<span>MCP Tools</span>
-				</button>
-
-				{/* Bookmarks Button */}
-				<button
-					onClick={() => setShowBookmarks(!showBookmarks)}
-					style={{
-						background: showBookmarks
-							? `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`
-							: `linear-gradient(135deg, ${colors.primary}40, ${colors.secondary}40)`,
-						border: 'none',
-						borderRadius: '15px',
-						padding: '12px 16px',
-						color: 'white',
-						cursor: 'pointer',
-						display: 'flex',
-						flexDirection: 'column',
-						alignItems: 'center',
-						gap: '4px',
-						fontSize: '11px',
-						fontWeight: '500',
-						minWidth: '80px',
-						transition: 'all 0.3s ease',
-						backdropFilter: 'blur(10px)',
-						boxShadow: showBookmarks ? `0 4px 15px ${colors.primary}40` : 'none'
-					}}
-					onMouseEnter={(e) => {
-						e.currentTarget.style.transform = 'translateY(-2px)';
-						e.currentTarget.style.boxShadow = `0 6px 20px ${colors.primary}60`;
-					}}
-					onMouseLeave={(e) => {
-						e.currentTarget.style.transform = 'translateY(0)';
-						e.currentTarget.style.boxShadow = showBookmarks ? `0 4px 15px ${colors.primary}40` : 'none';
-					}}
-				>
-					<span style={{ fontSize: '16px' }}>⭐</span>
-					<span>Bookmarks</span>
-				</button>
-
-				{/* History Button */}
-				<button
-					onClick={() => setShowHistory(!showHistory)}
-					style={{
-						background: showHistory
-							? `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`
-							: `linear-gradient(135deg, ${colors.primary}40, ${colors.secondary}40)`,
-						border: 'none',
-						borderRadius: '15px',
-						padding: '12px 16px',
-						color: 'white',
-						cursor: 'pointer',
-						display: 'flex',
-						flexDirection: 'column',
-						alignItems: 'center',
-						gap: '4px',
-						fontSize: '11px',
-						fontWeight: '500',
-						minWidth: '80px',
-						transition: 'all 0.3s ease',
-						backdropFilter: 'blur(10px)',
-						boxShadow: showHistory ? `0 4px 15px ${colors.primary}40` : 'none'
-					}}
-					onMouseEnter={(e) => {
-						e.currentTarget.style.transform = 'translateY(-2px)';
-						e.currentTarget.style.boxShadow = `0 6px 20px ${colors.primary}60`;
-					}}
-					onMouseLeave={(e) => {
-						e.currentTarget.style.transform = 'translateY(0)';
-						e.currentTarget.style.boxShadow = showHistory ? `0 4px 15px ${colors.primary}40` : 'none';
-					}}
-				>
-					<span style={{ fontSize: '16px' }}>📜</span>
-					<span>History</span>
-				</button>
-
-				{/* Tools Button */}
-				<button
-					onClick={() => setShowTools(!showTools)}
-					style={{
-						background: showTools
-							? `linear-gradient(135deg, #f59e0b, #d97706)`
-							: `linear-gradient(135deg, #f59e0b40, #d9770640)`,
-						border: 'none',
-						borderRadius: '15px',
-						padding: '12px 16px',
-						color: 'white',
-						cursor: 'pointer',
-						display: 'flex',
-						flexDirection: 'column',
-						alignItems: 'center',
-						gap: '4px',
-						fontSize: '11px',
-						fontWeight: '500',
-						minWidth: '80px',
-						transition: 'all 0.3s ease',
-						backdropFilter: 'blur(10px)',
-						boxShadow: showTools ? '0 4px 15px #f59e0b40' : 'none'
-					}}
-					onMouseEnter={(e) => {
-						e.currentTarget.style.transform = 'translateY(-2px)';
-						e.currentTarget.style.boxShadow = '0 6px 20px #f59e0b60';
-					}}
-					onMouseLeave={(e) => {
-						e.currentTarget.style.transform = 'translateY(0)';
-						e.currentTarget.style.boxShadow = showTools ? '0 4px 15px #f59e0b40' : 'none';
-					}}
-				>
-					<span style={{ fontSize: '16px' }}>🛠️</span>
-					<span>Tools</span>
-				</button>
-
-				{/* Local Chat Button */}
-				<button
-					onClick={() => {
-						// Check if user has access to Ollama integration
+			<BrowserBottomNav
+				theme={theme}
+				states={{
+					isConsoleOpen,
+					showBookmarks,
+					showHistory,
+					showTools,
+					isLocalChatOpen,
+					isWikipediaOpen,
+					isOnThisDayOpen,
+					isBirthdaySongOpen,
+					isChatOpen,
+					isMusicPlayerOpen,
+					isVideoPlayerOpen,
+					isAdminPanelOpen,
+					isSettingsOpen
+				}}
+				actions={{
+					toggleConsole: () => setIsConsoleOpen(!isConsoleOpen),
+					toggleBookmarks: () => setShowBookmarks(!showBookmarks),
+					toggleHistory: () => setShowHistory(!showHistory),
+					toggleTools: () => setShowTools(!showTools),
+					toggleLocalChat: () => {
 						if (!checkFeatureAccess('ollama_integration')) {
 							promptUpgrade('Local Ollama Models', '🦙', 'monthly');
 							return;
 						}
 						setIsLocalChatOpen(!isLocalChatOpen);
-					}}
-					style={{
-						background: isLocalChatOpen
-							? `linear-gradient(135deg, #8b5cf6, #7c3aed)`
-							: `linear-gradient(135deg, #8b5cf640, #7c3aed40)`,
-						border: 'none',
-						borderRadius: '15px',
-						padding: '12px 16px',
-						color: 'white',
-						cursor: 'pointer',
-						display: 'flex',
-						flexDirection: 'column',
-						alignItems: 'center',
-						gap: '4px',
-						fontSize: '11px',
-						fontWeight: '500',
-						minWidth: '80px',
-						transition: 'all 0.3s ease',
-						backdropFilter: 'blur(10px)',
-						boxShadow: isLocalChatOpen ? '0 4px 15px #8b5cf640' : 'none'
-					}}
-					onMouseEnter={(e) => {
-						e.currentTarget.style.transform = 'translateY(-2px)';
-						e.currentTarget.style.boxShadow = '0 6px 20px #8b5cf660';
-					}}
-					onMouseLeave={(e) => {
-						e.currentTarget.style.transform = 'translateY(0)';
-						e.currentTarget.style.boxShadow = isLocalChatOpen ? '0 4px 15px #8b5cf640' : 'none';
-					}}
-				>
-					<span style={{ fontSize: '16px' }}>🤖</span>
-					<span>Local AI</span>
-				</button>
-
-				{/* Wikipedia Widget Button */}
-				<button
-					onClick={() => setIsWikipediaOpen(!isWikipediaOpen)}
-					style={{
-						background: isWikipediaOpen
-							? `linear-gradient(135deg, #3b82f6, #2563eb)`
-							: `linear-gradient(135deg, #3b82f640, #2563eb40)`,
-						border: 'none',
-						borderRadius: '15px',
-						padding: '12px 16px',
-						color: 'white',
-						cursor: 'pointer',
-						display: 'flex',
-						flexDirection: 'column',
-						alignItems: 'center',
-						gap: '4px',
-						fontSize: '11px',
-						fontWeight: '500',
-						minWidth: '80px',
-						transition: 'all 0.3s ease',
-						backdropFilter: 'blur(10px)',
-						boxShadow: isWikipediaOpen ? '0 4px 15px #3b82f640' : 'none'
-					}}
-					onMouseEnter={(e) => {
-						e.currentTarget.style.transform = 'translateY(-2px)';
-						e.currentTarget.style.boxShadow = '0 6px 20px #3b82f660';
-					}}
-					onMouseLeave={(e) => {
-						e.currentTarget.style.transform = 'translateY(0)';
-						e.currentTarget.style.boxShadow = isWikipediaOpen ? '0 4px 15px #3b82f640' : 'none';
-					}}
-				>
-					<span style={{ fontSize: '16px' }}>📚</span>
-					<span>Wikipedia</span>
-				</button>
-
-				{/* On This Day Widget Button */}
-				<button
-					onClick={() => setIsOnThisDayOpen(!isOnThisDayOpen)}
-					style={{
-						background: isOnThisDayOpen
-							? `linear-gradient(135deg, #3b82f6, #1e40af)`
-							: `linear-gradient(135deg, #3b82f640, #1e40af40)`,
-						border: 'none',
-						borderRadius: '15px',
-						padding: '12px 16px',
-						color: 'white',
-						cursor: 'pointer',
-						display: 'flex',
-						flexDirection: 'column',
-						alignItems: 'center',
-						gap: '4px',
-						fontSize: '11px',
-						fontWeight: '500',
-						minWidth: '80px',
-						transition: 'all 0.3s ease',
-						backdropFilter: 'blur(10px)',
-						boxShadow: isOnThisDayOpen ? '0 4px 15px #3b82f640' : 'none'
-					}}
-					onMouseEnter={(e) => {
-						e.currentTarget.style.transform = 'translateY(-2px)';
-						e.currentTarget.style.boxShadow = '0 6px 20px #3b82f660';
-					}}
-					onMouseLeave={(e) => {
-						e.currentTarget.style.transform = 'translateY(0)';
-						e.currentTarget.style.boxShadow = isOnThisDayOpen ? '0 4px 15px #3b82f640' : 'none';
-					}}
-				>
-					<span style={{ fontSize: '16px' }}>📅</span>
-					<span>W tym dniu</span>
-				</button>
-
-				{/* Birthday Song Widget Button */}
-				<button
-					onClick={() => setIsBirthdaySongOpen(!isBirthdaySongOpen)}
-					style={{
-						background: isBirthdaySongOpen
-							? `linear-gradient(135deg, #ec4899, #db2777)`
-							: `linear-gradient(135deg, #ec489940, #db277740)`,
-						border: 'none',
-						borderRadius: '15px',
-						padding: '12px 16px',
-						color: 'white',
-						cursor: 'pointer',
-						display: 'flex',
-						flexDirection: 'column',
-						alignItems: 'center',
-						gap: '4px',
-						fontSize: '11px',
-						fontWeight: '500',
-						minWidth: '80px',
-						transition: 'all 0.3s ease',
-						backdropFilter: 'blur(10px)',
-						boxShadow: isBirthdaySongOpen ? '0 4px 15px #ec489940' : 'none'
-					}}
-					onMouseEnter={(e) => {
-						e.currentTarget.style.transform = 'translateY(-2px)';
-						e.currentTarget.style.boxShadow = '0 6px 20px #ec489960';
-					}}
-					onMouseLeave={(e) => {
-						e.currentTarget.style.transform = 'translateY(0)';
-						e.currentTarget.style.boxShadow = isBirthdaySongOpen ? '0 4px 15px #ec489940' : 'none';
-					}}
-				>
-					<span style={{ fontSize: '16px' }}>🎵</span>
-					<span>Urodziny</span>
-				</button>
-
-				{/* Add Bookmark Button */}
-				<button
-					onClick={addBookmark}
-					style={{
-						background: `linear-gradient(135deg, #10b981, #059669)`,
-						border: 'none',
-						borderRadius: '15px',
-						padding: '12px 16px',
-						color: 'white',
-						cursor: 'pointer',
-						display: 'flex',
-						flexDirection: 'column',
-						alignItems: 'center',
-						gap: '4px',
-						fontSize: '11px',
-						fontWeight: '500',
-						minWidth: '80px',
-						transition: 'all 0.3s ease',
-						backdropFilter: 'blur(10px)'
-					}}
-					onMouseEnter={(e) => {
-						e.currentTarget.style.transform = 'translateY(-2px)';
-						e.currentTarget.style.boxShadow = '0 6px 20px #10b98160';
-					}}
-					onMouseLeave={(e) => {
-						e.currentTarget.style.transform = 'translateY(0)';
-						e.currentTarget.style.boxShadow = 'none';
-					}}
-				>
-					<span style={{ fontSize: '16px' }}>➕</span>
-					<span>Add Bookmark</span>
-				</button>
-
-				{/* AI Chat Button */}
-				<button
-					onClick={() => {
-						// Check if user has access to AI assistant
+					},
+					toggleWikipedia: () => setIsWikipediaOpen(!isWikipediaOpen),
+					toggleOnThisDay: () => setIsOnThisDayOpen(!isOnThisDayOpen),
+					toggleBirthdaySong: () => setIsBirthdaySongOpen(!isBirthdaySongOpen),
+					toggleChat: () => {
 						if (!checkFeatureAccess('ai_assistant')) {
 							promptUpgrade('AI Assistant', '🤖', 'monthly');
 							return;
 						}
-						console.log('AI Chat button clicked, current state:', isChatOpen);
 						setIsChatOpen(!isChatOpen);
-					}}
-					style={{
-						background: isChatOpen
-							? `linear-gradient(135deg, #6366f1, #8b5cf6)`
-							: `linear-gradient(135deg, #6366f140, #8b5cf640)`,
-						border: 'none',
-						borderRadius: '15px',
-						padding: '12px 16px',
-						color: 'white',
-						cursor: 'pointer',
-						display: 'flex',
-						flexDirection: 'column',
-						alignItems: 'center',
-						gap: '4px',
-						fontSize: '11px',
-						fontWeight: '500',
-						minWidth: '80px',
-						transition: 'all 0.3s ease',
-						backdropFilter: 'blur(10px)',
-						boxShadow: isChatOpen ? `0 4px 15px #6366f140` : 'none'
-					}}
-					onMouseEnter={(e) => {
-						e.currentTarget.style.transform = 'translateY(-2px)';
-						e.currentTarget.style.boxShadow = `0 6px 20px #6366f160`;
-					}}
-					onMouseLeave={(e) => {
-						e.currentTarget.style.transform = 'translateY(0)';
-						e.currentTarget.style.boxShadow = isChatOpen ? `0 4px 15px #6366f140` : 'none';
-					}}
-				>
-					<span style={{ fontSize: '16px' }}>🤖</span>
-					<span>AI Chat</span>
-				</button>
-
-				{/* Music Player Button */}
-				<button
-					onClick={() => setIsMusicPlayerOpen(!isMusicPlayerOpen)}
-					style={{
-						background: isMusicPlayerOpen
-							? `linear-gradient(135deg, #f093fb 0%, #f5576c 100%)`
-							: `linear-gradient(135deg, #f093fb40, #f5576c40)`,
-						border: 'none',
-						borderRadius: '15px',
-						padding: '12px 16px',
-						color: 'white',
-						cursor: 'pointer',
-						display: 'flex',
-						flexDirection: 'column',
-						alignItems: 'center',
-						gap: '4px',
-						fontSize: '11px',
-						fontWeight: '500',
-						minWidth: '80px',
-						transition: 'all 0.3s ease',
-						backdropFilter: 'blur(10px)',
-						boxShadow: isMusicPlayerOpen ? '0 4px 15px #f093fb40' : 'none'
-					}}
-					onMouseEnter={(e) => {
-						e.currentTarget.style.transform = 'translateY(-2px)';
-						e.currentTarget.style.boxShadow = '0 6px 20px #f093fb60';
-					}}
-					onMouseLeave={(e) => {
-						e.currentTarget.style.transform = 'translateY(0)';
-						e.currentTarget.style.boxShadow = isMusicPlayerOpen ? '0 4px 15px #f093fb40' : 'none';
-					}}
-				>
-					<span style={{ fontSize: '16px' }}>🎵</span>
-					<span>Music</span>
-				</button>
-
-				{/* Video Player Button */}
-				<button
-					onClick={() => setIsVideoPlayerOpen(!isVideoPlayerOpen)}
-					style={{
-						background: isVideoPlayerOpen
-							? `linear-gradient(135deg, #f59e0b 0%, #d97706 100%)`
-							: `linear-gradient(135deg, #f59e0b40, #d9770640)`,
-						border: 'none',
-						borderRadius: '15px',
-						padding: '12px 16px',
-						color: 'white',
-						cursor: 'pointer',
-						display: 'flex',
-						flexDirection: 'column',
-						alignItems: 'center',
-						gap: '4px',
-						fontSize: '11px',
-						fontWeight: '500',
-						minWidth: '80px',
-						transition: 'all 0.3s ease',
-						backdropFilter: 'blur(10px)',
-						boxShadow: isVideoPlayerOpen ? '0 4px 15px #f59e0b40' : 'none'
-					}}
-					onMouseEnter={(e) => {
-						e.currentTarget.style.transform = 'translateY(-2px)';
-						e.currentTarget.style.boxShadow = '0 6px 20px #f59e0b60';
-					}}
-					onMouseLeave={(e) => {
-						e.currentTarget.style.transform = 'translateY(0)';
-						e.currentTarget.style.boxShadow = isVideoPlayerOpen ? '0 4px 15px #f59e0b40' : 'none';
-					}}
-				>
-					<span style={{ fontSize: '16px' }}>🎬</span>
-					<span>Video</span>
-				</button>
-
-				{/* Admin Panel Button (Hidden - accessible via keyboard shortcut) */}
-				<button
-					onClick={() => setIsAdminPanelOpen(true)}
-					style={{
-						background: `linear-gradient(135deg, #dc2626 0%, #991b1b 100%)`,
-						border: 'none',
-						borderRadius: '15px',
-						padding: '12px 16px',
-						color: 'white',
-						cursor: 'pointer',
-						display: 'flex',
-						flexDirection: 'column',
-						alignItems: 'center',
-						gap: '4px',
-						fontSize: '11px',
-						fontWeight: '500',
-						minWidth: '80px',
-						transition: 'all 0.3s ease',
-						backdropFilter: 'blur(10px)'
-					}}
-					onMouseEnter={(e) => {
-						e.currentTarget.style.transform = 'translateY(-2px)';
-						e.currentTarget.style.boxShadow = '0 6px 20px #dc262660';
-					}}
-					onMouseLeave={(e) => {
-						e.currentTarget.style.transform = 'translateY(0)';
-						e.currentTarget.style.boxShadow = 'none';
-					}}
-				>
-					<span style={{ fontSize: '16px' }}>🔐</span>
-					<span>Admin</span>
-				</button>
-
-				{/* Widget Panel Button - Rainmeter-style */}
-				<button
-					onClick={() => {
+					},
+					toggleMusicPlayer: () => setIsMusicPlayerOpen(!isMusicPlayerOpen),
+					toggleVideoPlayer: () => setIsVideoPlayerOpen(!isVideoPlayerOpen),
+					openAdminPanel: () => setIsAdminPanelOpen(true),
+					openWidgets: () => {
 						setIsClockWidgetOpen(true);
 						setIsShortcutsWidgetOpen(true);
 						setIsMusicWidgetOpen(true);
-					}}
-					style={{
-						background: `linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)`,
-						border: 'none',
-						borderRadius: '15px',
-						padding: '12px 16px',
-						color: 'white',
-						cursor: 'pointer',
-						display: 'flex',
-						flexDirection: 'column',
-						alignItems: 'center',
-						gap: '4px',
-						fontSize: '11px',
-						fontWeight: '500',
-						minWidth: '80px',
-						transition: 'all 0.3s ease',
-						backdropFilter: 'blur(10px)'
-					}}
-					onMouseEnter={(e) => {
-						e.currentTarget.style.transform = 'translateY(-2px)';
-						e.currentTarget.style.boxShadow = '0 6px 20px #8b5cf660';
-					}}
-					onMouseLeave={(e) => {
-						e.currentTarget.style.transform = 'translateY(0)';
-						e.currentTarget.style.boxShadow = 'none';
-					}}
-				>
-					<span style={{ fontSize: '16px' }}>🎨</span>
-					<span>Widgets</span>
-				</button>
+					},
+					openSettings: () => setIsSettingsOpen(true),
+					addBookmark: addBookmark
+				}}
+			/>
 
-				{/* Settings Button */}
-				<button
-					onClick={() => {
-						console.log('Settings button clicked');
-						setIsSettingsOpen(true);
-					}}
-					style={{
-						background: `linear-gradient(135deg, ${colors.accent}, ${colors.primary})`,
-						border: 'none',
-						borderRadius: '15px',
-						padding: '12px 16px',
-						color: 'white',
-						cursor: 'pointer',
-						display: 'flex',
-						flexDirection: 'column',
-						alignItems: 'center',
-						gap: '4px',
-						fontSize: '11px',
-						fontWeight: '500',
-						minWidth: '80px',
-						transition: 'all 0.3s ease',
-						backdropFilter: 'blur(10px)'
-					}}
-					onMouseEnter={(e) => {
-						e.currentTarget.style.transform = 'translateY(-2px)';
-						e.currentTarget.style.boxShadow = `0 6px 20px ${colors.accent}60`;
-					}}
-					onMouseLeave={(e) => {
-						e.currentTarget.style.transform = 'translateY(0)';
-						e.currentTarget.style.boxShadow = 'none';
-					}}
-				>
-					<span style={{ fontSize: '16px' }}>⚙️</span>
-					<span>Settings</span>
-				</button>
-			</div>
-
-			{/* AI Components */}
 			<ChatPanel
 				isOpen={isChatOpen}
 				onClose={() => setIsChatOpen(false)}
@@ -2541,52 +783,24 @@ const Browser: React.FC = () => {
 				isOpen={isSettingsOpen}
 				onClose={() => setIsSettingsOpen(false)}
 				onConfigured={() => {
-					// Refresh MCP status after configuration
 					setConsoleOutput(prev => [...prev, 'MCP service configured successfully']);
 				}}
 			/>
 
-			{/* Ollama Chatbot */}
-			{isLocalChatOpen && (
-				<OllamaChatbot onClose={() => setIsLocalChatOpen(false)} />
-			)}
+			{isLocalChatOpen && <OllamaChatbot onClose={() => setIsLocalChatOpen(false)} />}
+			{isWikipediaOpen && <WikipediaWidget onClose={() => setIsWikipediaOpen(false)} />}
+			{isOnThisDayOpen && <OnThisDayWidget onClose={() => setIsOnThisDayOpen(false)} />}
+			{isBirthdaySongOpen && <BirthdaySongWidget onClose={() => setIsBirthdaySongOpen(false)} />}
 
-			{/* Wikipedia Widget */}
-			{isWikipediaOpen && (
-				<WikipediaWidget onClose={() => setIsWikipediaOpen(false)} />
-			)}
-
-			{/* On This Day Widget */}
-			{isOnThisDayOpen && (
-				<OnThisDayWidget onClose={() => setIsOnThisDayOpen(false)} />
-			)}
-
-			{/* Birthday Song Widget */}
-			{isBirthdaySongOpen && (
-				<BirthdaySongWidget onClose={() => setIsBirthdaySongOpen(false)} />
-			)}
-
-			{/* Backdrop for Local Chat */}
 			{isLocalChatOpen && (
 				<div
 					onClick={() => setIsLocalChatOpen(false)}
-					style={{
-						position: 'fixed',
-						top: 0,
-						left: 0,
-						right: 0,
-						bottom: 0,
-						backgroundColor: 'rgba(0, 0, 0, 0.7)',
-						backdropFilter: 'blur(4px)',
-						zIndex: 9999
-					}}
+					className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[9999]"
 				/>
 			)}
 
-			{/* Music Player (Webamp) - FLOATING BEZ BACKDROP */}
-			{isMusicPlayerOpen && (
-				<MusicPlayer onClose={() => setIsMusicPlayerOpen(false)} />
-			)}			{/* Floating Windows */}
+			{isMusicPlayerOpen && <MusicPlayer onClose={() => setIsMusicPlayerOpen(false)} />}
+
 			{floatingWindows.map(window => (
 				<FloatingWindow
 					key={window.id}
@@ -2603,7 +817,6 @@ const Browser: React.FC = () => {
 				/>
 			))}
 
-			{/* Admin Panel */}
 			<AdminPanel
 				isOpen={isAdminPanelOpen}
 				onClose={() => setIsAdminPanelOpen(false)}
@@ -2613,23 +826,12 @@ const Browser: React.FC = () => {
 				}}
 			/>
 
-			{/* Video Player Panel (Floating) */}
-			{isVideoPlayerOpen && (
-				<VideoPlayerPanel onClose={() => setIsVideoPlayerOpen(false)} />
-			)}
+			{isVideoPlayerOpen && <VideoPlayerPanel onClose={() => setIsVideoPlayerOpen(false)} />}
 
-			{/* Widget Panel (Rainmeter-style) */}
-			{isClockWidgetOpen && (
-				<ClockWidget onClose={() => setIsClockWidgetOpen(false)} />
-			)}
-			{isShortcutsWidgetOpen && (
-				<ShortcutsWidget onClose={() => setIsShortcutsWidgetOpen(false)} />
-			)}
-			{isMusicWidgetOpen && (
-				<MusicPlayerWidget onClose={() => setIsMusicWidgetOpen(false)} />
-			)}
+			{isClockWidgetOpen && <ClockWidget onClose={() => setIsClockWidgetOpen(false)} />}
+			{isShortcutsWidgetOpen && <ShortcutsWidget onClose={() => setIsShortcutsWidgetOpen(false)} />}
+			{isMusicWidgetOpen && <MusicPlayerWidget onClose={() => setIsMusicWidgetOpen(false)} />}
 
-			{/* Upgrade Prompt Modal */}
 			{showUpgradePrompt && upgradeFeature && (
 				<UpgradePrompt
 					featureName={upgradeFeature.name}

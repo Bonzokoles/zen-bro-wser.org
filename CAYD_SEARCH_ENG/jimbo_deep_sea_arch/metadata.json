@@ -1,0 +1,5 @@
+{
+  "name": "JImbo_Deep_Sea_arch",
+  "description": "An AI-powered application that performs deep research on a given topic, synthesizing information from numerous web sources into a comprehensive report and a structured dataset. Features a standard search and an enhanced 'Deep Search' mode for more complex queries.",
+  "requestFramePermissions": []
+}

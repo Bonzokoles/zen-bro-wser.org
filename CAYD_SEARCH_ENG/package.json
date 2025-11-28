@@ -2,12 +2,12 @@
   "name": "cayd_search_eng",
   "version": "1.0.0",
   "description": "Projekt modularnej, retro-w stylizowanej przeglądarki/katalogu z wyszukiwarką i playerem multimediów.",
-  "main": "index.js",
+  "main": "main.js",
   "directories": {
     "doc": "docs"
   },
   "scripts": {
-    "start": "node source/server.js",
+    "start": "electron .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -19,5 +19,8 @@
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "electron": "^39.2.4"
   }
 }

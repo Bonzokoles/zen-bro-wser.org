@@ -41,6 +41,18 @@ const port = 6040;
 const { getCatalog } = require('./catalog');
 const { getLibraryStructure, getPathsConfig, readMetadataDir } = require('./libraryReader');
 
+// Global error handlers to prevent crashes
+process.on('uncaughtException', (error) => {
+    console.error('Uncaught Exception:', error.message);
+    console.error('Server will continue running...');
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled Rejection at:', promise);
+    console.error('Reason:', reason);
+    console.error('Server will continue running...');
+});
+
 // Endpoint testowy
 app.get('/api/status', (req, res) => {
     res.json({ status: 'ok', message: 'Serwer działa' });
@@ -265,40 +277,84 @@ io.on('connection', (socket) => {
 });
 
 // STEP_06: File watcher setup
-const config = getPathsConfig();
-const watcher = chokidar.watch(config.librariesRoot, {
-    ignored: /(^|[\/\\])\../, // ignore dotfiles
-    persistent: true,
-    ignoreInitial: true
-});
+let config;
+try {
+    config = getPathsConfig();
+} catch (err) {
+    console.error('Failed to load config:', err.message);
+    console.error('File watcher will not be initialized');
+    config = null;
+}
 
-watcher
-    .on('add', (filePath) => {
-        const relativePath = path.relative(config.librariesRoot, filePath);
-        console.log(`File added: ${relativePath}`);
-        io.emit('fileChanged', {
-            type: 'add',
-            path: relativePath,
-            timestamp: Date.now()
+// Add error handling for watcher
+let watcher = null;
+if (config && config.librariesRoot) {
+    try {
+        watcher = chokidar.watch(config.librariesRoot, {
+            ignored: [
+                /(^|[\/\\])\../,  // ignore dotfiles
+                /_agent_logs/,     // ignore agent logs (too frequent updates)
+                /FINANCE_DATA/     // ignore finance data
+            ],
+            persistent: true,
+            ignoreInitial: true,
+            awaitWriteFinish: {
+                stabilityThreshold: 2000,
+                pollInterval: 100
+            }
         });
-    })
-    .on('change', (filePath) => {
-        const relativePath = path.relative(config.librariesRoot, filePath);
-        console.log(`File changed: ${relativePath}`);
-        io.emit('fileChanged', {
-            type: 'change',
-            path: relativePath,
-            timestamp: Date.now()
-        });
-    })
-    .on('unlink', (filePath) => {
-        const relativePath = path.relative(config.librariesRoot, filePath);
-        console.log(`File removed: ${relativePath}`);
-        io.emit('fileChanged', {
-            type: 'unlink',
-            path: relativePath,
-            timestamp: Date.now()
-        });
-    });
 
-console.log(`Watching for file changes in: ${config.librariesRoot}`);
+        // CRITICAL: Error handler prevents crashes
+        watcher
+            .on('error', (error) => {
+                console.error('❌ File watcher error:', error);
+                console.error('Watcher will continue running despite error');
+                // Don't crash - just log and continue
+            })
+            .on('add', (filePath) => {
+                try {
+                    const relativePath = path.relative(config.librariesRoot, filePath);
+                    console.log(`File added: ${relativePath}`);
+                    io.emit('fileChanged', {
+                        type: 'add',
+                        path: relativePath,
+                        timestamp: Date.now()
+                    });
+                } catch (err) {
+                    console.error('Error handling file add:', err.message);
+                }
+            })
+            .on('change', (filePath) => {
+                try {
+                    const relativePath = path.relative(config.librariesRoot, filePath);
+                    console.log(`File changed: ${relativePath}`);
+                    io.emit('fileChanged', {
+                        type: 'change',
+                        path: relativePath,
+                        timestamp: Date.now()
+                    });
+                } catch (err) {
+                    console.error('Error handling file change:', err.message);
+                }
+            })
+            .on('unlink', (filePath) => {
+                try {
+                    const relativePath = path.relative(config.librariesRoot, filePath);
+                    console.log(`File removed: ${relativePath}`);
+                    io.emit('fileChanged', {
+                        type: 'unlink',
+                        path: relativePath,
+                        timestamp: Date.now()
+                    });
+                } catch (err) {
+                    console.error('Error handling file unlink:', err.message);
+                }
+            });
+
+        console.log(`Watching for file changes in: ${config.librariesRoot}`);
+    } catch (err) {
+        console.error('Failed to initialize file watcher:', err.message);
+        console.log('Server will continue without file watching');
+    }
+}
+

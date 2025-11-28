@@ -26,7 +26,9 @@ interface UnifiedSearchResults {
     tavily_results?: any;
     ai_analysis?: any;
     deduplication?: DeduplicationStats;
+
     stats: SearchStats;
+    local_results?: any;
 }
 
 export default function UnifiedSearch({ onSearch }: UnifiedSearchProps) {
@@ -36,7 +38,8 @@ export default function UnifiedSearch({ onSearch }: UnifiedSearchProps) {
     const [selectedSources, setSelectedSources] = useState({
         cayd: true,
         tavily: true,
-        ai: false
+        ai: false,
+        local: true
     });
     const [showDuplicates, setShowDuplicates] = useState(false);
     const [highlightedGroup, setHighlightedGroup] = useState<number | null>(null);
@@ -49,29 +52,80 @@ export default function UnifiedSearch({ onSearch }: UnifiedSearchProps) {
         setIsLoading(true);
 
         try {
+            const searchPromises = [];
+
+            // 1. Server-side search (CAYD, Tavily, AI)
             const sources = Object.entries(selectedSources)
-                .filter(([_, enabled]) => enabled)
+                .filter(([source, enabled]) => enabled && source !== 'local')
                 .map(([source, _]) => source)
                 .join(',');
 
-            const response = await fetch(
-                `/api/unified-search?query=${encodeURIComponent(query)}&sources=${sources}&limit=50`
-            );
-
-            if (!response.ok) {
-                throw new Error(`Search failed: ${response.statusText}`);
+            if (sources) {
+                searchPromises.push(
+                    fetch(`/api/unified-search?query=${encodeURIComponent(query)}&sources=${sources}&limit=50`)
+                        .then(res => res.json())
+                );
+            } else {
+                searchPromises.push(Promise.resolve({ stats: { total_count: 0 }, cayd_results: {}, tavily_results: {} }));
             }
 
-            const data = await response.json();
-            setResults(data);
+            // 2. Local Libraries search (Client-side)
+            if (selectedSources.local) {
+                searchPromises.push(
+                    fetch('http://localhost:6030/api/libraries')
+                        .then(res => {
+                            if (!res.ok) throw new Error('Local server not reachable');
+                            return res.json();
+                        })
+                        .then(data => {
+                            // Client-side filtering
+                            const matches: any[] = [];
+                            const q = query.toLowerCase();
+
+                            Object.entries(data).forEach(([category, items]: [string, any]) => {
+                                if (Array.isArray(items)) {
+                                    items.forEach((item: any) => {
+                                        if (JSON.stringify(item).toLowerCase().includes(q)) {
+                                            matches.push({ ...item, category });
+                                        }
+                                    });
+                                }
+                            });
+                            return { local_results: matches };
+                        })
+                        .catch(err => {
+                            console.warn('Local search failed:', err);
+                            return { local_results: { error: 'Could not connect to Local Libraries (is server running on port 6030?)' } };
+                        })
+                );
+            }
+
+            const [serverResults, localResults] = await Promise.all(searchPromises);
+
+            // Merge results
+            const finalResults = {
+                ...serverResults,
+                local_results: localResults?.local_results || [],
+                query
+            };
+
+            // Update stats if local results exist
+            if (Array.isArray(finalResults.local_results)) {
+                finalResults.stats = {
+                    ...finalResults.stats,
+                    local_count: finalResults.local_results.length,
+                    total_count: (finalResults.stats?.total_count || 0) + finalResults.local_results.length
+                };
+            }
+
+            setResults(finalResults);
 
             if (onSearch) {
-                onSearch(data);
+                onSearch(finalResults);
             }
 
-            // Fire custom event for Browser.tsx to handle
             window.dispatchEvent(new CustomEvent('unified-search-complete', {
-                detail: data
+                detail: finalResults
             }));
 
         } catch (error) {
@@ -82,7 +136,7 @@ export default function UnifiedSearch({ onSearch }: UnifiedSearchProps) {
         }
     };
 
-    const toggleSource = (source: 'cayd' | 'tavily' | 'ai') => {
+    const toggleSource = (source: 'cayd' | 'tavily' | 'ai' | 'local') => {
         setSelectedSources(prev => ({
             ...prev,
             [source]: !prev[source]
@@ -108,7 +162,7 @@ export default function UnifiedSearch({ onSearch }: UnifiedSearchProps) {
                     marginBottom: '0',
                     letterSpacing: '0.5px'
                 }}>
-                    CAYD_UNI_field_sea_ARCH
+                    CAYD - WYSZUKIWANIE INTERNETU
                 </h2>
             </div>
 
@@ -212,6 +266,24 @@ export default function UnifiedSearch({ onSearch }: UnifiedSearchProps) {
                             style={{ cursor: 'pointer' }}
                         />
                         🔬 AI Enrichment (Gemini)
+                    </label>
+
+                    <label style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        cursor: 'pointer',
+                        fontSize: '12px',
+                        color: selectedSources.local ? '#f59e0b' : '#64748b'
+                    }}>
+                        <input
+                            type="checkbox"
+                            checked={selectedSources.local}
+                            onChange={() => toggleSource('local')}
+                            disabled={isLoading}
+                            style={{ cursor: 'pointer' }}
+                        />
+                        🖥️ Local Libraries (U:)
                     </label>
                 </div>
             </form>
@@ -384,6 +456,78 @@ export default function UnifiedSearch({ onSearch }: UnifiedSearchProps) {
                                         </ul>
                                     ) : (
                                         <p style={{ color: '#64748b' }}>No results found</p>
+                                    )}
+                                </div>
+                            </div>
+
+                        )}
+
+                        {/* Local Results */}
+                        {results.local_results && (
+                            <div style={{
+                                padding: '10px',
+                                background: 'rgba(245, 158, 11, 0.1)',
+                                borderRadius: '6px',
+                                border: '1px solid rgba(245, 158, 11, 0.3)'
+                            }}>
+                                <h3 style={{
+                                    fontSize: '13px',
+                                    color: '#f59e0b',
+                                    marginBottom: '8px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '6px'
+                                }}>
+                                    🖥️ Local Libraries
+                                    <span style={{
+                                        fontSize: '10px',
+                                        background: 'rgba(245, 158, 11, 0.2)',
+                                        padding: '2px 6px',
+                                        borderRadius: '3px'
+                                    }}>
+                                        {Array.isArray(results.local_results) ? results.local_results.length : 0}
+                                    </span>
+                                </h3>
+                                <div style={{
+                                    maxHeight: '300px',
+                                    overflowY: 'auto',
+                                    fontSize: '11px',
+                                    color: '#cbd5e1'
+                                }}>
+                                    {results.local_results.error ? (
+                                        <p style={{ color: '#f87171' }}>❌ {results.local_results.error}</p>
+                                    ) : Array.isArray(results.local_results) && results.local_results.length > 0 ? (
+                                        <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                                            {results.local_results.slice(0, 20).map((item: any, i: number) => (
+                                                <li key={i} style={{
+                                                    marginBottom: '8px',
+                                                    padding: '8px',
+                                                    background: 'rgba(15, 23, 42, 0.5)',
+                                                    borderRadius: '4px',
+                                                    cursor: 'pointer'
+                                                }}
+                                                    onClick={() => {
+                                                        // Launch library
+                                                        fetch('http://localhost:6030/api/launch-library', {
+                                                            method: 'POST',
+                                                            headers: { 'Content-Type': 'application/json' },
+                                                            body: JSON.stringify({ library_path: item.path || item.name })
+                                                        }).then(res => res.json()).then(d => {
+                                                            if (d.success) alert('Launched!');
+                                                            else alert('Error launching: ' + d.error);
+                                                        });
+                                                    }}>
+                                                    <div style={{ fontWeight: '600', color: '#e2e8f0' }}>
+                                                        {item.name || item.title}
+                                                    </div>
+                                                    <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '4px' }}>
+                                                        {item.category} • {item.description || item.path}
+                                                    </div>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    ) : (
+                                        <p style={{ color: '#64748b' }}>No local results found</p>
                                     )}
                                 </div>
                             </div>
@@ -813,7 +957,8 @@ export default function UnifiedSearch({ onSearch }: UnifiedSearchProps) {
                         )}
                     </div>
                 </div>
-            )}
-        </div>
+            )
+            }
+        </div >
     );
 }

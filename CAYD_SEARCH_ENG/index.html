@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>CAYD Browser</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: #f1f5f9;
+    }
+
+    #controls {
+      display: flex;
+      padding: 10px;
+      background-color: #ffffff;
+      border-bottom: 1px solid #e2e8f0;
+      gap: 10px;
+      align-items: center;
+    }
+
+    #url-input {
+      flex: 1;
+      padding: 8px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 14px;
+      outline: none;
+    }
+
+    #url-input:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+    }
+
+    button {
+      padding: 8px 16px;
+      background-color: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    button:hover {
+      background-color: #2563eb;
+    }
+
+    button:disabled {
+      background-color: #94a3b8;
+      cursor: not-allowed;
+    }
+
+    #browser-view {
+      flex: 1;
+      border: none;
+      background-color: white;
+    }
+
+    .nav-btn {
+      background-color: transparent;
+      color: #64748b;
+      padding: 8px;
+      font-size: 18px;
+    }
+
+    .nav-btn:hover {
+      background-color: #f1f5f9;
+      color: #1e293b;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="controls">
+    <button class="nav-btn" id="back-btn">←</button>
+    <button class="nav-btn" id="forward-btn">→</button>
+    <button class="nav-btn" id="reload-btn">↻</button>
+    <input type="text" id="url-input" placeholder="Enter URL (e.g., https://google.com)" />
+    <button id="go-btn">Go</button>
+  </div>
+
+  <!-- Using webview tag for browser functionality within Electron -->
+  <webview id="browser-view" src="http://localhost:4378" allowpopups></webview>
+
+  <script>
+    const webview = document.getElementById('browser-view');
+    const urlInput = document.getElementById('url-input');
+    const goBtn = document.getElementById('go-btn');
+    const backBtn = document.getElementById('back-btn');
+    const forwardBtn = document.getElementById('forward-btn');
+    const reloadBtn = document.getElementById('reload-btn');
+
+    // Initial URL
+    urlInput.value = 'http://localhost:4378';
+
+    // Navigate
+    const navigate = () => {
+      let url = urlInput.value.trim();
+      if (!url.startsWith('http')) {
+        if (url.includes('.') && !url.includes(' ')) {
+          url = 'https://' + url;
+        } else {
+          url = 'https://www.google.com/search?q=' + encodeURIComponent(url);
+        }
+      }
+      webview.loadURL(url);
+    };
+
+    goBtn.addEventListener('click', navigate);
+    urlInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') navigate();
+    });
+
+    // Navigation controls
+    backBtn.addEventListener('click', () => {
+      if (webview.canGoBack()) webview.goBack();
+    });
+    forwardBtn.addEventListener('click', () => {
+      if (webview.canGoForward()) webview.goForward();
+    });
+    reloadBtn.addEventListener('click', () => {
+      webview.reload();
+    });
+
+    // Update URL bar on navigation
+    webview.addEventListener('did-navigate', (e) => {
+      urlInput.value = e.url;
+    });
+
+    webview.addEventListener('did-navigate-in-page', (e) => {
+      urlInput.value = e.url;
+    });
+
+    // Loading indicators
+    webview.addEventListener('did-start-loading', () => {
+      reloadBtn.textContent = '×';
+    });
+    webview.addEventListener('did-stop-loading', () => {
+      reloadBtn.textContent = '↻';
+    });
+  </script>
+</body>
+
+</html>

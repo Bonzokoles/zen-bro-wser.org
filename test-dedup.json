@@ -1,0 +1,30 @@
+{
+    "items": [
+        {
+            "title": "Introduction to Machine Learning",
+            "content": "Machine learning is a subset of artificial intelligence that focuses on building systems that can learn from data.",
+            "source": "cayd"
+        },
+        {
+            "title": "Introduction to Machine Learning",
+            "content": "Machine learning is a subset of AI that enables systems to learn and improve from experience without being explicitly programmed.",
+            "source": "tavily"
+        },
+        {
+            "title": "Deep Learning Explained",
+            "content": "Deep learning is a specialized subset of machine learning that uses neural networks with multiple layers.",
+            "source": "cayd"
+        },
+        {
+            "title": "React Tutorial for Beginners",
+            "content": "Learn React from scratch. This comprehensive guide covers components, hooks, and state management.",
+            "source": "tavily"
+        },
+        {
+            "title": "React Tutorial - Complete Guide",
+            "content": "Learn React from the ground up. This complete tutorial covers components, hooks, state, and more.",
+            "source": "cayd"
+        }
+    ],
+    "similarity_threshold": 0.8
+}

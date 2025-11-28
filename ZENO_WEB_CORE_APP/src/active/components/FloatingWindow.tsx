@@ -139,105 +139,59 @@ const FloatingWindow: React.FC<FloatingWindowProps> = ({
 		}
 	};
 
-	// Get window styles based on state
-	const getWindowStyles = (): React.CSSProperties => {
-		const baseStyles: React.CSSProperties = {
-			position: 'fixed',
-			backgroundColor: '#1e293b',
-			borderRadius: windowState === 'maximized' ? '0' : '12px',
-			boxShadow: '0 10px 40px rgba(0, 0, 0, 0.5)',
-			display: 'flex',
-			flexDirection: 'column',
-			zIndex: 1000,
-			overflow: 'hidden',
-			border: '1px solid rgba(148, 163, 184, 0.3)'
-		};
+	// Get window classes based on state
+	const getWindowClasses = () => {
+		const baseClasses = "fixed bg-slate-800 rounded-xl shadow-2xl flex flex-col z-[1000] overflow-hidden border border-slate-700/30";
 
 		if (windowState === 'maximized') {
-			return {
-				...baseStyles,
-				top: '80px',
-				left: 0,
-				width: '100%',
-				height: 'calc(100% - 80px - 70px)',
-				borderRadius: '0'
-			};
+			return `${baseClasses} top-[80px] left-0 w-full h-[calc(100%-150px)] rounded-none`;
 		}
 
 		if (windowState === 'minimized') {
-			return {
-				...baseStyles,
-				bottom: '90px',
-				left: '20px',
-				width: '250px',
-				height: '50px',
-				cursor: 'pointer'
-			};
+			return `${baseClasses} bottom-[90px] left-5 w-[250px] h-[50px] cursor-pointer`;
 		}
 
-		return {
-			...baseStyles,
-			top: `${position.y}px`,
-			left: `${position.x}px`,
-			width: `${size.width}px`,
-			height: `${size.height}px`
-		};
+		return baseClasses;
 	};
 
 	// Resize handles
-	const ResizeHandle = ({ direction, cursor }: { direction: string; cursor: string }) => (
-		<div
-			onMouseDown={(e) => handleResizeStart(e, direction)}
-			style={{
-				position: 'absolute',
-				...(direction.includes('n') && { top: 0 }),
-				...(direction.includes('s') && { bottom: 0 }),
-				...(direction.includes('w') && { left: 0 }),
-				...(direction.includes('e') && { right: 0 }),
-				...((direction === 'n' || direction === 's') && { 
-					width: '100%', 
-					height: '8px',
-					cursor: 'ns-resize'
-				}),
-				...((direction === 'w' || direction === 'e') && { 
-					width: '8px', 
-					height: '100%',
-					cursor: 'ew-resize'
-				}),
-				...((direction === 'nw' || direction === 'se') && { 
-					width: '16px', 
-					height: '16px',
-					cursor: 'nwse-resize'
-				}),
-				...((direction === 'ne' || direction === 'sw') && { 
-					width: '16px', 
-					height: '16px',
-					cursor: 'nesw-resize'
-				}),
-				zIndex: 10
-			}}
-		/>
-	);
+	const ResizeHandle = ({ direction, cursor }: { direction: string; cursor: string }) => {
+		const getStyles = () => {
+			const base = "absolute z-10";
+			if (direction === 'n') return `${base} top-0 w-full h-2 cursor-ns-resize`;
+			if (direction === 's') return `${base} bottom-0 w-full h-2 cursor-ns-resize`;
+			if (direction === 'w') return `${base} left-0 w-2 h-full cursor-ew-resize`;
+			if (direction === 'e') return `${base} right-0 w-2 h-full cursor-ew-resize`;
+			if (direction === 'nw') return `${base} top-0 left-0 w-4 h-4 cursor-nwse-resize`;
+			if (direction === 'ne') return `${base} top-0 right-0 w-4 h-4 cursor-nesw-resize`;
+			if (direction === 'sw') return `${base} bottom-0 left-0 w-4 h-4 cursor-nesw-resize`;
+			if (direction === 'se') return `${base} bottom-0 right-0 w-4 h-4 cursor-nwse-resize`;
+			return base;
+		};
+
+		return (
+			<div
+				onMouseDown={(e) => handleResizeStart(e, direction)}
+				className={getStyles()}
+			/>
+		);
+	};
 
 	if (windowState === 'minimized') {
 		return (
-			<div style={getWindowStyles()} onClick={toggleMinimize}>
-				<div style={{
-					padding: '12px 16px',
-					display: 'flex',
-					alignItems: 'center',
-					gap: '12px',
-					cursor: 'pointer'
-				}}>
-					<span style={{ fontSize: '20px' }}>🌐</span>
-					<span style={{ 
-						color: 'white', 
-						fontSize: '14px',
-						fontWeight: '500',
-						overflow: 'hidden',
-						textOverflow: 'ellipsis',
-						whiteSpace: 'nowrap'
-					}}>
+			<div
+				className={getWindowClasses()}
+				onClick={toggleMinimize}
+				style={windowState !== 'maximized' && windowState !== 'minimized' ? {
+					top: `${position.y}px`,
+					left: `${position.x}px`,
+					width: `${size.width}px`,
+					height: `${size.height}px`
+				} : undefined}
+			>
+				<div className="px-4 py-3 flex items-center gap-3 cursor-pointer">
+					<span className="text-xl">🌐</span>
+					<span className="text-white text-sm font-medium truncate">
 						{title}
 					</span>
 				</div>
@@ -246,71 +200,44 @@ const FloatingWindow: React.FC<FloatingWindowProps> = ({
 	}
 
 	return (
-		<div ref={windowRef} style={getWindowStyles()}>
+		<div
+			ref={windowRef}
+			className={getWindowClasses()}
+			style={windowState !== 'maximized' && windowState !== 'minimized' ? {
+				top: `${position.y}px`,
+				left: `${position.x}px`,
+				width: `${size.width}px`,
+				height: `${size.height}px`
+			} : undefined}
+		>
 			{/* Title Bar */}
 			<div
 				onMouseDown={handleMouseDown}
-				style={{
-					backgroundColor: '#0f172a',
-					padding: '12px 16px',
-					display: 'flex',
-					alignItems: 'center',
-					justifyContent: 'space-between',
-					cursor: windowState === 'maximized' ? 'default' : 'move',
-					borderBottom: '1px solid rgba(148, 163, 184, 0.2)',
-					userSelect: 'none'
-				}}
+				className={`bg-slate-900 px-4 py-3 flex items-center justify-between border-b border-slate-700/20 select-none
+					${windowState === 'maximized' ? 'cursor-default' : 'cursor-move'}`}
 			>
-				<div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, overflow: 'hidden' }}>
-					<span style={{ fontSize: '20px' }}>🌐</span>
-					<div style={{ flex: 1, overflow: 'hidden' }}>
-						<div style={{ 
-							color: 'white', 
-							fontSize: '14px',
-							fontWeight: '500',
-							overflow: 'hidden',
-							textOverflow: 'ellipsis',
-							whiteSpace: 'nowrap'
-						}}>
+				<div className="flex items-center gap-3 flex-1 overflow-hidden">
+					<span className="text-xl">🌐</span>
+					<div className="flex-1 overflow-hidden">
+						<div className="text-white text-sm font-medium truncate">
 							{title}
 						</div>
-						<div style={{ 
-							color: '#94a3b8', 
-							fontSize: '11px',
-							overflow: 'hidden',
-							textOverflow: 'ellipsis',
-							whiteSpace: 'nowrap',
-							marginTop: '2px'
-						}}>
+						<div className="text-slate-400 text-[11px] truncate mt-0.5">
 							{url}
 						</div>
 					</div>
 				</div>
 
 				{/* Window Controls */}
-				<div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+				<div className="flex gap-2 items-center">
 					{/* PIP Button */}
 					<button
 						onClick={(e) => {
 							e.stopPropagation();
 							togglePIP();
 						}}
-						style={{
-							background: windowState === 'pip' ? 'rgba(59, 130, 246, 0.3)' : 'transparent',
-							border: 'none',
-							color: '#94a3b8',
-							cursor: 'pointer',
-							width: '32px',
-							height: '32px',
-							borderRadius: '6px',
-							display: 'flex',
-							alignItems: 'center',
-							justifyContent: 'center',
-							fontSize: '16px',
-							transition: 'all 0.2s'
-						}}
-						onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(148, 163, 184, 0.2)'}
-						onMouseLeave={(e) => e.currentTarget.style.backgroundColor = windowState === 'pip' ? 'rgba(59, 130, 246, 0.3)' : 'transparent'}
+						className={`w-8 h-8 rounded-md flex items-center justify-center text-base transition-colors
+							${windowState === 'pip' ? 'bg-blue-500/30 text-blue-400' : 'text-slate-400 hover:bg-slate-700/50'}`}
 						title="Picture-in-Picture"
 					>
 						📺
@@ -322,22 +249,7 @@ const FloatingWindow: React.FC<FloatingWindowProps> = ({
 							e.stopPropagation();
 							toggleMinimize();
 						}}
-						style={{
-							background: 'transparent',
-							border: 'none',
-							color: '#94a3b8',
-							cursor: 'pointer',
-							width: '32px',
-							height: '32px',
-							borderRadius: '6px',
-							display: 'flex',
-							alignItems: 'center',
-							justifyContent: 'center',
-							fontSize: '20px',
-							transition: 'all 0.2s'
-						}}
-						onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(148, 163, 184, 0.2)'}
-						onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+						className="w-8 h-8 rounded-md flex items-center justify-center text-xl text-slate-400 hover:bg-slate-700/50 transition-colors"
 						title="Minimize"
 					>
 						−
@@ -349,22 +261,8 @@ const FloatingWindow: React.FC<FloatingWindowProps> = ({
 							e.stopPropagation();
 							toggleMaximize();
 						}}
-						style={{
-							background: windowState === 'maximized' ? 'rgba(59, 130, 246, 0.3)' : 'transparent',
-							border: 'none',
-							color: '#94a3b8',
-							cursor: 'pointer',
-							width: '32px',
-							height: '32px',
-							borderRadius: '6px',
-							display: 'flex',
-							alignItems: 'center',
-							justifyContent: 'center',
-							fontSize: '16px',
-							transition: 'all 0.2s'
-						}}
-						onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(148, 163, 184, 0.2)'}
-						onMouseLeave={(e) => e.currentTarget.style.backgroundColor = windowState === 'maximized' ? 'rgba(59, 130, 246, 0.3)' : 'transparent'}
+						className={`w-8 h-8 rounded-md flex items-center justify-center text-base transition-colors
+							${windowState === 'maximized' ? 'bg-blue-500/30 text-blue-400' : 'text-slate-400 hover:bg-slate-700/50'}`}
 						title="Maximize"
 					>
 						{windowState === 'maximized' ? '⊡' : '□'}
@@ -376,28 +274,7 @@ const FloatingWindow: React.FC<FloatingWindowProps> = ({
 							e.stopPropagation();
 							onClose();
 						}}
-						style={{
-							background: 'transparent',
-							border: 'none',
-							color: '#94a3b8',
-							cursor: 'pointer',
-							width: '32px',
-							height: '32px',
-							borderRadius: '6px',
-							display: 'flex',
-							alignItems: 'center',
-							justifyContent: 'center',
-							fontSize: '20px',
-							transition: 'all 0.2s'
-						}}
-						onMouseEnter={(e) => {
-							e.currentTarget.style.backgroundColor = '#ef4444';
-							e.currentTarget.style.color = 'white';
-						}}
-						onMouseLeave={(e) => {
-							e.currentTarget.style.backgroundColor = 'transparent';
-							e.currentTarget.style.color = '#94a3b8';
-						}}
+						className="w-8 h-8 rounded-md flex items-center justify-center text-xl text-slate-400 hover:bg-red-500 hover:text-white transition-colors"
 						title="Close"
 					>
 						✕
@@ -406,19 +283,10 @@ const FloatingWindow: React.FC<FloatingWindowProps> = ({
 			</div>
 
 			{/* Content Area */}
-			<div style={{ 
-				flex: 1, 
-				position: 'relative',
-				backgroundColor: 'white',
-				overflow: 'hidden'
-			}}>
+			<div className="flex-1 relative bg-white overflow-hidden">
 				<iframe
 					src={url}
-					style={{
-						width: '100%',
-						height: '100%',
-						border: 'none'
-					}}
+					className="w-full h-full border-none"
 					title={title}
 					sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"
 				/>
