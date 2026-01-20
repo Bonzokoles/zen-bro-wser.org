@@ -59,41 +59,10 @@ jobs:
             --branch=${{ env.DEPLOY_BRANCH }} \
             --commit-dirty=true
 
-  deploy-bielik:
-    runs-on: ubuntu-latest
-    name: Deploy BIELIK Agent System
-    needs: deploy-frontend # Deploy backend after frontend
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-
-      - name: Install dependencies (BIELIK)
-        working-directory: ./BIELIK_THE_whitie
-        run: |
-          if [ -f package-lock.json ]; then npm ci; else npm install; fi
-
-      - name: Build BIELIK
-        working-directory: ./BIELIK_THE_whitie
-        run: npm run build
-
-      - name: Deploy BIELIK to Cloudflare Workers
-        working-directory: ./BIELIK_THE_whitie
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: |
-          npx wrangler@latest deploy \
-            --compatibility-date=2024-11-01
-
   deploy-api-worker:
     runs-on: ubuntu-latest
-    name: Deploy API Worker (with BIELIK binding)
-    needs: deploy-bielik # Deploy API after BIELIK is ready
+    name: Deploy API Worker
+    needs: deploy-frontend # Deploy API after frontend is ready
 
     steps:
       - name: Checkout repository
@@ -115,13 +84,10 @@ jobs:
 
       - name: Deployment Summary
         run: |
-          echo "đźŽ‰ Full Stack Deployment Complete!" >> $GITHUB_STEP_SUMMARY
+          echo "🎉 Deployment Complete!" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "âś… Frontend: https://zeno-browser.pages.dev" >> $GITHUB_STEP_SUMMARY
-          echo "âś… BIELIK Agents: https://zeno-bielik-agents.stolarnia-ams.workers.dev" >> $GITHUB_STEP_SUMMARY
-          echo "âś… Worker API: https://zeno-browser-api.stolarnia-ams.workers.dev" >> $GITHUB_STEP_SUMMARY
-          echo "âś… Custom Domain: https://zenbrowsers.org (pending DNS)" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Frontend: https://zeno-browser.pages.dev" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Worker API: https://zeno-browser-api.stolarnia-ams.workers.dev" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Custom Domain: https://zenbrowsers.org" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "đź”— Test Agent Status: https://zeno-browser.pages.dev/api/agents/status" >> $GITHUB_STEP_SUMMARY
-          echo "đź”— Test BIELIK API: https://zeno-bielik-agents.stolarnia-ams.workers.dev/status" >> $GITHUB_STEP_SUMMARY
-          echo "đź”— Test API Worker: https://zeno-browser-api.stolarnia-ams.workers.dev/health" >> $GITHUB_STEP_SUMMARY
+          echo "🔗 Test API: https://zeno-browser-api.stolarnia-ams.workers.dev/health" >> $GITHUB_STEP_SUMMARY
