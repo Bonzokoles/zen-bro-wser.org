@@ -1,0 +1,12 @@
+
+# Environment variables
+.env
+.dev.vars
+*.local
+
+# Wrangler
+.wrangler/
+worker/
+
+# Logs
+*.log
