@@ -1,0 +1,87 @@
+name: Release ZENO Browser
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag (e.g. v0.2.0)'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: ZENO_WEB_CORE_APP/package-lock.json
+      
+      - name: Install dependencies
+        run: |
+          cd ZENO_WEB_CORE_APP
+          npm ci
+      
+      - name: Build web app
+        run: |
+          cd ZENO_WEB_CORE_APP
+          npm run build
+      
+      - name: Build Electron (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: npx electron-builder --linux AppImage deb --config electron-builder.yml
+      
+      - name: Build Electron (Windows)
+        if: matrix.os == 'windows-latest'
+        run: npx electron-builder --win nsis --config electron-builder.yml
+        env:
+          WIN_CERT_FILE: ${{ secrets.WIN_CERT_FILE }}
+          WIN_CERT_PASSWORD: ${{ secrets.WIN_CERT_PASSWORD }}
+      
+      - name: Build Electron (macOS)
+        if: matrix.os == 'macos-latest'
+        run: npx electron-builder --mac dmg --config electron-builder.yml
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+      
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: zeno-browser-${{ matrix.os }}
+          path: dist-electron/*
+          if-no-files-found: ignore
+  
+  create-release:
+    needs: build-and-release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist-electron
+          merge-multiple: true
+      
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: dist-electron/**
+          generate_release_notes: true
+          draft: false
+          prerelease: ${{ contains(github.ref_name, 'beta') || contains(github.ref_name, 'alpha') }}

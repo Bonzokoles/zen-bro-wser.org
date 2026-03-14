@@ -1,0 +1,75 @@
+# ZENO Browser - electron-builder configuration
+appId: org.zenobrowser.app
+productName: ZENO Browser
+copyright: Copyright © 2025 ZENO Browser Team
+
+directories:
+  buildResources: assets/installer
+  output: dist-electron
+
+files:
+  - "!**/.git"
+  - "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}"
+  - "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}"
+  - "!**/node_modules/.bin"
+  - "!**/{.DS_Store,.gitignore,.gitattributes}"
+  - "ZENO_WEB_CORE_APP/dist/**"
+  - "src-electron/**"
+
+extraMetadata:
+  main: src-electron/main.js
+
+win:
+  target:
+    - target: nsis
+      arch: [x64, ia32]
+  icon: assets/installer/icon.ico
+  publisherName: ZENO Browser Team
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: ZENO Browser
+  installerHeaderBitmapFilename: assets/installer/header.bmp
+  installerSidebarBitmapFilename: assets/installer/sidebar.bmp
+
+mac:
+  target:
+    - target: dmg
+      arch: [x64, arm64]
+  icon: assets/installer/icon.icns
+  category: public.app-category.productivity
+  darkModeSupport: true
+  hardenedRuntime: true
+  entitlements: assets/installer/entitlements.mac.plist
+  entitlementsInherit: assets/installer/entitlements.mac.plist
+
+dmg:
+  title: ZENO Browser
+  icon: assets/installer/icon.icns
+  window:
+    width: 540
+    height: 380
+
+linux:
+  target:
+    - target: AppImage
+      arch: [x64]
+    - target: deb
+      arch: [x64]
+  icon: assets/installer/icon.png
+  category: Network;WebBrowser;
+
+appImage:
+  artifactName: ZENO-Browser-${version}.AppImage
+
+deb:
+  depends: ["libgtk-3-0", "libnotify4", "libnss3", "libxss1"]
+  packageCategory: web
+
+publish:
+  provider: github
+  owner: Bonzokoles
+  repo: zen-bro-wser.org

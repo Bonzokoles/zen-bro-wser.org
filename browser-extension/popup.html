@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZENO Browser Extension</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { width: 360px; background: #0f172a; color: #e2e8f0; font-family: system-ui, sans-serif; }
+    .header { background: linear-gradient(135deg, #4f46e5, #7c3aed); padding: 16px; display: flex; align-items: center; gap: 10px; }
+    .header h1 { font-size: 18px; font-weight: 700; }
+    .header span { font-size: 12px; opacity: 0.8; }
+    .content { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+    .btn { background: #4f46e5; color: white; border: none; border-radius: 8px; padding: 10px 16px; cursor: pointer; font-size: 14px; text-align: left; display: flex; align-items: center; gap: 8px; transition: background 0.2s; }
+    .btn:hover { background: #4338ca; }
+    .btn.secondary { background: #1e293b; border: 1px solid #334155; }
+    .btn.secondary:hover { background: #334155; }
+    .section-title { font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 4px; }
+    input { width: 100%; background: #1e293b; border: 1px solid #334155; color: #e2e8f0; border-radius: 8px; padding: 8px 12px; font-size: 14px; outline: none; }
+    input:focus { border-color: #4f46e5; }
+    .status { font-size: 12px; color: #22c55e; display: flex; align-items: center; gap: 4px; }
+    .status.offline { color: #ef4444; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div style="font-size:28px">⚡</div>
+    <div>
+      <h1>ZENO Browser</h1>
+      <span>AI Extension v0.2.0</span>
+    </div>
+  </div>
+  <div class="content">
+    <div class="status" id="status">● Connected to ZENO</div>
+    <p class="section-title">Quick Actions</p>
+    <button class="btn" onclick="summarizePage()">📄 Summarize This Page</button>
+    <button class="btn" onclick="analyzeSelected()">🔍 Analyze Selected Text</button>
+    <button class="btn" onclick="openZeno()">🚀 Open in ZENO Browser</button>
+    <p class="section-title">Settings</p>
+    <input type="text" id="apiUrl" placeholder="ZENO API URL (localhost:4378)">
+    <button class="btn secondary" onclick="saveSettings()">💾 Save Settings</button>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
