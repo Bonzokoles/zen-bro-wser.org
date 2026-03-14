@@ -1,0 +1,118 @@
+/* ZENO Premium Theme - K.R.A.F.T. v3 */
+
+:root {
+  /* Vibrant HSL Colors */
+  --zeno-primary: hsl(190, 100%, 50%);
+  --zeno-primary-glow: hsla(190, 100%, 50%, 0.3);
+  --zeno-accent: hsl(280, 100%, 65%);
+  --zeno-success: hsl(145, 80%, 45%);
+  --zeno-danger: hsl(350, 80%, 55%);
+  
+  /* Dark Mode Palette */
+  --zeno-bg-base: hsl(230, 25%, 8%);
+  --zeno-bg-surface: hsla(230, 25%, 15%, 0.65);
+  --zeno-bg-elevated: hsla(230, 25%, 20%, 0.85);
+  
+  /* Text */
+  --zeno-text-main: hsl(0, 0%, 95%);
+  --zeno-text-muted: hsl(230, 20%, 65%);
+  
+  /* Strictly Enforced Geometry */
+  --zeno-radius: 2px;
+  --zeno-border: 1px solid hsla(0, 0%, 100%, 0.08);
+  
+  /* Glassmorphism */
+  --zeno-backdrop-blur: blur(12px);
+  --zeno-shadow-glow: 0 4px 24px -2px var(--zeno-primary-glow);
+  --zeno-shadow-deep: 0 8px 32px rgba(0, 0, 0, 0.4);
+  
+  /* Animations */
+  --zeno-transition-spring: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  --zeno-transition-fast: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Global Reset overrides */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', 'Share Tech Mono', sans-serif;
+  background-color: var(--zeno-bg-base);
+  color: var(--zeno-text-main);
+  margin: 0;
+  padding: 0;
+}
+
+/* Glass Panel Utility */
+.zeno-glass-panel {
+  background: var(--zeno-bg-surface);
+  backdrop-filter: var(--zeno-backdrop-blur);
+  border: var(--zeno-border);
+  border-radius: var(--zeno-radius);
+  box-shadow: var(--zeno-shadow-deep);
+}
+
+/* Base Buttons */
+.zeno-btn {
+  background: transparent;
+  color: var(--zeno-text-main);
+  border: var(--zeno-border);
+  border-radius: var(--zeno-radius);
+  padding: 8px 16px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: var(--zeno-transition-fast);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.zeno-btn:hover {
+  background: hsla(0, 0%, 100%, 0.05);
+  transform: translateY(-1px);
+}
+
+.zeno-btn.primary {
+  background: var(--zeno-primary);
+  color: #000;
+  border: none;
+  box-shadow: 0 0 10px var(--zeno-primary-glow);
+}
+
+.zeno-btn.primary:hover {
+  background: hsl(190, 100%, 60%);
+  box-shadow: 0 0 15px var(--zeno-primary-glow);
+  transform: translateY(-2px);
+}
+
+/* Inputs */
+.zeno-input {
+  background: hsla(0, 0%, 0%, 0.4);
+  border: var(--zeno-border);
+  border-radius: var(--zeno-radius);
+  color: var(--zeno-text-main);
+  padding: 8px 12px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  outline: none;
+  transition: var(--zeno-transition-fast);
+}
+
+.zeno-input:focus {
+  border-color: var(--zeno-primary);
+  box-shadow: 0 0 0 2px var(--zeno-primary-glow);
+}
+
+/* Micro Animations */
+@keyframes slideUpFade {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-slide-up {
+  animation: slideUpFade 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}

@@ -1,0 +1,144 @@
+---
+import { Toaster } from "../components/Toaster";
+
+export interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description = "ZENO Web Browser with MCP Integration" } =
+  Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content={description} />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="generator" content={Astro.generator} />
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;600;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    
+    <!-- Premium ZENO Core Theme -->
+    <link rel="stylesheet" href="/src/styles/zeno-theme.css" />
+
+    <title>{title}</title>
+
+    <!-- Analytics & Monitoring -->
+    <!-- Removed Analytics (CORS Issue / Local Dev) -->
+  </head>
+  <body class="zeno-background">
+    <div class="background-effects"></div>
+    <slot />
+    <Toaster client:load />
+  </body>
+</html>
+
+<style is:global>
+  /* Global Styles & Background */
+  :root {
+    --dark-blue: #030712;
+    --grid-line-color: rgba(59, 130, 246, 0.08);
+    --grid-line-bold-color: rgba(59, 130, 246, 0.15);
+  }
+
+  body.zeno-background {
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    overflow-x: hidden; /* Prevent horizontal scroll */
+    position: relative;
+    background-color: var(--zeno-bg-base, #030712);
+    color: var(--zeno-text-main, #f0f0f0);
+    font-family: 'Inter', sans-serif;
+  }
+
+  .background-effects {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    pointer-events: none;
+    background-image:
+      /* 1. Vignette Effect */
+      radial-gradient(
+        ellipse at center,
+        rgba(0, 0, 0, 0) 50%,
+        rgba(0, 0, 0, 0.8) 100%
+      ),
+      /* 2. Subtle Grid Pattern */
+        repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 49px,
+          var(--grid-line-color) 49px,
+          var(--grid-line-color) 50px
+        ),
+      repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 49px,
+        var(--grid-line-color) 49px,
+        var(--grid-line-color) 50px
+      ),
+      /* 3. Abstract Diagonal Lines */
+        repeating-linear-gradient(
+          -45deg,
+          transparent,
+          transparent 5px,
+          rgba(24, 46, 82, 0.1) 5px,
+          rgba(24, 46, 82, 0.1) 10px
+        ),
+      /* 4. Base Gradient */
+        linear-gradient(165deg, #000000 0%, var(--dark-blue) 100%);
+    background-size:
+      100% 100%,
+      50px 50px,
+      50px 50px,
+      100% 100%,
+      100% 100%;
+  }
+
+  /* Ensure content is above the background */
+  body > :not(.background-effects) {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Remove rounded corners globally (max 2px per instructions) */
+  * {
+    border-radius: var(--zeno-radius) !important;
+  }
+
+  /* Pulse animation for icon */
+  @keyframes pulse {
+    0%, 100% {
+      transform: scale(1);
+      filter: drop-shadow(0 0 20px rgba(96, 165, 250, 0.5));
+    }
+    50% {
+      transform: scale(1.05);
+      filter: drop-shadow(0 0 30px rgba(96, 165, 250, 0.8));
+    }
+  }
+
+  /* Backlight glow animation */
+  @keyframes pulseGlow {
+    0%, 100% {
+      opacity: 0.6;
+      transform: translate(-50%, -50%) scale(1);
+    }
+    50% {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1.1);
+    }
+  }
+</style>

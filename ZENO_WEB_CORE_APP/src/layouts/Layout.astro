@@ -26,6 +26,63 @@ const { title, description = "ZENO Web Browser with MCP Integration" } =
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 
     <title>{title}</title>
+
+    <!-- Analytics & Monitoring -->
+    <script is:inline>
+      // Zen Browser Analytics - Cloudflare Metrics Gateway
+      (function() {
+        const METRICS_BASE = 'https://zen-metrics-gateway.stolarnia-ams.workers.dev';
+
+        function getSessionId() {
+          let sessionId = sessionStorage.getItem('zen_session_id');
+          if (!sessionId) {
+            sessionId = crypto.randomUUID();
+            sessionStorage.setItem('zen_session_id', sessionId);
+          }
+          return sessionId;
+        }
+
+        function trackPageView() {
+          fetch(METRICS_BASE + '/metrics/track', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              type: 'pageview',
+              data: {
+                path: window.location.pathname,
+                title: document.title,
+                referrer: document.referrer,
+                screenWidth: window.innerWidth,
+                screenHeight: window.innerHeight
+              },
+              session: getSessionId(),
+              timestamp: Date.now()
+            })
+          }).catch(() => {});
+        }
+
+        // Track na załadowanie strony
+        if (document.readyState === 'complete') {
+          trackPageView();
+        } else {
+          window.addEventListener('load', trackPageView);
+        }
+
+        // Expose dla innych komponentów
+        window.zenTrack = function(type, data) {
+          fetch(METRICS_BASE + '/metrics/track', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              type: type,
+              data: data,
+              session: getSessionId(),
+              timestamp: Date.now()
+            })
+          }).catch(() => {});
+        };
+      })();
+    </script>
   </head>
   <body class="zeno-background">
     <div class="background-effects"></div>

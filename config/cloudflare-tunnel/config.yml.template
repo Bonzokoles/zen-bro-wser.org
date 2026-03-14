@@ -1,0 +1,158 @@
+# ⚠️ TEMPLATE - Nie edytuj tego pliku bezpośrednio!
+#
+# Ten plik to SZABLON konfiguracji Cloudflare Tunnel
+#
+# UŻYCIE:
+# 1. Uruchom: .\setup.ps1
+#    → Automatycznie wygeneruje config.yml z poprawnymi wartościami
+#
+# 2. LUB skopiuj ten plik jako config.yml i zamień:
+#    - {TUNNEL_NAME} → nazwa tunelu (np. zen-browser)
+#    - {TUNNEL_ID} → ID tunelu (z: cloudflared tunnel list)
+#    - {USER} → twoja nazwa użytkownika Windows
+#    - {DOMAIN} → twoja domena (np. zen-bro-wser.org)
+#
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# Podstawowa konfiguracja tunelu
+tunnel: {TUNNEL_NAME}
+credentials-file: C:\Users\{USER}\.cloudflared\{TUNNEL_ID}.json
+
+# Ingress rules - routing subdomen do lokalnych serwisów
+ingress:
+  # ┌─────────────────────────────────────────────────────┐
+  # │  Frontend - Astro Development Server                │
+  # └─────────────────────────────────────────────────────┘
+  - hostname: zeno-app.{DOMAIN}
+    service: http://localhost:5173
+    originRequest:
+      noTLSVerify: true
+      connectTimeout: 30s
+      disableChunkedEncoding: false
+
+  # ┌─────────────────────────────────────────────────────┐
+  # │  API Gateway - Cloudflare Workers (local dev)       │
+  # └─────────────────────────────────────────────────────┘
+  - hostname: api.{DOMAIN}
+    service: http://localhost:8787
+    originRequest:
+      noTLSVerify: true
+      connectTimeout: 10s
+
+  # ┌─────────────────────────────────────────────────────┐
+  # │  CAYD Search Engine                                 │
+  # └─────────────────────────────────────────────────────┘
+  - hostname: cayd.{DOMAIN}
+    service: http://localhost:3000
+    originRequest:
+      noTLSVerify: true
+      connectTimeout: 20s
+
+  # ┌─────────────────────────────────────────────────────┐
+  # │  Iframe Proxy Worker                                │
+  # └─────────────────────────────────────────────────────┘
+  - hostname: proxy.{DOMAIN}
+    service: http://localhost:8080
+    originRequest:
+      noTLSVerify: true
+
+  # ┌─────────────────────────────────────────────────────┐
+  # │  Database Admin Panel (pgAdmin/Adminer)             │
+  # └─────────────────────────────────────────────────────┘
+  - hostname: db-admin.{DOMAIN}
+    service: http://localhost:5432
+    originRequest:
+      noTLSVerify: true
+      httpHostHeader: localhost:5432
+
+  # ┌─────────────────────────────────────────────────────┐
+  # │  AI Services Module (Bielik/Gemini)                 │
+  # └─────────────────────────────────────────────────────┘
+  - hostname: ai.{DOMAIN}
+    service: http://localhost:8000
+    originRequest:
+      noTLSVerify: true
+
+  # ┌─────────────────────────────────────────────────────┐
+  # │  WebSocket Support (real-time features)             │
+  # └─────────────────────────────────────────────────────┘
+  - hostname: ws.{DOMAIN}
+    service: http://localhost:3001
+    originRequest:
+      noTLSVerify: true
+
+  # ┌─────────────────────────────────────────────────────┐
+  # │  Catch-all Rule (WYMAGANE jako ostatnie!)           │
+  # └─────────────────────────────────────────────────────┘
+  - service: http_status:404
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+#  OPCJONALNE USTAWIENIA
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# Metrics endpoint (monitoring, Prometheus)
+# metrics: localhost:2000
+
+# Log level (debug, info, warn, error)
+# loglevel: info
+
+# Grace period (czas na graceful shutdown)
+# grace-period: 30s
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+#  DODATKOWE PRZYKŁADY INGRESS RULES
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# Custom headers
+#  - hostname: example.{DOMAIN}
+#    service: http://localhost:9000
+#    originRequest:
+#      httpHostHeader: custom-host.local
+#      noTLSVerify: true
+
+# Basic Auth (UWAGA: credentials w plain text!)
+#  - hostname: secure.{DOMAIN}
+#    service: http://localhost:9001
+#    originRequest:
+#      noTLSVerify: true
+#      # Dodaj header: Authorization: Basic {base64(user:pass)}
+
+# Unix Socket (Linux/WSL)
+#  - hostname: socket.{DOMAIN}
+#    service: unix:/var/run/myapp.sock
+
+# HTTPS backend (gdy lokalny serwis używa SSL)
+#  - hostname: secure-local.{DOMAIN}
+#    service: https://localhost:8443
+#    originRequest:
+#      noTLSVerify: true  # Jeśli self-signed cert
+
+# TCP tunnel (nie HTTP)
+#  - hostname: tcp.{DOMAIN}
+#    service: tcp://localhost:5432
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+#  NOTATKI
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+#
+# 1. Kolejność ingress rules ma znaczenie!
+#    → Pierwsza pasująca reguła wygrywa
+#    → Catch-all MUSI być ostatni
+#
+# 2. originRequest.noTLSVerify: true
+#    → Wyłącza weryfikację SSL dla localhost
+#    → Bezpieczne dla dev, NIE używaj w production z zewnętrznymi API
+#
+# 3. connectTimeout
+#    → Jak długo czekać na odpowiedź od lokalnego serwisu
+#    → Frontend (30s) > API (10s) > Static (5s)
+#
+# 4. httpHostHeader
+#    → Nadpisuje header Host w request
+#    → Użyteczne gdy backend sprawdza hostname
+#
+# 5. Testowanie reguł:
+#    cloudflared tunnel ingress validate --config config.yml
+#    cloudflared tunnel ingress rule https://api.{DOMAIN}
+#
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

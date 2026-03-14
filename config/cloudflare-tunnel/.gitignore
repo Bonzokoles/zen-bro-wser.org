@@ -1,0 +1,23 @@
+# Cloudflare Tunnel - pliki do ignorowania
+
+# Wygenerowany plik konfiguracji z credentials
+config.yml
+
+# Kopie zapasowe
+*.bak
+*.backup
+
+# Logi
+*.log
+tunnel.log
+cloudflared.log
+
+# Windows Service logs
+service-*.log
+
+# Credentials (powinny być w C:\Users\{USER}\.cloudflared\)
+*.json
+
+# Temporary files
+*.tmp
+.tmp/

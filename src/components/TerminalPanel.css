@@ -1,0 +1,110 @@
+/* File: src/components/TerminalPanel.css */
+
+.terminal-panel {
+  position: fixed;
+  bottom: 0;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.05) !important; /* Almost completely transparent */
+  backdrop-filter: blur(4px) !important; /* Slight blur for text readability */
+  border: 1px solid rgba(0, 212, 255, 0.2);
+  border-bottom: none;
+  border-radius: var(--zeno-radius) var(--zeno-radius) 0 0;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+  transition: var(--zeno-transition-spring);
+  z-index: 8000;
+  font-family: 'Share Tech Mono', monospace;
+}
+
+.terminal-panel.closed {
+  height: 30px;
+  width: 150px;
+  bottom: 0;
+}
+
+.terminal-panel.open {
+  height: calc(80vh - 40px); /* Reduced height by 20% */
+  width: 35vw; 
+  max-width: 700px;
+  bottom: 0;
+}
+
+.terminal-toggle {
+  width: 100%;
+  height: 30px;
+  border: none;
+  background: hsla(0, 0%, 0%, 0.4);
+  color: var(--zeno-primary);
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: var(--zeno-radius) var(--zeno-radius) 0 0;
+  transition: var(--zeno-transition-fast);
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+
+.terminal-toggle:hover {
+  background: hsla(0, 0%, 0%, 0.6);
+  box-shadow: 0 -4px 12px var(--zeno-primary-glow);
+}
+
+.terminal-container {
+  height: calc(100% - 30px);
+  overflow-y: auto;
+  padding: 8px;
+  background: transparent !important; /* Fully transparent container */
+  backdrop-filter: none;
+  border-radius: var(--zeno-radius) var(--zeno-radius) 0 0;
+}
+
+/* Force override inner react terminal wrapper */
+.terminal-container > div,
+.terminal-container [class*="react-terminal"] {
+  background: transparent !important;
+}
+
+/* Terminal output styling */
+.terminal-output {
+  color: var(--zeno-success);
+  font-size: 12px;
+  line-height: 1.4;
+  margin: 2px 0;
+}
+
+.terminal-output code {
+  background: var(--zeno-primary-glow);
+  padding: 2px 4px;
+  border-radius: var(--zeno-radius);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .terminal-panel.open {
+    width: 90%;
+    height: 40vh;
+    bottom: 50px;
+    right: 5%;
+    border-radius: 2px 2px 0 0;
+  }
+
+  .terminal-container {
+    font-size: 11px;
+  }
+}
+
+/* Scrollbar styling */
+.terminal-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.terminal-container::-webkit-scrollbar-track {
+  background: hsla(0,0%,0%,0.3);
+}
+
+.terminal-container::-webkit-scrollbar-thumb {
+  background: var(--zeno-primary);
+  border-radius: var(--zeno-radius);
+}
+
+.terminal-container::-webkit-scrollbar-thumb:hover {
+  background: var(--zeno-success);
+}

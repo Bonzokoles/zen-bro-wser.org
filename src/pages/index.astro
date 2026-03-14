@@ -1,0 +1,11 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { BrowserUI } from "../components/BrowserUI.tsx";
+---
+
+<Layout
+  title="ZENO Web Browser"
+  description="Advanced web browser with MCP integration"
+>
+  <BrowserUI client:only="react" />
+</Layout>

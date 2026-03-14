@@ -1,27 +1,25 @@
+# build output
+dist/
+# generated types
+.astro/
 
-# Environment files (never commit secrets)
+# dependencies
+node_modules/
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+
+# environment variables
 .env
-.env.*
-ZENO_WEB_CORE_APP/.env
-ZENO_WEB_CORE_APP/.env.*
+.env.local
+.env.production
 
-#Ignore insiders AI rules
-.github\instructions\codacy.instructions.md
-node_modules
-# Secrets and API keys
-.env
-.env.*
-**/.env
-**/.env.*
+# macOS-specific files
+.DS_Store
 
-# Stripe
-.cloudflare/create-stripe-products.js
-
-# MCP configs with tokens
-DOCUMENTS_ALL/MCP_SERVERS_RESTORE.md
-
-# Test data
-.cloudflare/test-session.json
-
-# Wrangler
-.cloudflare/.wrangler/
+# jetbrains setting folder
+.idea/

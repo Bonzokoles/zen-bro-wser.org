@@ -1,0 +1,33 @@
+# Podman Compose - kompatybilna z docker-compose
+version: '3.8'
+
+services:
+  zeno-browser:
+    build:
+      context: .
+      dockerfile: Podfile
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
+      EDENAI_API_KEY: ${EDENAI_API_KEY}
+      CF_TUNNEL_TOKEN: ${CF_TUNNEL_TOKEN}
+    restart: unless-stopped
+    container_name: zeno-browser-prod
+
+  zeno-browser-dev:
+    build:
+      context: .
+      dockerfile: Podfile.dev
+    ports:
+      - "5173:5173"
+      - "9222:9222"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      NODE_ENV: development
+    restart: unless-stopped
+    container_name: zeno-browser-dev

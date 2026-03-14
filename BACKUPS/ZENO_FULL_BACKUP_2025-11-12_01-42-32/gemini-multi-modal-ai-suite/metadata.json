@@ -1,7 +1,0 @@
-{
-  "name": "Gemini Multi-Modal AI Suite",
-  "description": "An advanced web application showcasing various Gemini API capabilities, including text chat, image analysis, low-latency responses, complex query handling with thinking mode, and real-time audio transcription.",
-  "requestFramePermissions": [
-    "microphone"
-  ]
-}
