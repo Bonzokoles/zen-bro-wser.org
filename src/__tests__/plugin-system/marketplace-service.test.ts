@@ -8,6 +8,15 @@ import axios from 'axios';
 jest.mock('axios');
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 
+// Setup axios.create mock to return a mock instance
+const mockAxiosInstance = {
+  get: jest.fn(),
+  post: jest.fn(),
+  put: jest.fn(),
+  delete: jest.fn(),
+};
+mockedAxios.create = jest.fn().mockReturnValue(mockAxiosInstance);
+
 describe('MarketplaceService', () => {
   let service: MarketplaceService;
 
@@ -35,6 +44,7 @@ describe('MarketplaceService', () => {
     };
 
     mockedAxios.create().get = jest.fn().mockResolvedValue(mockData);
+    mockAxiosInstance.get.mockResolvedValue(mockData);
 
     // Note: Actual test would require proper axios mock setup
   });
