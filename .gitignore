@@ -32,3 +32,5 @@ pnpm-debug.log*
 .workspace_meta/History/
 .workspace_meta/staging/
 .workspace_meta/MASTER_REPAIR_PLAN.md
+
+old_app/
