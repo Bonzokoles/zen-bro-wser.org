@@ -61,7 +61,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       // Add error message to chat
       const errorMessage: ChatMessage = {
         role: 'assistant',
-        content: `❌ Error: ${error.message}`,
+        content: `❌ Error: ${error instanceof Error ? error.message : String(error)}`,
         timestamp: new Date()
       };
       setMessages(prev => [...prev, errorMessage]);

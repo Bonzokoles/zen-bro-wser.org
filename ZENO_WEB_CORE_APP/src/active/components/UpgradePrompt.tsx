@@ -23,7 +23,7 @@ const UpgradePrompt: React.FC<UpgradePromptProps> = ({
   onUpgrade,
   showInline = false
 }) => {
-  const pricing = PRICING[requiredPlan];
+  const pricing = requiredPlan in PRICING ? PRICING[requiredPlan] : { label: 'Upgrade' };
 
   if (showInline) {
     // Inline banner version

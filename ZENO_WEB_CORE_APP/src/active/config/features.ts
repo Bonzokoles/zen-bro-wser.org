@@ -120,6 +120,17 @@ export const PRICING: Record<PlanType, { label: string; savings?: string }> = {
     free: {
         label: 'Free Forever'
     },
+    monthly: {
+        label: '$9.99/month'
+    },
+    yearly: {
+        label: '$99.99/year',
+        savings: 'Save 17%'
+    },
+    lifetime: {
+        label: '$299.99 once',
+        savings: 'Best value'
+    },
     pro: {
         label: '$9.99/month',
         savings: 'Save 20% with annual'
