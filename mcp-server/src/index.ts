@@ -123,6 +123,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
+  // Use stderr for logging — stdout is reserved for MCP protocol messages (stdio transport)
   console.error('ZENO MCP Server running on stdio');
 }
 

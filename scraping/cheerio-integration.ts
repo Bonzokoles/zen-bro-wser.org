@@ -35,7 +35,11 @@ export function extractLinks(html: string, baseUrl: string): string[] {
   const $ = parseHTML(html);
   return $.select('a[href]')
     .map((el) => {
-      try { return new URL(el.attr('href'), baseUrl).href; } catch { return ''; }
+      try {
+        return new URL(el.attr('href'), baseUrl).href;
+      } catch {
+        return '';
+      }
     })
     .filter((href) => href.startsWith('http'));
 }
@@ -53,9 +57,13 @@ export function extractImages(html: string, baseUrl: string): string[] {
   const $ = parseHTML(html);
   return $.select('img[src]')
     .map((el) => {
-      try { return new URL(el.attr('src'), baseUrl).href; } catch { return ''; }
+      try {
+        return new URL(el.attr('src'), baseUrl).href;
+      } catch {
+        return '';
+      }
     })
-    .filter(Boolean);
+    .filter((src) => src.startsWith('http'));
 }
 
 // Node.js usage example (requires npm install cheerio):

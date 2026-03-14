@@ -22,13 +22,29 @@
 
   function showAnalysis(text) {
     createOverlay();
-    zenoOverlay.innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-        <span style="font-weight:bold;color:#818cf8">⚡ ZENO AI Analysis</span>
-        <button onclick="this.closest('#zeno-overlay').remove()" style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:18px">×</button>
-      </div>
-      <div style="font-size:14px;color:#e2e8f0;line-height:1.5">${text}</div>
-    `;
+    // Build DOM imperatively to avoid inline event handlers (XSS risk)
+    const header = document.createElement('div');
+    header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:12px';
+
+    const title = document.createElement('span');
+    title.style.cssText = 'font-weight:bold;color:#818cf8';
+    title.textContent = '⚡ ZENO AI Analysis';
+
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = '×';
+    closeBtn.style.cssText = 'background:none;border:none;color:#94a3b8;cursor:pointer;font-size:18px';
+    closeBtn.addEventListener('click', () => zenoOverlay.remove());
+
+    header.appendChild(title);
+    header.appendChild(closeBtn);
+
+    const body = document.createElement('div');
+    body.style.cssText = 'font-size:14px;color:#e2e8f0;line-height:1.5';
+    body.textContent = text;
+
+    zenoOverlay.innerHTML = '';
+    zenoOverlay.appendChild(header);
+    zenoOverlay.appendChild(body);
   }
 
   chrome.runtime.onMessage.addListener((message) => {
