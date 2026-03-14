@@ -1,0 +1,315 @@
+name: 🚀 Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      version_bump:
+        description: "Version bump type"
+        required: true
+        default: "patch"
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+      draft:
+        description: "Create as draft release"
+        type: boolean
+        default: false
+      prerelease:
+        description: "Mark as pre-release"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  packages: write
+
+env:
+  NODE_VERSION: "20"
+
+# ─────────────────────────────────────────────────────────────
+# Jobs
+# ─────────────────────────────────────────────────────────────
+
+jobs:
+  # ── Prepare release metadata ──────────────────────────────────
+  prepare:
+    name: 📋 Prepare Release
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      tag: ${{ steps.version.outputs.tag }}
+      changelog: ${{ steps.changelog.outputs.changelog }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine version
+        id: version
+        run: |
+          if [[ "${{ github.ref_type }}" == "tag" ]]; then
+            VERSION="${{ github.ref_name }}"
+            VERSION="${VERSION#v}"
+          else
+            CURRENT=$(node -p "require('./ZENO_WEB_CORE_APP/package.json').version" 2>/dev/null || echo "0.0.1")
+            BUMP="${{ github.event.inputs.version_bump || 'patch' }}"
+            IFS='.' read -ra PARTS <<< "$CURRENT"
+            case "$BUMP" in
+              major) VERSION="$((PARTS[0]+1)).0.0" ;;
+              minor) VERSION="${PARTS[0]}.$((PARTS[1]+1)).0" ;;
+              patch) VERSION="${PARTS[0]}.${PARTS[1]}.$((PARTS[2]+1))" ;;
+            esac
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "tag=v${VERSION}" >> $GITHUB_OUTPUT
+          echo "📌 Release version: ${VERSION}"
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          # Get commits since last tag
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -n "$LAST_TAG" ]; then
+            COMMITS=$(git log ${LAST_TAG}..HEAD --pretty=format:"- %s (%h)" --no-merges | head -50)
+          else
+            COMMITS=$(git log --pretty=format:"- %s (%h)" --no-merges | head -50)
+          fi
+
+          if [ -z "$COMMITS" ]; then
+            COMMITS="- Release v${{ steps.version.outputs.version }}"
+          fi
+
+          # Write changelog to file and output
+          CHANGELOG="## What's Changed\n\n${COMMITS}"
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo -e "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+  # ── Build Windows installer ───────────────────────────────────
+  build-windows:
+    name: 🪟 Windows (NSIS)
+    needs: prepare
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        arch: [x64, ia32]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+          cache-dependency-path: ZENO_WEB_CORE_APP/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ZENO_WEB_CORE_APP
+        run: npm ci
+
+      - name: Install electron-builder
+        run: npm install --save-dev electron-builder
+
+      - name: Build frontend
+        working-directory: ZENO_WEB_CORE_APP
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+      - name: Build NSIS installer
+        run: node scripts/build-nsis.js --arch=${{ matrix.arch }}
+        env:
+          NODE_ENV: production
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-${{ matrix.arch }}
+          path: |
+            dist-electron/*.exe
+            dist-electron/*.yml
+            dist-electron/*.blockmap
+          retention-days: 7
+
+  # ── Build macOS DMG ───────────────────────────────────────────
+  build-macos:
+    name: 🍎 macOS (DMG)
+    needs: prepare
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        arch: [x64, arm64]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+          cache-dependency-path: ZENO_WEB_CORE_APP/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ZENO_WEB_CORE_APP
+        run: npm ci
+
+      - name: Install electron-builder
+        run: npm install --save-dev electron-builder
+
+      - name: Build frontend
+        working-directory: ZENO_WEB_CORE_APP
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+      - name: Build DMG
+        run: node scripts/build-dmg.js --arch=${{ matrix.arch }}
+        env:
+          NODE_ENV: production
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-${{ matrix.arch }}
+          path: |
+            dist-electron/*.dmg
+            dist-electron/*.zip
+            dist-electron/*-mac.yml
+          retention-days: 7
+
+  # ── Build Linux AppImage ──────────────────────────────────────
+  build-linux:
+    name: 🐧 Linux (AppImage + deb + rpm)
+    needs: prepare
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [x64]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+          cache-dependency-path: ZENO_WEB_CORE_APP/package-lock.json
+
+      - name: Install Linux build dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            rpm \
+            fakeroot \
+            dpkg \
+            libopenjp2-tools
+
+      - name: Install Node dependencies
+        working-directory: ZENO_WEB_CORE_APP
+        run: npm ci
+
+      - name: Install electron-builder
+        run: npm install --save-dev electron-builder
+
+      - name: Build frontend
+        working-directory: ZENO_WEB_CORE_APP
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+      - name: Build AppImage + deb + rpm
+        run: node scripts/build-appimage.js --arch=${{ matrix.arch }} --target=all
+        env:
+          NODE_ENV: production
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Make AppImage executable
+        run: chmod +x dist-electron/*.AppImage 2>/dev/null || true
+
+      - name: Upload Linux artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-${{ matrix.arch }}
+          path: |
+            dist-electron/*.AppImage
+            dist-electron/*.deb
+            dist-electron/*.rpm
+            dist-electron/*-linux.yml
+          retention-days: 7
+
+  # ── Create GitHub Release ─────────────────────────────────────
+  release:
+    name: 🎉 Create Release
+    needs: [prepare, build-windows, build-macos, build-linux]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+
+      - name: List release assets
+        run: |
+          echo "📦 Release assets:"
+          find release-assets -type f | sort
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.prepare.outputs.tag }}
+          name: "ZENO Browser ${{ needs.prepare.outputs.tag }}"
+          body: |
+            ## ZENO Browser ${{ needs.prepare.outputs.tag }}
+
+            AI-powered browser with multi-model integration.
+
+            ${{ needs.prepare.outputs.changelog }}
+
+            ---
+
+            ### 📥 Installation
+
+            | Platform | Download |
+            |----------|---------|
+            | 🪟 Windows (64-bit) | `ZENO-Browser-Setup-*-x64.exe` |
+            | 🪟 Windows (32-bit) | `ZENO-Browser-Setup-*-ia32.exe` |
+            | 🍎 macOS (Intel)    | `ZENO-Browser-*-x64.dmg` |
+            | 🍎 macOS (Apple Silicon) | `ZENO-Browser-*-arm64.dmg` |
+            | 🐧 Linux (AppImage) | `ZENO-Browser-*-x64.AppImage` |
+            | 🐧 Linux (Debian)   | `ZENO-Browser_*_amd64.deb` |
+            | 🐧 Linux (RPM)      | `ZENO-Browser-*-x86_64.rpm` |
+
+            See the [documentation](https://zenbrowsers.org/docs) for installation guides.
+          draft: ${{ github.event.inputs.draft == 'true' }}
+          prerelease: ${{ github.event.inputs.prerelease == 'true' }}
+          files: |
+            release-assets/**/*.exe
+            release-assets/**/*.dmg
+            release-assets/**/*.zip
+            release-assets/**/*.AppImage
+            release-assets/**/*.deb
+            release-assets/**/*.rpm
+          generate_release_notes: false
+          fail_on_unmatched_files: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Output release URL
+        run: |
+          echo "🎉 Release created: ${{ steps.create_release.outputs.url }}"

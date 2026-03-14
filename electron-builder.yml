@@ -1,0 +1,160 @@
+appId: org.zenbrowsers.browser
+productName: ZENO Browser
+copyright: Copyright © 2026 ZENO Browser Team
+
+directories:
+  output: dist-electron
+  buildResources: assets/installer
+
+files:
+  - dist/**/*
+  - src-electron/**/*
+  - "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}"
+  - "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}"
+  - "!**/node_modules/*.d.ts"
+  - "!**/node_modules/.bin"
+  - "!**/*.{iml,o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,xproj}"
+  - "!.editorconfig"
+  - "!**/._*"
+  - "!**/{.DS_Store,.git,.hg,.svn,CVS,RCS,SCCS,__pycache__,thumbs.db,.gitignore,.gitattributes}"
+  - "!**/{appveyor.yml,.travis.yml,circle.yml}"
+  - "!**/{npm-debug.log,yarn.lock,.yarn-integrity,.yarn-metadata.json}"
+
+asar: true
+
+extraMetadata:
+  version: "1.0.0"
+
+publish:
+  provider: github
+  owner: Bonzokoles
+  repo: zen-bro-wser.org
+  releaseType: release
+
+# ==========================================
+# Windows (NSIS)
+# ==========================================
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+        - ia32
+    - target: portable
+      arch:
+        - x64
+  icon: assets/installer/icon.ico
+  artifactName: "${productName}-Setup-${version}-${arch}.${ext}"
+  publisherName: ZENO Browser Team
+  verifyUpdateCodeSignature: false
+  requestedExecutionLevel: asInvoker
+  signAndEditExecutable: false
+
+nsis:
+  oneClick: false
+  allowElevation: true
+  allowToChangeInstallationDirectory: true
+  installerIcon: assets/installer/icon.ico
+  uninstallerIcon: assets/installer/icon.ico
+  installerHeaderIcon: assets/installer/icon.ico
+  createDesktopShortcut: always
+  createStartMenuShortcut: true
+  shortcutName: ZENO Browser
+  deleteAppDataOnUninstall: false
+  runAfterFinish: true
+  menuCategory: Internet
+  include: assets/installer/installer.nsh
+  script: assets/installer/installer.nsi
+  unicode: true
+  installerLanguages:
+    - en_US
+    - pl_PL
+
+# ==========================================
+# macOS (DMG)
+# ==========================================
+mac:
+  target:
+    - target: dmg
+      arch:
+        - x64
+        - arm64
+    - target: zip
+      arch:
+        - x64
+        - arm64
+  icon: assets/installer/icon.icns
+  category: public.app-category.productivity
+  darkModeSupport: true
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  entitlements: assets/installer/entitlements.mac.plist
+  entitlementsInherit: assets/installer/entitlements.mac.plist
+  extendInfo:
+    NSCameraUsageDescription: ZENO Browser uses camera for video conferencing features
+    NSMicrophoneUsageDescription: ZENO Browser uses microphone for audio features
+  artifactName: "${productName}-${version}-${arch}.${ext}"
+  notarize:
+    teamId: "${CSC_TEAM_ID}"
+
+dmg:
+  contents:
+    - x: 410
+      y: 150
+      type: link
+      path: /Applications
+    - x: 130
+      y: 150
+      type: file
+  window:
+    width: 540
+    height: 380
+  icon: assets/installer/icon.icns
+  iconSize: 128
+  background: assets/installer/dmg-background.png
+  artifactName: "${productName}-${version}-${arch}.${ext}"
+
+# ==========================================
+# Linux (AppImage, deb, rpm)
+# ==========================================
+linux:
+  target:
+    - target: AppImage
+      arch:
+        - x64
+        - arm64
+    - target: deb
+      arch:
+        - x64
+    - target: rpm
+      arch:
+        - x64
+    - target: snap
+      arch:
+        - x64
+  icon: assets/installer/icons/
+  category: Network
+  description: AI-powered browser with multi-model integration
+  desktop:
+    StartupNotify: false
+    Encoding: UTF-8
+    MimeType: x-scheme-handler/http;x-scheme-handler/https
+  artifactName: "${productName}-${version}-${arch}.${ext}"
+
+appImage:
+  artifactName: "${productName}-${version}-${arch}.AppImage"
+
+deb:
+  depends:
+    - gconf2
+    - gconf-service
+    - libnotify4
+    - libappindicator1
+    - libxtst6
+    - libnss3
+  artifactName: "${productName}_${version}_${arch}.${ext}"
+
+# ==========================================
+# Auto-Update
+# ==========================================
+electronUpdaterCompatibility: ">=0.0.17"
