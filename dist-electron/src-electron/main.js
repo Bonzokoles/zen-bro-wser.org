@@ -128,6 +128,11 @@ if (typeof global.Path2D === 'undefined') {
 const electron_1 = require("electron");
 const path = __importStar(require("path"));
 const isDev = require('electron-is-dev');
+// Suppress CSP/security warnings in dev (unsafe-eval needed by Vite HMR)
+// These warnings do not appear in production builds
+if (isDev) {
+    process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true';
+}
 const browser_manager_1 = require("./services/browser-manager");
 const ai_gateway_service_1 = require("./services/ai-gateway-service");
 const network_monitor_1 = require("./services/network-monitor");

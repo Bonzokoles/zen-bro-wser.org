@@ -81,6 +81,12 @@ import {
 } from 'electron';
 import * as path from 'path';
 const isDev = require('electron-is-dev');
+
+// Suppress CSP/security warnings in dev (unsafe-eval needed by Vite HMR)
+// These warnings do not appear in production builds
+if (isDev) {
+  process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true';
+}
 import { BrowserManager } from './services/browser-manager';
 import { AIGatewayService } from './services/ai-gateway-service';
 import { NetworkMonitor } from './services/network-monitor';
