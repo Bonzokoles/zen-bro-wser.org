@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { pluginIPCBridge } from '../services/plugin-ipc-bridge';
-import type { MarketplaceEntry, PluginMeta } from '../services/plugin-ipc-bridge';
+import type { MarketplaceEntry } from '../services/plugin-ipc-bridge';
 
 interface PluginExplorerProps {
   isOpen: boolean;
@@ -38,7 +38,7 @@ const PluginExplorer: React.FC<PluginExplorerProps> = ({
   // Track installed
   useEffect(() => {
     if (!isOpen) return;
-    const ids = new Set(pluginIPCBridge.getInstalledPlugins().map((p: PluginMeta) => p.id));
+    const ids = new Set(pluginIPCBridge.getInstalledPlugins().map((p) => p.id));
     setInstalled(ids);
   }, [isOpen]);
 

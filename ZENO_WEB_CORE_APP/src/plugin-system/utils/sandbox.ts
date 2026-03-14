@@ -43,8 +43,12 @@ function buildStorageAPI(
       requirePermission('storage', permissions, 'storage.get');
       try {
         const raw = localStorage.getItem(key(k));
-        return raw !== null ? (JSON.parse(raw) as unknown) : undefined;
+        if (raw === null) return undefined;
+        return JSON.parse(raw) as unknown;
       } catch {
+        // Corrupt or malformed storage entry – silently return undefined
+        // and remove the bad value to prevent repeated errors.
+        localStorage.removeItem(key(k));
         return undefined;
       }
     },

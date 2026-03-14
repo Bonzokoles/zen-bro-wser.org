@@ -79,8 +79,16 @@ export function validateManifest(manifest: unknown): ValidationResult {
  * Returns true if `version` >= `minVersion`.
  */
 export function meetsMinVersion(version: string, minVersion: string): boolean {
+  // Strip pre-release and build metadata before parsing (e.g. "1.0.0-alpha+build")
+  const stripSuffix = (v: string): string => v.split(/[+-]/)[0];
+
   const parse = (v: string): number[] =>
-    v.split('.').map((n) => parseInt(n, 10));
+    stripSuffix(v)
+      .split('.')
+      .map((n) => {
+        const num = parseInt(n, 10);
+        return isNaN(num) ? 0 : num;
+      });
 
   const [ma, mi, pa] = parse(version);
   const [mia, mii, mip] = parse(minVersion);

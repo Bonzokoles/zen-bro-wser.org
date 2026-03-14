@@ -221,9 +221,12 @@ export class PluginManager {
           `Plugin "${manifest.id}" depends on "${depId}" which is not installed.`
         );
       }
-      if (!meetsMinVersion(dep.version, requiredRange.replace(/[^0-9.]/g, ''))) {
+
+      // Extract the minimum version from common range prefixes (^, ~, >=, >, =)
+      const minVersion = requiredRange.replace(/^[^0-9]*/, '').split(/\s/)[0];
+      if (minVersion && !meetsMinVersion(dep.version, minVersion)) {
         throw new Error(
-          `Plugin "${manifest.id}" requires "${depId}" >= ${requiredRange}, ` +
+          `Plugin "${manifest.id}" requires "${depId}" ${requiredRange}, ` +
             `but installed version is ${dep.version}.`
         );
       }

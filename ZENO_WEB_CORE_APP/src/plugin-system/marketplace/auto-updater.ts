@@ -48,11 +48,8 @@ export class AutoUpdater {
     for (const meta of installed) {
       try {
         const entry = await marketplaceService.getEntry(meta.id);
-        if (
-          entry &&
-          !meetsMinVersion(meta.version, entry.manifest.version) &&
-          entry.manifest.version !== meta.version
-        ) {
+        // An update is available when the installed version is strictly below the marketplace version
+        if (entry && !meetsMinVersion(meta.version, entry.manifest.version)) {
           updates.push({
             installedMeta: meta,
             availableEntry: entry,
