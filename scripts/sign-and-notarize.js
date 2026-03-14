@@ -209,8 +209,8 @@ async function notarizeMacOS(filePath) {
   let result;
   try {
     result = JSON.parse(submitResult);
-  } catch {
-    throw new Error(`Failed to parse notarization response: ${submitResult}`);
+  } catch (parseError) {
+    throw new Error(`Failed to parse notarization response: ${parseError.message}. Raw response: ${submitResult}`);
   }
 
   if (result.status !== 'Accepted') {

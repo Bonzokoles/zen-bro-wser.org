@@ -22,9 +22,6 @@ files:
 
 asar: true
 
-extraMetadata:
-  version: "1.0.0"
-
 publish:
   provider: github
   owner: Bonzokoles

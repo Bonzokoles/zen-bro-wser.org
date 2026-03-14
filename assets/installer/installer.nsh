@@ -6,7 +6,8 @@
 ; Custom macros and functions for ZENO Browser installer
 ; ============================================================
 
-; Check if ZENO Browser is already running
+; Check if ZENO Browser is already running.
+; NOTE: The window title "ZENO Browser" must match the `productName` in electron-builder.yml exactly.
 !macro CheckRunning
   FindWindow $0 "" "ZENO Browser"
   StrCmp $0 0 NotRunning

@@ -57,7 +57,15 @@ jobs:
             VERSION="${{ github.ref_name }}"
             VERSION="${VERSION#v}"
           else
-            CURRENT=$(node -p "require('./ZENO_WEB_CORE_APP/package.json').version" 2>/dev/null || echo "0.0.1")
+            if [[ ! -f "ZENO_WEB_CORE_APP/package.json" ]]; then
+              echo "::error::ZENO_WEB_CORE_APP/package.json not found — cannot determine current version"
+              exit 1
+            fi
+            CURRENT=$(node -p "require('./ZENO_WEB_CORE_APP/package.json').version")
+            if [[ -z "$CURRENT" || "$CURRENT" == "undefined" ]]; then
+              echo "::error::Could not read version from ZENO_WEB_CORE_APP/package.json"
+              exit 1
+            fi
             BUMP="${{ github.event.inputs.version_bump || 'patch' }}"
             IFS='.' read -ra PARTS <<< "$CURRENT"
             case "$BUMP" in
