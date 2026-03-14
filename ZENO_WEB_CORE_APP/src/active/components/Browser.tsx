@@ -17,7 +17,7 @@ import OllamaChatbot from './OllamaChatbot';
 import WikipediaWidget from './widgets/WikipediaWidget';
 import OnThisDayWidget from './widgets/OnThisDayWidget';
 import BirthdaySongWidget from './widgets/BirthdaySongWidget';
-import { mcpService } from '../services/mcpService';
+import { mcpService, type MCPTool } from '../services/mcpService';
 import { analytics } from '../services/analytics';
 import { licenseManager, getLicensePlan } from '../services/security/licenseManager';
 import { hasFeatureAccess, TAB_LIMITS, FEATURES, type PlanType } from '../config/features';
@@ -39,13 +39,7 @@ export interface Tab {
 	favicon?: string;
 }
 
-export interface MCPTool {
-	id: string;
-	name: string;
-	description: string;
-	server: string;
-	status: 'connected' | 'disconnected' | 'error';
-}
+export type { MCPTool } from '../services/mcpService';
 
 interface Bookmark {
 	id: string;
@@ -181,12 +175,12 @@ const Browser: React.FC = () => {
 	useEffect(() => {
 		const checkLicense = async () => {
 			try {
-				const validation = await licenseManager.validateLicense();
-				setIsLicenseValid(validation.isValid);
+			const isValid = licenseManager.isValid();
+			setIsLicenseValid(isValid);
 				const plan = getLicensePlan();
 				setCurrentPlan(plan);
 
-				if (validation.isValid) {
+				if (isValid) {
 					addConsoleMessage(`✅ License activated - ${plan} plan`);
 				} else {
 					addConsoleMessage('ℹ️ Using Free plan - Upgrade to unlock premium features');

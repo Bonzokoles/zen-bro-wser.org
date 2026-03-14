@@ -3,7 +3,7 @@
  * Defines what features are available for each plan tier
  */
 
-export type PlanType = 'free' | 'pro' | 'enterprise';
+export type PlanType = 'free' | 'pro' | 'enterprise' | 'monthly' | 'yearly' | 'lifetime';
 
 /**
  * Tab limits per plan
@@ -11,7 +11,10 @@ export type PlanType = 'free' | 'pro' | 'enterprise';
 export const TAB_LIMITS: Record<PlanType, number> = {
     free: 5,
     pro: 50,
-    enterprise: 999
+    enterprise: 999,
+    monthly: 30,
+    yearly: 100,
+    lifetime: 999
 };
 
 /**
@@ -80,13 +83,19 @@ export function getAvailableFeatures(plan: PlanType): FeatureName[] {
 export const PLAN_NAMES: Record<PlanType, string> = {
     free: 'Free',
     pro: 'Pro',
-    enterprise: 'Enterprise'
+    enterprise: 'Enterprise',
+    monthly: 'Monthly',
+    yearly: 'Yearly',
+    lifetime: 'Lifetime'
 };
 
 /**
  * Plan descriptions
  */
 export const PLAN_DESCRIPTIONS: Record<PlanType, string> = {
+    monthly: 'Monthly subscription',
+    yearly: 'Yearly subscription - save 20%',
+    lifetime: 'One-time payment, forever',
     free: 'Perfect for getting started',
     pro: 'For power users and professionals',
     enterprise: 'For teams and organizations'
@@ -97,6 +106,9 @@ export const PLAN_DESCRIPTIONS: Record<PlanType, string> = {
  */
 export const PLAN_PRICING: Record<PlanType, number> = {
     free: 0,
+    monthly: 9.99,
+    yearly: 99.99,
+    lifetime: 299.99,
     pro: 9.99,
     enterprise: 49.99
 };
