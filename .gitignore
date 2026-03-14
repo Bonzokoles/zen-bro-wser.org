@@ -26,3 +26,9 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# Local workspace meta (submodule-free)
+.workspace_meta/awesome-copilot
+.workspace_meta/History/
+.workspace_meta/staging/
+.workspace_meta/MASTER_REPAIR_PLAN.md

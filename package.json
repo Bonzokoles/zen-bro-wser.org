@@ -19,8 +19,8 @@
     "lint:fix": "eslint src src-electron --ext .ts,.tsx --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx,json}\" \"src-electron/**/*.ts\"",
     "test": "npm run test:unit && npm run test:e2e",
-    "test:unit": "jest --coverage",
-    "test:coverage": "jest --coverage --coverageReporters=text-summary",
+    "test:unit": "jest --config jest.config.cjs --coverage",
+    "test:coverage": "jest --config jest.config.cjs --coverage --coverageReporters=text-summary",
     "test:e2e": "playwright test",
     "test:watch": "jest --watch",
     "clean": "rm -rf dist dist-electron coverage"
