@@ -7,6 +7,8 @@ interface TerminalLine {
   timestamp: Date;
 }
 
+const MAX_HISTORY_SIZE = 50;
+
 const COMMANDS: Record<string, (args: string[]) => string> = {
   help: () => `Available commands:
   help          - Show this help
@@ -102,7 +104,7 @@ const Terminal: React.FC<TerminalProps> = ({ onCommand, className = '' }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim()) return;
-    setHistory((prev) => [input, ...prev.slice(0, 49)]);
+    setHistory((prev) => [input, ...prev.slice(0, MAX_HISTORY_SIZE - 1)]);
     setHistoryIndex(-1);
     executeCommand(input);
     setInput('');

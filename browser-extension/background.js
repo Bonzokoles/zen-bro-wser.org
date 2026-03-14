@@ -35,9 +35,13 @@ async function handleMCPCall(tool, args) {
   try {
     const settings = await chrome.storage.local.get(['zenoApiUrl', 'zenoApiKey']);
     const url = settings.zenoApiUrl || 'http://localhost:4378/api/mcp';
+    const headers = { 'Content-Type': 'application/json' };
+    if (settings.zenoApiKey) {
+      headers['X-API-Key'] = settings.zenoApiKey;
+    }
     const response = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-API-Key': settings.zenoApiKey || '' },
+      headers,
       body: JSON.stringify({ tool, args }),
     });
     return await response.json();

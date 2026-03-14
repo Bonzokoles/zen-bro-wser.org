@@ -77,7 +77,7 @@ def simple_scrape(url: str, selector: str = None) -> dict:
         return {"url": url, "error": str(e)}
 
 
-if DEPS_AVAILABLE and app:
+MAX_BATCH_URLS = 10  # configurable batch size limit
     @app.route("/health")
     def health():
         return jsonify({"status": "ok", "service": "zeno-scrapy-bridge", "version": "0.2.0"})
@@ -101,7 +101,7 @@ if DEPS_AVAILABLE and app:
     def batch_scrape():
         data = request.get_json()
         urls = data.get("urls", [])
-        results = [simple_scrape(u) for u in urls[:10]]  # max 10
+        results = [simple_scrape(u) for u in urls[:MAX_BATCH_URLS]]
         return jsonify({"results": results, "count": len(results)})
 
 

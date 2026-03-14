@@ -7,6 +7,8 @@ const DANGEROUS_PROTOCOLS = ['javascript:', 'vbscript:', 'data:text/html', 'data
 const BLOCKED_DOMAINS: string[] = [];
 const ALLOWED_SANDBOX_PROTOCOLS = ['http:', 'https:'];
 
+const MAX_CONTENT_SIZE = 10_000_000; // 10MB
+
 export interface SecurityCheckResult {
   safe: boolean;
   reason?: string;
@@ -65,7 +67,7 @@ export class SecurityService {
     return parts.join('; ');
   }
 
-  isContentAllowed(content: string, maxLength = 10_000_000): boolean {
+  isContentAllowed(content: string, maxLength = MAX_CONTENT_SIZE): boolean {
     if (content.length > maxLength) return false;
     if (/<script[^>]*>[\s\S]*?<\/script>/gi.test(content)) return false;
     return true;
