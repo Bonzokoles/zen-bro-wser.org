@@ -16,7 +16,9 @@
     "moduleResolution": "node",
     "verbatimModuleSyntax": false,
     "allowSyntheticDefaultImports": true,
-    "downlevelIteration": true
+    "downlevelIteration": true,
+    "noEmit": false,
+    "allowImportingTsExtensions": false
   },
   "include": ["src-electron/**/*", "src/plugin-system/**/*"],
   "exclude": ["node_modules"]

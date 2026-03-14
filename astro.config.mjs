@@ -42,14 +42,8 @@ export default defineConfig({
       }
     },
     ssr: {
-      external: ['node:async_hooks'],
-      noExternal: ['crypto-js', 'webamp']
-    },
-    resolve: {
-      alias: {
-        'http': 'rollup-plugin-node-polyfills/polyfills/http',
-        'https': 'rollup-plugin-node-polyfills/polyfills/https',
-      },
+      external: ['node:async_hooks', 'webamp'],
+      noExternal: ['crypto-js']
     },
   },
 });

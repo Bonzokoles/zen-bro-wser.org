@@ -3,7 +3,8 @@
  */
 
 import { PluginManager } from '@/plugin-system/core/plugin-manager';
-import { BasePlugin, PluginMetadata, PluginContext } from '@/plugin-system/core/plugin-api';
+import { BasePlugin } from '@/plugin-system/core/plugin-api';
+import type { PluginMetadata, PluginContext } from '@/plugin-system/core/plugin-api';
 
 // Mock plugin
 class MockPlugin extends BasePlugin {

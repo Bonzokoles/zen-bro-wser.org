@@ -10,7 +10,7 @@
     "dev:electron": "wait-on http://localhost:4378 && electron .",
     "build": "npm run build:astro && npm run build:electron",
     "build:astro": "astro build",
-    "build:electron": "tsc -p tsconfig.electron.json",
+    "build:electron": "tsc -p tsconfig.electron.json && node -e \"require('fs').writeFileSync('dist-electron/package.json', JSON.stringify({type:'commonjs'}))\"",
     "preview": "astro preview",
     "astro": "astro",
     "dist": "npm run build && electron-builder",

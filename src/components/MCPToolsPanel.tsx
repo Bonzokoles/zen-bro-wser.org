@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { mcpService, MCPTool } from '../services/mcpService';
+import { mcpService } from '../services/mcpService';
+import type { MCPTool } from '../services/mcpService';
 
 interface MCPToolsPanelProps {
   isOpen: boolean;

@@ -18,6 +18,9 @@ pnpm-debug.log*
 .env.local
 .env.production
 
+# workspace secrets (API keys - never commit)
+.workspace_meta/secrets/
+
 # macOS-specific files
 .DS_Store
 

@@ -70,6 +70,9 @@ export class NetworkManager extends EventEmitter {
     });
 
     session.defaultSession.webRequest.onErrorOccurred(filter, (details) => {
+      // Skip benign cache/navigation errors that are normal browser behaviour
+      const benign = ['ERR_CACHE_MISS', 'ERR_ABORTED', 'ERR_BLOCKED_BY_CLIENT'];
+      if (benign.some(code => details.error.includes(code))) return;
       this.emit('error', { url: details.url, error: details.error });
     });
   }

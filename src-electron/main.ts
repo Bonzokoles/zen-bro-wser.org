@@ -3,6 +3,75 @@
  * Window management, IPC handlers, backend services
  */
 
+// Polyfills for Node 18 (Electron 27) — must be first, before any other imports
+
+// process.getBuiltinModule is Node.js 21+ — polyfill for Electron 27 / Node 18
+if (typeof (process as any).getBuiltinModule === 'undefined') {
+  (process as any).getBuiltinModule = (name: string) => require(name);
+}
+
+// File global — required by cheerio/undici
+if (typeof (global as any).File === 'undefined') {
+  (global as any).File = require('node:buffer').File;
+}
+
+// DOMMatrix — required by pdfjs-dist / pdf-parse
+if (typeof (global as any).DOMMatrix === 'undefined') {
+  // Minimal stub sufficient for PDF.js matrix operations
+  (global as any).DOMMatrix = class DOMMatrix {
+    a = 1; b = 0; c = 0; d = 1; e = 0; f = 0;
+    m11 = 1; m12 = 0; m13 = 0; m14 = 0;
+    m21 = 0; m22 = 1; m23 = 0; m24 = 0;
+    m31 = 0; m32 = 0; m33 = 1; m34 = 0;
+    m41 = 0; m42 = 0; m43 = 0; m44 = 1;
+    is2D = true; isIdentity = true;
+    constructor(_init?: string | number[]) {}
+    static fromMatrix(m: any) { return new (global as any).DOMMatrix(); }
+    static fromFloat32Array(a: Float32Array) { return new (global as any).DOMMatrix(); }
+    static fromFloat64Array(a: Float64Array) { return new (global as any).DOMMatrix(); }
+    multiply(m: any) { return new (global as any).DOMMatrix(); }
+    translate(tx = 0, ty = 0, tz = 0) { return new (global as any).DOMMatrix(); }
+    scale(s = 1) { return new (global as any).DOMMatrix(); }
+    rotate(a = 0) { return new (global as any).DOMMatrix(); }
+    inverse() { return new (global as any).DOMMatrix(); }
+    transformPoint(p: any) { return p; }
+    toFloat32Array() { return new Float32Array(16); }
+    toFloat64Array() { return new Float64Array(16); }
+    toString() { return 'matrix(1, 0, 0, 1, 0, 0)'; }
+  };
+}
+
+// ImageData — required by pdfjs-dist canvas operations
+if (typeof (global as any).ImageData === 'undefined') {
+  (global as any).ImageData = class ImageData {
+    data: Uint8ClampedArray;
+    width: number;
+    height: number;
+    colorSpace: string = 'srgb';
+    constructor(widthOrData: number | Uint8ClampedArray, height: number, _options?: any) {
+      if (typeof widthOrData === 'number') {
+        this.width = widthOrData;
+        this.height = height;
+        this.data = new Uint8ClampedArray(widthOrData * height * 4);
+      } else {
+        this.data = widthOrData;
+        this.width = height;
+        this.height = widthOrData.length / (4 * height);
+      }
+    }
+  };
+}
+
+// Path2D — stub
+if (typeof (global as any).Path2D === 'undefined') {
+  (global as any).Path2D = class Path2D {
+    constructor(_path?: any) {}
+    addPath() {} moveTo() {} lineTo() {} arc() {} arcTo() {}
+    bezierCurveTo() {} closePath() {} ellipse() {} rect() {}
+    quadraticCurveTo() {}
+  };
+}
+
 import {
   app,
   BrowserWindow,
@@ -55,8 +124,24 @@ function createWindow() {
 
   // Load UI
   const startUrl = isDev
-    ? 'http://localhost:5173' // Vite dev server
+    ? 'http://localhost:4378' // Astro dev server (npm run dev:astro)
     : `file://${path.join(__dirname, '../dist/index.html')}`;
+
+  // Content Security Policy – set on all responses from Electron session
+  mainWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
+    const csp = isDev
+      // Development: allow localhost + wss for HMR, unsafe-eval for React DevTools
+      ? "default-src 'self' http://localhost:* ws://localhost:*; script-src 'self' 'unsafe-eval' 'unsafe-inline' http://localhost:*; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' http://localhost:* ws://localhost:* https:;"
+      // Production: strict CSP
+      : "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https:;";
+
+    callback({
+      responseHeaders: {
+        ...details.responseHeaders,
+        'Content-Security-Policy': [csp],
+      },
+    });
+  });
 
   mainWindow.loadURL(startUrl);
 
@@ -144,6 +229,10 @@ async function initializeServices() {
     // Advanced Network Control
     networkManager = new NetworkManager({ allowLocalhost: true, allowLAN: true });
     networkManager.init();
+    // Prevent unhandled 'error' event crash — log only
+    networkManager.on('error', (err: unknown) => {
+      console.warn('[NetworkManager] request error:', err);
+    });
     console.log('✅ Advanced Network Manager initialized');
 
     // Cloudflare WebTunnels Daemon
