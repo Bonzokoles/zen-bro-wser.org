@@ -162,11 +162,14 @@ export const BrowserUI: React.FC = () => {
         
         {/* Web View Placeholder (Sandbox/Classic Dual Engine) */}
         <section className="web-view">
-          <WebView 
-             url={currentUrl || 'about:blank'} 
-             isLoading={loading} 
-             title={tabs.find(t => t.isActive)?.title || 'ZENO'} 
-             topOffset={0} 
+          <WebView
+             url={currentUrl || 'about:blank'}
+             isLoading={loading}
+             title={tabs.find(t => t.isActive)?.title || 'ZENO'}
+             topOffset={0}
+             onNavigate={handleNavigate}
+             onToggleAI={() => setShowAIPanel(prev => !prev)}
+             onToggleSecurity={() => setShowSecurityPanel(prev => !prev)}
           />
         </section>
 

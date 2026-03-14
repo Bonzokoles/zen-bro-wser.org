@@ -9,13 +9,31 @@ interface WebViewProps {
 	isLoading: boolean;
 	title: string;
 	topOffset?: number;
+	onNavigate?: (url: string) => void;
+	onToggleAI?: () => void;
+	onToggleSecurity?: () => void;
 }
 
-const WebView: React.FC<WebViewProps> = ({ url, isLoading, title, topOffset = 80 }) => {
+const WebView: React.FC<WebViewProps> = ({ url, isLoading, title, topOffset = 80, onNavigate, onToggleAI, onToggleSecurity }) => {
 	console.log('WebView props:', { url, isLoading, title, topOffset });
 	const [iframeError, setIframeError] = useState(false);
 	const [loadTimeout, setLoadTimeout] = useState(false);
 	const [activeMotifs, setActiveMotifs] = useState(['synthwave', 'matrix', 'cosmic']);
+	const [searchQuery, setSearchQuery] = useState('');
+	const [searchMode, setSearchMode] = useState('intr');
+
+	const handleSearch = () => {
+		if (!searchQuery.trim()) return;
+		let finalUrl = searchQuery.trim();
+		if (!finalUrl.startsWith('http://') && !finalUrl.startsWith('https://')) {
+			if (finalUrl.includes('.') && !finalUrl.includes(' ')) {
+				finalUrl = 'https://' + finalUrl;
+			} else {
+				finalUrl = `https://www.google.com/search?q=${encodeURIComponent(finalUrl)}`;
+			}
+		}
+		onNavigate?.(finalUrl);
+	};
 	
 	const iframeRef = useRef<HTMLIFrameElement>(null);
 	const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -102,10 +120,10 @@ const WebView: React.FC<WebViewProps> = ({ url, isLoading, title, topOffset = 80
 					paddingTop: '20px',
 					gap: '16px'
 				}}>
-					<button className="zeno-btn" title="System Dashboard" style={{ padding: '10px', fontSize: '1.2rem', background: 'transparent', border: 'none', cursor: 'pointer' }}>🖥️</button>
-					<button className="zeno-btn" title="Crawler Nodes" style={{ padding: '10px', fontSize: '1.2rem', background: 'transparent', border: 'none', cursor: 'pointer' }}>🕸️</button>
-					<button className="zeno-btn" title="MCP Protocols" style={{ padding: '10px', fontSize: '1.2rem', background: 'transparent', border: 'none', cursor: 'pointer' }}>🛡️</button>
-					<button className="zeno-btn" title="Memory Vault" style={{ padding: '10px', fontSize: '1.2rem', background: 'transparent', border: 'none', cursor: 'pointer' }}>💾</button>
+					<button className="zeno-btn" title="System Dashboard" onClick={() => onNavigate?.('https://zenbrowsers.org')} style={{ padding: '10px', fontSize: '1.2rem', background: 'transparent', border: 'none', cursor: 'pointer' }}>🖥️</button>
+					<button className="zeno-btn" title="AI Intelligence Panel" onClick={() => onToggleAI?.()} style={{ padding: '10px', fontSize: '1.2rem', background: 'transparent', border: 'none', cursor: 'pointer' }}>🕸️</button>
+					<button className="zeno-btn" title="Security Monitor" onClick={() => onToggleSecurity?.()} style={{ padding: '10px', fontSize: '1.2rem', background: 'transparent', border: 'none', cursor: 'pointer' }}>🛡️</button>
+					<button className="zeno-btn" title="Memory Vault" onClick={() => onNavigate?.('https://github.com/Bonzokoles/zen-bro-wser.org')} style={{ padding: '10px', fontSize: '1.2rem', background: 'transparent', border: 'none', cursor: 'pointer' }}>💾</button>
 				</div>
 
 				{/* Main Startup View */}
@@ -128,14 +146,17 @@ const WebView: React.FC<WebViewProps> = ({ url, isLoading, title, topOffset = 80
 							type="text" 
 							className="zeno-input" 
 							placeholder="Initialize Query Sequence..." 
-							style={{ width: '400px', fontSize: '0.95rem', background: 'transparent', border: 'none', color: 'var(--zeno-text-main)', outline: 'none' }} 
-						/>
-						<select className="zeno-input" style={{ cursor: 'pointer', background: 'transparent', color: 'var(--zeno-primary)', border: 'none', outline: 'none' }}>
+						value={searchQuery}
+						onChange={(e) => setSearchQuery(e.target.value)}
+						onKeyDown={(e) => { if (e.key === 'Enter') handleSearch(); }}
+						style={{ width: '400px', fontSize: '0.95rem', background: 'transparent', border: 'none', color: 'var(--zeno-text-main)', outline: 'none' }} 
+					/>
+						<select className="zeno-input" value={searchMode} onChange={(e) => setSearchMode(e.target.value)} style={{ cursor: 'pointer', background: 'transparent', color: 'var(--zeno-primary)', border: 'none', outline: 'none' }}>
 							<option value="intr">inet</option>
 							<option value="local">local</option>
 							<option value="both">both</option>
 						</select>
-						<button style={{ background: 'var(--zeno-primary)', color: '#000', border: 'none', padding: '6px 16px', borderRadius: 'var(--zeno-radius)', cursor: 'pointer', fontWeight: 'bold' }}>Execute</button>
+						<button onClick={handleSearch} style={{ background: 'var(--zeno-primary)', color: '#000', border: 'none', padding: '6px 16px', borderRadius: 'var(--zeno-radius)', cursor: 'pointer', fontWeight: 'bold' }}>Execute</button>
 					</div>
 					
 					<p style={{ color: 'var(--zeno-text-muted)', marginBottom: '20px', letterSpacing: '2px', fontSize: '0.75rem', opacity: 0.6 }}>
