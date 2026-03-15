@@ -18,14 +18,16 @@ const PRIMARY: DockItem[] = [
 ];
 
 const MORE: DockItem[] = [
-  { type: 'history',     icon: '📜', label: 'Historia',  color: 'from-blue-400 to-indigo-500' },
-  { type: 'video',       icon: '🎬', label: 'Video',     color: 'from-amber-400 to-orange-500' },
-  { type: 'wikipedia',   icon: '📚', label: 'Wikipedia', color: 'from-blue-500 to-cyan-600' },
-  { type: 'on-this-day', icon: '📅', label: 'This Day',  color: 'from-blue-600 to-indigo-700' },
-  { type: 'birthday',    icon: '🎂', label: 'Birthday',  color: 'from-pink-500 to-rose-600' },
-  { type: 'mcp-console', icon: '🔧', label: 'MCP',       color: 'from-slate-600 to-slate-800' },
-  { type: 'admin',       icon: '🔐', label: 'Admin',     color: 'from-red-600 to-red-800' },
-  { type: 'clock',       icon: '⏰', label: 'Zegar',     color: 'from-cyan-400 to-blue-500' },
+  { type: 'history',           icon: '📜', label: 'Historia',  color: 'from-blue-400 to-indigo-500' },
+  { type: 'video',             icon: '🎬', label: 'Video',     color: 'from-amber-400 to-orange-500' },
+  { type: 'ascii-effect',      icon: '🎨', label: 'ASCII Art', color: 'from-emerald-400 to-teal-600' },
+  { type: 'background-picker', icon: '🖼️', label: 'Tła',       color: 'from-violet-500 to-fuchsia-600' },
+  { type: 'wikipedia',         icon: '📚', label: 'Wikipedia', color: 'from-blue-500 to-cyan-600' },
+  { type: 'on-this-day',       icon: '📅', label: 'This Day',  color: 'from-blue-600 to-indigo-700' },
+  { type: 'birthday',          icon: '🎂', label: 'Birthday',  color: 'from-pink-500 to-rose-600' },
+  { type: 'mcp-console',       icon: '🔧', label: 'MCP',       color: 'from-slate-600 to-slate-800' },
+  { type: 'admin',             icon: '🔐', label: 'Admin',     color: 'from-red-600 to-red-800' },
+  { type: 'clock',             icon: '⏰', label: 'Zegar',     color: 'from-cyan-400 to-blue-500' },
 ];
 
 interface FeatureDockProps {

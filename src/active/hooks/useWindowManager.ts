@@ -17,6 +17,8 @@ export type WindowType =
   | 'clock'
   | 'shortcuts'
   | 'music-widget'
+  | 'ascii-effect'
+  | 'background-picker'
   | 'iframe';
 
 export interface ManagedWindow {
@@ -57,6 +59,8 @@ const CONFIGS: Record<WindowType, { title: string; icon: string; w: number; h: n
   'clock':        { title: 'Zegar',              icon: '⏰', w: 340,  h: 280 },
   'shortcuts':    { title: 'Skróty',             icon: '⌨️', w: 420,  h: 460 },
   'music-widget': { title: 'Music Widget',       icon: '🎼', w: 360,  h: 240 },
+  'ascii-effect': { title: 'ASCII Effect',       icon: '🎨', w: 900,  h: 680 },
+  'background-picker': { title: 'Tła',           icon: '🖼️', w: 380,  h: 320 },
   'iframe':       { title: 'Browser Window',     icon: '🌐', w: 920,  h: 690 },
 };
 

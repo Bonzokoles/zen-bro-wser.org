@@ -14,6 +14,7 @@ import { InternetArchivePlayer } from './iframe/InternetArchivePlayer';
 import { YouTubePlayer } from './iframe/YouTubePlayer';
 // import LocalChatbot from './LocalChatbot'; // Moved to NOT_IN_USE
 import OllamaChatbot from './OllamaChatbot';
+import { BackgroundPicker, applyBackground } from './BackgroundPicker';
 import WikipediaWidget from './widgets/WikipediaWidget';
 import OnThisDayWidget from './widgets/OnThisDayWidget';
 import BirthdaySongWidget from './widgets/BirthdaySongWidget';
@@ -154,6 +155,14 @@ const Browser: React.FC = () => {
 		};
 
 		loadData();
+	}, []);
+
+	// Restore background from localStorage on mount
+	useEffect(() => {
+		const stored = localStorage.getItem('zeno-background-id');
+		if (stored && stored !== 'none') {
+			applyBackground(stored as 'signals' | 'datatunnel');
+		}
 	}, []);
 
 	// Save bookmarks to localStorage whenever they change
@@ -669,8 +678,10 @@ const Browser: React.FC = () => {
 			case 'shortcuts':    setIsShortcutsWidgetOpen(v => !v); break;
 			case 'music-widget': setIsMusicWidgetOpen(v => !v); break;
 			case 'settings':     setIsSettingsOpen(v => !v); break;
+			case 'ascii-effect':
+			case 'background-picker':
 			default:
-				// 'ai-chat', 'local-ai', 'iframe' → managed floating windows
+				// 'ai-chat', 'local-ai', 'iframe', 'ascii-effect', 'background-picker' → managed floating windows
 				openWindow(type);
 		}
 	};
@@ -838,6 +849,16 @@ const Browser: React.FC = () => {
 							embedded
 							onClose={() => closeWindow(win.id)}
 						/>
+					)}
+					{win.type === 'ascii-effect' && (
+						<iframe
+							src="/tools/ascii-effect/"
+							style={{ width: '100%', height: '100%', border: 'none', background: '#050505' }}
+							title="ASCII Effect"
+						/>
+					)}
+					{win.type === 'background-picker' && (
+						<BackgroundPicker onClose={() => closeWindow(win.id)} />
 					)}
 				</FloatingWindow>
 			))}
