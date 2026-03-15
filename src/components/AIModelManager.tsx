@@ -131,7 +131,7 @@ const AIModelManager: React.FC<AIModelManagerProps> = ({ isOpen, onClose, onMode
         m.id === model.id ? { ...m, status: 'error' as const } : m
       );
       saveModels(updatedModels);
-      alert(`Failed to test model: ${error.message}`);
+      alert(`Failed to test model: ${(error as Error).message ?? String(error)}`);
     }
   };
 

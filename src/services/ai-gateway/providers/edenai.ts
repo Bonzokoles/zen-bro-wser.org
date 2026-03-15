@@ -2,8 +2,10 @@
  * EdenAI Provider - Multi-provider Aggregation
  */
 
-import axios, { AxiosInstance } from 'axios';
-import { AIProvider, AIRequest, AIResponse } from './index';
+import axios from 'axios';
+import type { AxiosInstance } from 'axios';
+import type { AIProvider, AIRequest, AIResponse } from './index';
+import type { AICapability } from './index';
 
 export class EdenAIProvider implements AIProvider {
   name: 'edenai' = 'edenai';
@@ -16,7 +18,7 @@ export class EdenAIProvider implements AIProvider {
   maxQueueLength = 50;
   rateLimit = { rpm: 50 };
   timeout = 30000;
-  capabilities = ['text-generation', 'vision'];
+  capabilities: AICapability[] = ['text-generation', 'vision'];
   costPerMToken = 0.0015;
 
   private client: AxiosInstance;

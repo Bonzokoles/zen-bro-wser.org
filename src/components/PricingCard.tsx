@@ -55,7 +55,7 @@ export default function PricingCard({
       if (data.success && data.url) {
         // Track checkout start
         const analyticsService = await import('../services/analytics');
-        analyticsService.default.track('checkout_started', { plan, price });
+        analyticsService.analytics.track({ url: window.location.href, action: 'click', metadata: { event: 'checkout_started', plan, price } });
         
         // Redirect to Stripe Checkout
         if (onCheckout) {

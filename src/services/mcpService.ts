@@ -131,7 +131,7 @@ class MCPService {
 
       // Test connection
       console.log(`Testing connection to ${config.provider}...`);
-      const isConnected = await this.currentProvider.testConnection();
+      const isConnected = await (this.currentProvider as any).testConnection();
       if (!isConnected) {
         throw new Error(`Failed to connect to ${config.provider} - please check your API key`);
       }
@@ -216,7 +216,7 @@ class MCPService {
         .filter(tool => tool.enabled)
         .map(tool => tool.id);
 
-      const response = await this.currentProvider.executeMCPCommand(command, enabledTools);
+      const response = await (this.currentProvider as any).executeMCPCommand(command, enabledTools);
       
       // Log command execution
       this.session.messages.push({
@@ -251,7 +251,7 @@ class MCPService {
     } catch (error) {
       return {
         success: false,
-        error: `Command execution failed: ${error.message}`
+        error: `Command execution failed: ${(error as Error).message ?? String(error)}`
       };
     }
   }
@@ -262,7 +262,7 @@ class MCPService {
     }
 
     try {
-      const analysis = await this.currentProvider.analyzeWebContent(url, content);
+      const analysis = await (this.currentProvider as any).analyzeWebContent(url, content);
       
       if (this.session) {
         this.session.messages.push(analysis);
@@ -270,7 +270,7 @@ class MCPService {
 
       return analysis;
     } catch (error) {
-      throw new Error(`Page analysis failed: ${error.message}`);
+      throw new Error(`Page analysis failed: ${(error as Error).message ?? String(error)}`);
     }
   }
 
@@ -297,7 +297,7 @@ class MCPService {
 
   clearSession(): void {
     if (this.currentProvider) {
-      this.currentProvider.clearChatHistory();
+      (this.currentProvider as any).clearChatHistory?.();
     }
     if (this.session) {
       this.session.messages = [];
@@ -322,6 +322,3 @@ class MCPService {
 
 // Export singleton instance
 export const mcpService = new MCPService();
-
-// Export types for use in components
-export type { ChatMessage, MCPResponse, MCPTool, MCPSession, MCPServiceConfig };

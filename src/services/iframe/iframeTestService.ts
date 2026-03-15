@@ -15,7 +15,7 @@ import { PostMessageService } from './postMessageService';
 
 export class IframeTestService {
   private config: IframeTestConfig;
-  private postMessageService: PostMessageService;
+  private postMessageService: any; // PostMessageService (lazy-initialized per iframe)
   private activeTests: Map<string, AbortController> = new Map();
 
   constructor(config?: Partial<IframeTestConfig>) {
@@ -31,8 +31,7 @@ export class IframeTestService {
       ...config,
     };
 
-    this.postMessageService = new PostMessageService();
-    this.postMessageService.init();
+    this.postMessageService = null;
   }
 
   /**

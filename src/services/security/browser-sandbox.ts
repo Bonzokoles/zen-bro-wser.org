@@ -29,12 +29,13 @@ export class BrowserSandbox {
       tabId,
       processId: Math.random(), // Simulated process ID
       created: new Date(),
-      permissions: options?.permissions ?? {
+      permissions: {
         network: true,
         filesystem: false,
         clipboard: true,
         camera: false,
         microphone: false,
+        ...options?.permissions,
       },
       dataEncrypted: options?.dataEncrypted ?? true,
       quotas: {
@@ -214,7 +215,7 @@ class NetworkMonitor {
   }
 
   private groupBy<T>(arr: T[], key: string | ((item: T) => string)): any {
-    return arr.reduce((result, item) => {
+    return arr.reduce((result: Record<string, number>, item) => {
       const k = typeof key === 'string' ? (item as any)[key] : key(item);
       result[k] = (result[k] ?? 0) + 1;
       return result;

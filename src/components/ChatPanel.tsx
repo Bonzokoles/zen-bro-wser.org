@@ -53,7 +53,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       const webContext = currentUrl && currentTitle ? {
         url: currentUrl,
         title: currentTitle,
-        content: webContent
+        content: webContent ?? undefined
       } : undefined;
 
       const response = await mcpService.sendMessage(userMessage, webContext);
@@ -63,7 +63,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       // Add error message to chat
       const errorMessage: ChatMessage = {
         role: 'assistant',
-        content: `❌ Error: ${error.message}`,
+        content: `❌ Error: ${(error as Error).message ?? String(error)}`,
         timestamp: new Date()
       };
       setMessages(prev => [...prev, errorMessage]);

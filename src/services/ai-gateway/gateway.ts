@@ -3,7 +3,7 @@
  */
 
 import { LRUCache } from 'lru-cache';
-import { AIRequest, AIResponse, AIProvider, AIProviderType } from './providers/index';
+import type { AIRequest, AIResponse, AIProvider, AIProviderType } from './providers/index';
 
 interface AIGatewayConfig {
   providers: {
@@ -116,7 +116,7 @@ export class AIGateway {
 
       return response;
     } catch (error) {
-      console.error(`❌ ${provider.name} error: ${error.message}`);
+      console.error(`❌ ${provider.name} error: ${(error as Error).message ?? String(error)}`);
       this.recordError(provider.name);
       return this.fallbackToNextProvider(request, provider.name);
     }
@@ -232,4 +232,4 @@ class RateLimiter {
   }
 }
 
-export { AIGatewayConfig };
+export type { AIGatewayConfig };

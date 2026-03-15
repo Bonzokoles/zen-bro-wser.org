@@ -2,8 +2,9 @@
  * DeepSeek Provider - Primary for Deep Research
  */
 
-import axios, { AxiosInstance } from 'axios';
-import { AIProvider, AIRequest, AIResponse, AICapability } from './index';
+import axios from 'axios';
+import type { AxiosInstance } from 'axios';
+import type { AIProvider, AIRequest, AIResponse, AICapability } from './index';
 
 export class DeepSeekProvider implements AIProvider {
   name: 'deepseek' = 'deepseek';

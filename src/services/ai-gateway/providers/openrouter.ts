@@ -2,8 +2,10 @@
  * OpenRouter Provider - Multi-model Aggregator
  */
 
-import axios, { AxiosInstance } from 'axios';
-import { AIProvider, AIRequest, AIResponse } from './index';
+import axios from 'axios';
+import type { AxiosInstance } from 'axios';
+import type { AIProvider, AIRequest, AIResponse } from './index';
+import type { AICapability } from './index';
 
 export class OpenRouterProvider implements AIProvider {
   name: 'openrouter' = 'openrouter';
@@ -16,7 +18,7 @@ export class OpenRouterProvider implements AIProvider {
   maxQueueLength = 50;
   rateLimit = { rpm: 100 };
   timeout = 30000;
-  capabilities = ['text-generation', 'code-generation', 'vision'];
+  capabilities: AICapability[] = ['text-generation', 'code-generation', 'vision'];
   costPerMToken = 0.002;
 
   private client: AxiosInstance;

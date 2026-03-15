@@ -3,7 +3,7 @@
  * W produkcji: zamień na Supabase/MongoDB/PostgreSQL
  */
 
-import type { IframeSite } from '../../../types/iframe/core.types';
+import type { IframeSite } from '../../types/iframe/core.types';
 
 // Simulated database storage
 let sitesDb: IframeSite[] = [
@@ -116,7 +116,7 @@ export const mockDatabase = {
           site.name.toLowerCase().includes(lowerQuery) ||
           site.url.toLowerCase().includes(lowerQuery) ||
           site.category.toLowerCase().includes(lowerQuery) ||
-          site.tags?.some((tag) => tag.toLowerCase().includes(lowerQuery))
+          site.tags?.some((tag: string) => tag.toLowerCase().includes(lowerQuery))
       );
     },
   },

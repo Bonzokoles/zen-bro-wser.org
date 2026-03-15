@@ -3,7 +3,7 @@
  * Multi-provider router: DeepSeek, OpenRouter, EdenAI
  */
 
-import { AIGateway, AIGatewayConfig } from './gateway';
+import { AIGateway, type AIGatewayConfig } from './gateway';
 import { DeepSeekProvider } from './providers/deepseek';
 import { OpenRouterProvider } from './providers/openrouter';
 import { EdenAIProvider } from './providers/edenai';
