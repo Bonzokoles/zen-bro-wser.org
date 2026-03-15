@@ -9,23 +9,23 @@ interface DockItem {
 }
 
 const PRIMARY: DockItem[] = [
-  { type: 'ai-chat',    icon: '🤖', label: 'AI Chat',   color: 'from-indigo-500 to-violet-600' },
-  { type: 'local-ai',   icon: '🦙', label: 'Local AI',  color: 'from-violet-500 to-purple-700' },
-  { type: 'terminal',   icon: '⌨️', label: 'Terminal',  color: 'from-emerald-500 to-teal-600' },
-  { type: 'bookmarks',  icon: '⭐', label: 'Zakładki',  color: 'from-yellow-400 to-orange-500' },
-  { type: 'music',      icon: '🎵', label: 'Muzyka',    color: 'from-fuchsia-400 to-pink-500' },
-  { type: 'settings',   icon: '⚙️', label: 'Ustawienia',color: 'from-slate-500 to-slate-700' },
+  { type: 'ai-chat',   icon: '🤖', label: 'AI Chat',  color: 'from-indigo-500 to-violet-600' },
+  { type: 'local-ai',  icon: '🦙', label: 'Local AI', color: 'from-violet-500 to-purple-700' },
+  { type: 'bookmarks', icon: '⭐', label: 'Zakładki', color: 'from-yellow-400 to-orange-500' },
+  { type: 'tools',     icon: '🛠️', label: 'Narzędzia',color: 'from-amber-500 to-orange-600' },
+  { type: 'music',     icon: '🎵', label: 'Muzyka',   color: 'from-fuchsia-400 to-pink-500' },
+  { type: 'settings',  icon: '⚙️', label: 'Ustawienia',color: 'from-slate-500 to-slate-700' },
 ];
 
 const MORE: DockItem[] = [
-  { type: 'ai-sandbox',  icon: '🧪', label: 'AI Sandbox', color: 'from-purple-500 to-indigo-600' },
-  { type: 'tunnels',     icon: '🔗', label: 'Tunele CF',  color: 'from-teal-500 to-cyan-600' },
-  { type: 'tools',       icon: '🛠️', label: 'Narzędzia', color: 'from-amber-500 to-orange-600' },
-  { type: 'history',     icon: '📜', label: 'Historia',   color: 'from-blue-400 to-indigo-500' },
-  { type: 'video',       icon: '🎬', label: 'Video',      color: 'from-amber-400 to-orange-500' },
-  { type: 'wikipedia',   icon: '📚', label: 'Wikipedia',  color: 'from-blue-500 to-cyan-600' },
-  { type: 'mcp-console', icon: '🔧', label: 'MCP',        color: 'from-slate-600 to-slate-800' },
-  { type: 'admin',       icon: '🔐', label: 'Admin',      color: 'from-red-600 to-red-800' },
+  { type: 'history',     icon: '📜', label: 'Historia',  color: 'from-blue-400 to-indigo-500' },
+  { type: 'video',       icon: '🎬', label: 'Video',     color: 'from-amber-400 to-orange-500' },
+  { type: 'wikipedia',   icon: '📚', label: 'Wikipedia', color: 'from-blue-500 to-cyan-600' },
+  { type: 'on-this-day', icon: '📅', label: 'This Day',  color: 'from-blue-600 to-indigo-700' },
+  { type: 'birthday',    icon: '🎂', label: 'Birthday',  color: 'from-pink-500 to-rose-600' },
+  { type: 'mcp-console', icon: '🔧', label: 'MCP',       color: 'from-slate-600 to-slate-800' },
+  { type: 'admin',       icon: '🔐', label: 'Admin',     color: 'from-red-600 to-red-800' },
+  { type: 'clock',       icon: '⏰', label: 'Zegar',     color: 'from-cyan-400 to-blue-500' },
 ];
 
 interface FeatureDockProps {
@@ -68,7 +68,7 @@ export const FeatureDock: React.FC<FeatureDockProps> = ({
         title={label}
         className={[
           'relative flex flex-col items-center justify-center gap-0.5',
-          'w-[52px] sm:w-[62px] py-1.5 sm:py-2 rounded-xl border-none cursor-pointer transition-all duration-200 select-none',
+          'w-[62px] py-2 rounded-xl border-none cursor-pointer transition-all duration-200 select-none',
           active
             ? `bg-gradient-to-br ${color} text-white shadow-lg scale-105`
             : theme === 'dark'
@@ -77,7 +77,7 @@ export const FeatureDock: React.FC<FeatureDockProps> = ({
         ].join(' ')}
       >
         <span className="text-[18px] leading-tight">{icon}</span>
-        <span className="text-[8px] sm:text-[9px] font-medium leading-tight whitespace-nowrap overflow-hidden max-w-full px-0.5 text-ellipsis">{label}</span>
+        <span className="text-[9px] font-medium leading-tight whitespace-nowrap overflow-hidden max-w-full px-1 text-ellipsis">{label}</span>
         {active && (
           <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-white/80" />
         )}
@@ -105,7 +105,7 @@ export const FeatureDock: React.FC<FeatureDockProps> = ({
       )}
 
       {/* Main dock bar */}
-      <div className={`flex items-center justify-center gap-1 sm:gap-1.5 px-2 sm:px-5 py-2 border-t backdrop-blur-xl overflow-x-auto ${bg}`}>
+      <div className={`flex items-center justify-center gap-1.5 px-5 py-2 border-t backdrop-blur-xl ${bg}`}>
         {PRIMARY.map(item => (
           <DockBtn key={item.type} {...item} />
         ))}
@@ -118,14 +118,14 @@ export const FeatureDock: React.FC<FeatureDockProps> = ({
           title="Dodaj zakładkę"
           className={[
             'flex flex-col items-center justify-center gap-0.5',
-            'w-[52px] sm:w-[62px] py-1.5 sm:py-2 rounded-xl border-none cursor-pointer transition-all duration-200 select-none hover:-translate-y-0.5',
+            'w-[62px] py-2 rounded-xl border-none cursor-pointer transition-all duration-200 select-none hover:-translate-y-0.5',
             theme === 'dark'
               ? 'bg-white/5 hover:bg-white/10 text-slate-300'
               : 'bg-black/5 hover:bg-black/10 text-slate-600',
           ].join(' ')}
         >
           <span className="text-[18px] leading-tight">➕</span>
-          <span className="text-[8px] sm:text-[9px] font-medium">Dodaj</span>
+          <span className="text-[9px] font-medium">Dodaj</span>
         </button>
 
         {/* More */}
@@ -134,7 +134,7 @@ export const FeatureDock: React.FC<FeatureDockProps> = ({
           title="Więcej narzędzi"
           className={[
             'flex flex-col items-center justify-center gap-0.5',
-            'w-[52px] sm:w-[62px] py-1.5 sm:py-2 rounded-xl border-none cursor-pointer transition-all duration-200 select-none hover:-translate-y-0.5',
+            'w-[62px] py-2 rounded-xl border-none cursor-pointer transition-all duration-200 select-none hover:-translate-y-0.5',
             showMore
               ? 'bg-gradient-to-br from-slate-500 to-slate-700 text-white scale-105 shadow-lg'
               : theme === 'dark'
@@ -143,7 +143,7 @@ export const FeatureDock: React.FC<FeatureDockProps> = ({
           ].join(' ')}
         >
           <span className="text-[18px] leading-tight">{showMore ? '✕' : '⋯'}</span>
-          <span className="text-[8px] sm:text-[9px] font-medium">{showMore ? 'Zamknij' : 'Więcej'}</span>
+          <span className="text-[9px] font-medium">{showMore ? 'Zamknij' : 'Więcej'}</span>
         </button>
       </div>
     </div>

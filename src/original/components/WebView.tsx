@@ -1,273 +1,263 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import WelcomePage from './WelcomePage';
-import SearchPage from './SearchPage';
-import LocalLibrarySearch from './LocalLibrarySearch';
-
-// --- URL Security Layer ---
-
-const BLOCKED_PROTOCOLS = ['javascript:', 'data:', 'blob:', 'file:', 'vbscript:'];
-
-const PRIVATE_IP_PATTERNS = [
-	/^https?:\/\/127\./,
-	/^https?:\/\/10\./,
-	/^https?:\/\/172\.(1[6-9]|2\d|3[01])\./,
-	/^https?:\/\/192\.168\./,
-	/^https?:\/\/0\./,
-	/^https?:\/\/localhost(:|\/$)/i,
-	/^https?:\/\/\[::1\]/,
-	/^https?:\/\/169\.254\./,
-];
-
-function isUrlSafe(url: string): { safe: boolean; reason?: string } {
-	if (!url) return { safe: false, reason: 'Empty URL' };
-	const lower = url.toLowerCase().trim();
-
-	// Allow internal about: pages
-	if (lower.startsWith('about:')) return { safe: true };
-
-	// Block dangerous protocols
-	for (const proto of BLOCKED_PROTOCOLS) {
-		if (lower.startsWith(proto)) {
-			return { safe: false, reason: `Blocked protocol: ${proto}` };
-		}
-	}
-
-	// Require http/https
-	if (!lower.startsWith('http://') && !lower.startsWith('https://')) {
-		return { safe: false, reason: 'Only http:// and https:// URLs are allowed' };
-	}
-
-	// SSRF: block private/internal IPs
-	for (const pattern of PRIVATE_IP_PATTERNS) {
-		if (pattern.test(lower)) {
-			return { safe: false, reason: 'Access to internal networks is blocked' };
-		}
-	}
-
-	return { safe: true };
-}
+import React, { useState } from 'react';
 
 interface WebViewProps {
 	url: string;
 	isLoading: boolean;
 	title: string;
-	topOffset?: number;
 }
 
-const WebView: React.FC<WebViewProps> = ({ url, isLoading, title, topOffset = 80 }) => {
+const WebView: React.FC<WebViewProps> = ({ url, isLoading, title }) => {
+	console.log('WebView props:', { url, isLoading, title });
 	const [iframeError, setIframeError] = useState(false);
-	const [loadTimeout, setLoadTimeout] = useState(false);
-	const [urlBlocked, setUrlBlocked] = useState<string | null>(null);
-	const iframeRef = useRef<HTMLIFrameElement>(null);
-	const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-	useEffect(() => {
-		setIframeError(false);
-		setLoadTimeout(false);
-
-		// Validate URL before loading
-		const validation = isUrlSafe(url);
-		if (!validation.safe) {
-			setUrlBlocked(validation.reason || 'URL blocked');
-			return;
-		}
-		setUrlBlocked(null);
-
-		if (url.startsWith('about:')) return;
-
-		// Set timeout to detect X-Frame-Options blocks
-		timeoutRef.current = setTimeout(() => {
-			try {
-				const iframe = iframeRef.current;
-				if (iframe && !iframe.contentWindow?.document?.body) {
-					setLoadTimeout(true);
-				}
-			} catch {
-				// Cross-origin access error means iframe loaded but we can't access it
-				// This is actually OK - the page loaded
-			}
-		}, 5000);
-
-		return () => {
-			if (timeoutRef.current) {
-				clearTimeout(timeoutRef.current);
-			}
-		};
-	}, [url]);
-
-	const handleLoad = useCallback(() => {
-		setIframeError(false);
-		setLoadTimeout(false);
-		if (timeoutRef.current) clearTimeout(timeoutRef.current);
-	}, []);
-
-	const handleError = useCallback(() => {
-		setIframeError(true);
-		if (timeoutRef.current) clearTimeout(timeoutRef.current);
-	}, []);
-
-	// TYLKO TEN JEDEN BLOK dla about:welcome
+	
 	if (url === 'about:welcome') {
-		return <WelcomePage />;
-	}
-
-	// TYLKO TEN JEDEN BLOK dla isLoading
-	if (isLoading) {
 		return (
-			<div
-				className="fixed left-0 w-full bg-slate-50 dark:bg-slate-900 z-50 flex items-center justify-center"
-				style={{ top: `${topOffset}px`, height: `calc(100% - ${topOffset}px - 70px)` }}
-			>
-				<div className="text-center">
-					<div className="w-12 h-12 border-4 border-slate-200 border-t-blue-500 rounded-full animate-spin mx-auto mb-4"></div>
-					<p className="text-slate-600 dark:text-slate-400 font-medium">Loading...</p>
-					<p className="text-slate-400 dark:text-slate-600 text-sm mt-1">{url}</p>
+			<div style={{
+				position: 'fixed',
+				top: '60px',
+				left: 0,
+				width: '100%',
+				height: 'calc(100% - 60px)',
+				backgroundColor: '#0f172a',
+				zIndex: 10,
+				overflow: 'auto',
+				padding: '20px'
+			}}>
+				<div style={{
+					maxWidth: '800px',
+					margin: '0 auto',
+					textAlign: 'center',
+					color: 'white'
+				}}>
+					<div style={{fontSize: '60px', marginBottom: '20px'}}>🚀</div>
+					<h1 style={{
+						fontSize: '48px', 
+						fontWeight: 'bold', 
+						color: 'white', 
+						marginBottom: '16px'
+					}}>
+						ZENO Browser
+					</h1>
+					<p style={{
+						fontSize: '24px', 
+						color: '#94a3b8', 
+						marginBottom: '12px'
+					}}>
+						Advanced Web Browser with MCP Integration
+					</p>
+					<p style={{
+						fontSize: '18px', 
+						color: '#64748b'
+					}}>
+						Powered by Astro + React + Model Context Protocol
+					</p>
+					
+					<div style={{
+						marginTop: '40px',
+						backgroundColor: '#1e293b',
+						padding: '24px',
+						borderRadius: '8px'
+					}}>
+						<h3 style={{
+							fontSize: '20px',
+							fontWeight: 'bold',
+							color: 'white',
+							marginBottom: '16px'
+						}}>
+							Welcome to ZENO Browser!
+						</h3>
+						<p style={{
+							color: '#94a3b8',
+							marginBottom: '16px'
+						}}>
+							This is a modern web browser built with Astro and React.
+						</p>
+					</div>
 				</div>
 			</div>
 		);
 	}
-
-	// TYLKO TEN JEDEN BLOK dla about:blank
+	
+	if (isLoading) {
+		return (
+			<div style={{
+				position: 'fixed',
+				top: '60px',
+				left: 0,
+				width: '100%',
+				height: 'calc(100% - 60px)',
+				backgroundColor: '#1e293b',
+				zIndex: 10,
+				display: 'flex',
+				alignItems: 'center',
+				justifyContent: 'center'
+			}}>
+				<div style={{textAlign: 'center'}}>
+					<div style={{
+						width: '64px',
+						height: '64px',
+						border: '4px solid #475569',
+						borderTop: '4px solid #3b82f6',
+						borderRadius: '50%',
+						animation: 'spin 1s linear infinite',
+						margin: '0 auto 16px'
+					}}></div>
+					<p style={{color: '#94a3b8', fontSize: '18px'}}>Loading...</p>
+					<p style={{color: '#64748b', fontSize: '14px', marginTop: '4px'}}>{url}</p>
+				</div>
+			</div>
+		);
+	}
+	
 	if (url === 'about:blank') {
 		return (
-			<div
-				className="fixed left-0 w-full bg-slate-50 dark:bg-slate-900 z-50 flex items-center justify-center"
-				style={{ top: `${topOffset}px`, height: `calc(100% - ${topOffset}px - 70px)` }}
-			>
-				<div className="text-center">
-					<div className="text-6xl mb-4">📄</div>
-					<p className="text-2xl font-bold text-slate-700 dark:text-slate-200 mb-2">New Tab</p>
-					<p className="text-slate-500 dark:text-slate-400">
+			<div style={{
+				position: 'fixed',
+				top: '60px',
+				left: 0,
+				width: '100%',
+				height: 'calc(100% - 60px)',
+				backgroundColor: '#1e293b',
+				zIndex: 10,
+				display: 'flex',
+				alignItems: 'center',
+				justifyContent: 'center'
+			}}>
+				<div style={{textAlign: 'center'}}>
+					<div style={{fontSize: '60px', marginBottom: '16px'}}>📄</div>
+					<p style={{color: '#94a3b8', fontSize: '18px'}}>New Tab</p>
+					<p style={{color: '#64748b', fontSize: '14px', marginTop: '8px'}}>
 						Enter a URL or search term to get started
 					</p>
 				</div>
 			</div>
 		);
 	}
-
-	// Search page
-	if (url === 'about:search') {
+	
+	// External URLs - Load real websites with error handling
+	if (iframeError) {
 		return (
-			<div
-				className="fixed left-0 w-full bg-slate-50 dark:bg-slate-900 z-50"
-				style={{ top: `${topOffset}px`, height: `calc(100% - ${topOffset}px - 70px)` }}
-			>
-				<SearchPage
-					onSearch={(query) => {
-						window.dispatchEvent(new CustomEvent('zeno-search', {
-							detail: { query }
-						}));
-					}}
-				/>
-			</div>
-		);
-	}
-
-	// Local Library Search page
-	if (url.startsWith('about:local-search')) {
-		const urlObj = new URL(url.replace('about:local-search', 'http://dummy'));
-		const searchQuery = urlObj.searchParams.get('q') || '';
-
-		return (
-			<div
-				className="fixed left-0 w-full bg-slate-900 z-50"
-				style={{ top: `${topOffset}px`, height: `calc(100% - ${topOffset}px - 70px)` }}
-			>
-				<LocalLibrarySearch query={searchQuery} />
-			</div>
-		);
-	}
-
-	// URL blocked by security policy
-	if (urlBlocked) {
-		return (
-			<div
-				className="fixed left-0 w-full bg-slate-50 dark:bg-slate-900 z-50 flex items-center justify-center"
-				style={{ top: `${topOffset}px`, height: `calc(100% - ${topOffset}px - 70px)` }}
-			>
-				<div className="max-w-lg p-8 bg-white dark:bg-slate-800 rounded-2xl shadow-xl text-center">
-					<div className="text-5xl mb-4">🛡️</div>
-					<h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-2">
-						URL Blocked by Security Policy
+			<div style={{
+				position: 'fixed',
+				top: '60px',
+				left: 0,
+				width: '100%',
+				height: 'calc(100% - 60px)',
+				backgroundColor: '#1e293b',
+				zIndex: 10,
+				display: 'flex',
+				alignItems: 'center',
+				justifyContent: 'center'
+			}}>
+				<div style={{textAlign: 'center', maxWidth: '600px', padding: '20px'}}>
+					<div style={{fontSize: '48px', marginBottom: '20px'}}>🚫</div>
+					<h3 style={{color: 'white', fontSize: '24px', marginBottom: '16px'}}>
+						Cannot display this website
 					</h3>
-					<p className="text-slate-500 dark:text-slate-400 text-sm mb-4 break-all">{url}</p>
-					<div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 text-left">
-						<p className="text-sm text-red-700 dark:text-red-300">
-							<strong>Reason:</strong> {urlBlocked}
-						</p>
-					</div>
-				</div>
-			</div>
-		);
-	}
-
-	// X-Frame-Options / load error
-	if (iframeError || loadTimeout) {
-		return (
-			<div
-				className="fixed left-0 w-full bg-slate-50 dark:bg-slate-900 z-50 flex items-center justify-center"
-				style={{ top: `${topOffset}px`, height: `calc(100% - ${topOffset}px - 70px)` }}
-			>
-				<div className="max-w-lg p-8 bg-white dark:bg-slate-800 rounded-2xl shadow-xl text-center">
-					<div className="text-5xl mb-4">⚠️</div>
-					<h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-2">Cannot display this page</h3>
-					<p className="text-slate-500 dark:text-slate-400 text-sm mb-6 break-all">{url}</p>
-
-					<div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl p-4 mb-6 text-left">
-						<p className="text-sm text-blue-800 dark:text-blue-200">
-							<strong>X-Frame-Options Protection</strong><br />
-							This page cannot be displayed in an iframe due to security restrictions.
-							Many sites (Google, Facebook, banks) block embedding to protect users.
-						</p>
-					</div>
-
-					<div className="flex gap-3 justify-center mb-6">
-						<button
-							onClick={() => window.open(url, '_blank', 'noopener,noreferrer')}
-							className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
-						>
-							🔗 Open in New Tab
-						</button>
-						<button
-							onClick={() => {
-								setIframeError(false);
-								setLoadTimeout(false);
-							}}
-							className="px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-lg font-medium transition-colors flex items-center gap-2"
-						>
-							↻ Try Again
-						</button>
-					</div>
-
-					<p className="text-xs text-slate-400 dark:text-slate-500">
-						💡 <strong>Tip:</strong> Sites without restrictions (e.g. example.com, httpbin.org, API docs)
-						will work normally in the browser.
+					<p style={{color: '#94a3b8', fontSize: '16px', marginBottom: '16px'}}>
+						{url}
 					</p>
+					<p style={{color: '#64748b', fontSize: '14px', lineHeight: '1.5', marginBottom: '24px'}}>
+						This website cannot be displayed in an iframe due to security restrictions (X-Frame-Options). 
+						Many sites like Google, Facebook, and banking sites block iframe embedding for security reasons.
+					</p>
+					<button
+						onClick={() => window.open(url, '_blank')}
+						style={{
+							backgroundColor: '#3b82f6',
+							color: 'white',
+							padding: '12px 24px',
+							borderRadius: '6px',
+							border: 'none',
+							fontSize: '14px',
+							fontWeight: '500',
+							cursor: 'pointer',
+							marginRight: '12px'
+						}}
+					>
+						Open in New Tab
+					</button>
+					<button
+						onClick={() => setIframeError(false)}
+						style={{
+							backgroundColor: '#374151',
+							color: 'white',
+							padding: '12px 24px',
+							borderRadius: '6px',
+							border: 'none',
+							fontSize: '14px',
+							fontWeight: '500',
+							cursor: 'pointer'
+						}}
+					>
+						Try Again
+					</button>
 				</div>
 			</div>
 		);
 	}
 
-	// TYLKO TEN JEDEN return dla iframe
 	return (
-		<div
-			className="fixed left-0 w-full bg-white z-50 overflow-auto"
-			style={{ top: `${topOffset}px`, height: `calc(100% - ${topOffset}px - 70px)` }}
-		>
-			{loadTimeout && !iframeError && (
-				<div className="absolute top-0 left-0 right-0 bg-yellow-100 text-yellow-800 px-4 py-2 text-sm text-center border-b border-yellow-200">
-					⏱️ Page is taking longer than usual to load...
+		<div style={{
+			position: 'fixed',
+			top: '60px',
+			left: 0,
+			width: '100%',
+			height: 'calc(100% - 60px)',
+			backgroundColor: 'white',
+			zIndex: 10
+		}}>
+			<div style={{
+				backgroundColor: '#f1f5f9',
+				borderBottom: '1px solid #e2e8f0',
+				padding: '12px 16px'
+			}}>
+				<div style={{display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'space-between'}}>
+					<div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+						<div style={{
+							width: '12px',
+							height: '12px',
+							backgroundColor: iframeError ? '#ef4444' : '#10b981',
+							borderRadius: '50%'
+						}}></div>
+						<span style={{fontSize: '13px', color: '#64748b'}}>
+							{url}
+						</span>
+					</div>
+					<button
+						onClick={() => window.open(url, '_blank')}
+						style={{
+							backgroundColor: 'transparent',
+							border: '1px solid #d1d5db',
+							borderRadius: '4px',
+							padding: '4px 8px',
+							fontSize: '12px',
+							color: '#64748b',
+							cursor: 'pointer'
+						}}
+					>
+						Open in New Tab
+					</button>
 				</div>
-			)}
+			</div>
 			<iframe
-				ref={iframeRef}
 				src={url}
-				title={title}
-				className="w-full h-full border-none"
-				onLoad={handleLoad}
-				onError={handleError}
+				style={{
+					width: '100%',
+					height: 'calc(100% - 49px)',
+					border: 'none',
+					backgroundColor: 'white'
+				}}
+				title={`Website: ${url}`}
+				onLoad={() => {
+					console.log(`Loaded: ${url}`);
+					setIframeError(false);
+				}}
+				onError={() => {
+					console.log(`Error loading: ${url}`);
+					setIframeError(true);
+				}}
 				sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"
-				referrerPolicy="strict-origin-when-cross-origin"
 			/>
 		</div>
 	);

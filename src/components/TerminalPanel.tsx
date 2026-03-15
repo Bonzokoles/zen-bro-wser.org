@@ -1,211 +1,175 @@
-import * as React from 'react';
-import { useState, useRef } from 'react';
+/**
+ * TerminalPanel - Integrated terminal console for ZENO Browser
+ * Uses react-terminal-ui for rendering; communicates via window.electronAPI
+ */
+
+import React, { useState, useCallback } from 'react';
 import Terminal, { TerminalOutput, ColorMode } from 'react-terminal-ui';
 import './TerminalPanel.css';
 
-export const TerminalPanel: React.FC = () => {
+interface TerminalPanelProps {
+  browserManager?: any;
+  crawlerService?: any;
+  networkManager?: any;
+}
+
+type LineEl = React.ReactElement;
+
+const HELP_TEXT = `
+Available commands:
+  navigate <url>           Navigate to URL
+  click <selector>         Click element
+  type <selector> <text>   Type into element
+  screenshot               Take screenshot
+  extract <selector>       Extract text by selector
+  crawl <url> [maxPages]   Start web crawler
+  crawl-status <id>        Check crawl status
+  network-status           Show network info
+  info                     Browser/system info
+  clear                    Clear terminal
+  history                  Show command history
+  echo <text>              Echo text
+  help                     Show this help
+`.trim();
+
+export const TerminalPanel: React.FC<TerminalPanelProps> = ({
+  browserManager,
+  crawlerService,
+  networkManager,
+}) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [lines, setLines] = useState<any[]>([
-    <TerminalOutput key="0">Welcome to ZENO Terminal (v0.2.0)</TerminalOutput>,
-    <TerminalOutput key="1">Type 'help' for available commands</TerminalOutput>,
+  const [lines, setLines] = useState<LineEl[]>([
+    <TerminalOutput key="welcome-0">Welcome to ZENO Terminal v1.0</TerminalOutput>,
+    <TerminalOutput key="welcome-1">Type 'help' for available commands</TerminalOutput>,
   ]);
-  const [commandHistory, setCommandHistory] = useState<{ command: string; timestamp: Date }[]>([]);
+  const [history, setHistory] = useState<string[]>([]);
 
-  // Function to safely interact with Electron IPC
-  const electronAPI = (typeof window !== 'undefined') ? (window as any).electronAPI : undefined;
+  const appendLine = useCallback((text: string, color = '#00ff88') => {
+    setLines(prev => [
+      ...prev,
+      <TerminalOutput key={`line-${Date.now()}-${Math.random()}`}>
+        <span style={{ color }}>{text}</span>
+      </TerminalOutput>,
+    ]);
+  }, []);
 
-  const executeCommand = async (input: string) => {
-    setCommandHistory(prev => [...prev, { command: input, timestamp: new Date() }]);
+  const executeCommand = useCallback(async (input: string) => {
+    const trimmed = input.trim();
+    if (!trimmed) return;
 
+    setHistory(prev => [...prev, trimmed]);
+
+    // Echo the command
     setLines(prev => [
       ...prev,
       <TerminalOutput key={`cmd-${Date.now()}`}>
-        <span style={{ color: '#00d4ff' }}>$ {input}</span>
+        <span style={{ color: '#00d4ff' }}>$ {trimmed}</span>
       </TerminalOutput>,
     ]);
 
-    const args = input.trim().split(' ');
-    const cmd = args[0]?.toLowerCase();
-    const commandArgs = args.slice(1);
-    
+    const [cmd, ...args] = trimmed.split(' ');
     let output = '';
 
     try {
-      switch (cmd) {
+      switch (cmd.toLowerCase()) {
+        case 'navigate': {
+          const url = args[0];
+          if (!url) { output = 'Usage: navigate <url>'; break; }
+          if (browserManager?.navigate) await browserManager.navigate(url);
+          output = `✅ Navigating to ${url}`;
+          break;
+        }
+        case 'click': {
+          const sel = args[0];
+          if (!sel) { output = 'Usage: click <selector>'; break; }
+          if (browserManager?.click) await browserManager.click(sel);
+          output = `✅ Clicked: ${sel}`;
+          break;
+        }
+        case 'type': {
+          const [sel, ...textParts] = args;
+          const text = textParts.join(' ');
+          if (!sel || !text) { output = 'Usage: type <selector> <text>'; break; }
+          if (browserManager?.type) await browserManager.type(sel, text);
+          output = `✅ Typed "${text}" into ${sel}`;
+          break;
+        }
+        case 'screenshot': {
+          if (browserManager?.screenshot) await browserManager.screenshot();
+          output = '✅ Screenshot captured';
+          break;
+        }
+        case 'extract': {
+          const sel = args[0];
+          if (!sel) { output = 'Usage: extract <selector>'; break; }
+          const data = browserManager?.extractText ? await browserManager.extractText(sel) : null;
+          output = data ? JSON.stringify(data) : `Extract: ${sel}`;
+          break;
+        }
+        case 'crawl': {
+          const [startUrl, maxStr] = args;
+          if (!startUrl) { output = 'Usage: crawl <url> [maxPages]'; break; }
+          const maxPages = parseInt(maxStr ?? '10', 10);
+          if (crawlerService?.startCrawl) {
+            await crawlerService.startCrawl({ startUrls: [startUrl], maxPages });
+          }
+          output = `✅ Crawl started: ${startUrl} (max ${maxPages} pages)`;
+          break;
+        }
+        case 'crawl-status': {
+          const id = args[0];
+          if (!id) { output = 'Usage: crawl-status <id>'; break; }
+          const status = crawlerService?.getStatus ? await crawlerService.getStatus(id) : 'unavailable';
+          output = `Crawl ${id}: ${JSON.stringify(status)}`;
+          break;
+        }
+        case 'network-status': {
+          const status = networkManager?.getStatus ? await networkManager.getStatus() : 'unavailable';
+          output = JSON.stringify(status, null, 2);
+          break;
+        }
+        case 'info': {
+          const api = (window as any).electronAPI;
+          const sys = api?.system?.getInfo ? await api.system.getInfo() : {};
+          output = JSON.stringify(sys, null, 2);
+          break;
+        }
         case 'help':
-          output = getHelpText();
+          output = HELP_TEXT;
           break;
         case 'clear':
-          setLines([<TerminalOutput key="0">ZENO Terminal cleared</TerminalOutput>]);
+          setLines([<TerminalOutput key="cleared">ZENO Terminal cleared</TerminalOutput>]);
           return;
         case 'history':
-          output = commandHistory.map((c, i) => `${i + 1}  ${c.command}`).join('\n');
-          break;
-        case 'search':
-          const query = commandArgs.join(' ');
-          if (!query) output = 'Usage: search <query>';
-          else if (electronAPI && electronAPI.invoke) {
-            output = 'Searching (Tavily)...';
-            // Placeholder: actually trigger search IPC
-            const res = await electronAPI.invoke('crawler:search', query);
-            output = `Search done. Found ${res?.results?.length || 0} results.`;
-          } else {
-            output = 'Electron API not available.';
-          }
-          break;
-        case 'crawl':
-          const url = commandArgs[0];
-          if (!url) output = 'Usage: crawl <url>';
-          else if (electronAPI && electronAPI.invoke) {
-            output = `Crawling ${url}...`;
-            const extracted = await electronAPI.invoke('crawler:extract', url);
-            output = `Crawl successful! Title: ${extracted?.title || 'Unknown'}\nLinks found: ${extracted?.links?.length || 0}`;
-          } else {
-            output = 'Electron API not available.';
-          }
-          break;
-        case 'library':
-          const action = commandArgs[0];
-          const param = commandArgs.slice(1).join(' ');
-          if (!action) {
-            output = 'Usage: library <add|search> <path|query>';
-          } else if (action === 'add') {
-             if (electronAPI?.invoke) {
-               const idx = await electronAPI.invoke('library:index-file', param);
-               output = `Indexed! Doc ID: ${idx.id}`;
-             } else output = 'API not available.';
-          } else if (action === 'search') {
-             if (electronAPI?.invoke) {
-               const res = await electronAPI.invoke('library:search', { query: param });
-               output = `Library search found ${res?.length || 0} chunks.`;
-             } else output = 'API not available.';
-          } else {
-             output = 'Unknown library action.';
-          }
-          break;
-        case 'mcp':
-          const mcpAction = commandArgs[0];
-          if (!mcpAction) {
-            output = 'Usage: mcp <connect|list|call> [args]';
-          } else if (mcpAction === 'connect') {
-             if (electronAPI?.invoke) {
-                output = 'Connecting MCP...';
-                const command = commandArgs[1];
-                const mcpArgs = commandArgs.slice(2);
-                if (!command) {
-                   output = 'Usage: mcp connect <command> [args...] (e.g. mcp connect npx -y @modelcontextprotocol/server-postgres)';
-                } else {
-                   const config = {
-                     id: `srv-${Date.now()}`,
-                     name: command,
-                     command,
-                     args: mcpArgs
-                   };
-                   const tools = await electronAPI.invoke('mcp:connect', config);
-                   output = `Connected! ${tools?.length || 0} tools available. Server ID: ${config.id}`;
-                }
-             } else output = 'API not available.';
-          } else if (mcpAction === 'list') {
-             if (electronAPI?.invoke) {
-                const tools = await electronAPI.invoke('mcp:list-tools');
-                output = `Available MCP Tools: \n` + tools.map((t: any) => `- [${t.serverId}] ${t.name}: ${t.description}`).join('\n');
-             } else output = 'API not available.';
-          } else {
-             output = 'Unknown MCP action.';
-          }
-          break;
-        case 'tunnel':
-          const tunnelAction = commandArgs[0];
-          if (!tunnelAction) {
-             output = 'Usage: tunnel <start|stop|status|metrics>';
-          } else if (tunnelAction === 'start') {
-             output = 'Starting tunnel daemon...';
-             if (electronAPI?.invoke) {
-                const ok = await electronAPI.invoke('tunnel:start');
-                output = ok ? '✅ Cloudflare tunnel started.' : '❌ Failed to start Cloudflare tunnel. See console.';
-             }
-          } else if (tunnelAction === 'stop') {
-             if (electronAPI?.invoke) {
-                await electronAPI.invoke('tunnel:stop');
-                output = '🛑 Cloudflare tunnel stopped.';
-             }
-          } else if (tunnelAction === 'status') {
-             if (electronAPI?.invoke) {
-                const statuses = await electronAPI.invoke('tunnel:status');
-                output = 'Active Routes:\n' + statuses.map((s: any) => `- ${s.hostname} -> ${s.service} [${s.status}]`).join('\n');
-             }
-          } else if (tunnelAction === 'metrics') {
-             if (electronAPI?.invoke) {
-                const m = await electronAPI.invoke('tunnel:metrics');
-                output = `Tunnel Metrics: \nTotal Routes: ${m.totalRoutes}\nActive: ${m.activeRoutes}\nDisconnected: ${m.disconnectedRoutes}\nFailed: ${m.failedRoutes}`;
-             }
-          } else {
-            output = 'Unknown tunnel action.';
-          }
+          output = history.join('\n') || '(empty)';
           break;
         case 'echo':
-          output = commandArgs.join(' ');
+          output = args.join(' ');
           break;
         default:
-          output = `Unknown command: ${cmd}\nType 'help' for available commands.`;
+          output = `Unknown command: ${cmd}\nType 'help' for available commands`;
       }
-    } catch (e: any) {
-      output = `❌ Error executing '${cmd}': ${e.message}`;
+    } catch (err: any) {
+      output = `❌ Error: ${err.message}`;
     }
 
-    if (output) {
-      setLines(prev => [
-        ...prev,
-        <TerminalOutput key={`out-${Date.now()}`}>
-          <span style={{ color: '#00ff88', whiteSpace: 'pre-wrap' }}>{output}</span>
-        </TerminalOutput>,
-      ]);
-    }
-  };
-
-  const getHelpText = () => {
-    return `ZENO Terminal Commands:
-
-SEARCH & CRAWLING:
-  search <query>              - Deep web search (via Tavily)
-  crawl <url>                 - Scrape page context & links
-
-LOCAL KNOWLEDGE BASE:
-  library add <absolute_path> - Index local PDF or text file
-  library search <query>      - Semantic search in local files
-
-AGENT PROTOCOLS (MCP):
-  mcp connect <cmd> [args]    - Spin up an MCP server via stdio
-  mcp list                    - List all available tools
-  mcp call <id> <tool> [args] - Execute a specific tool
-
-CLOUDFLARE WEBTUNNELS:
-  tunnel start                - Start the cloudflared daemon
-  tunnel stop                 - Stop the daemon
-  tunnel status               - View route connection statuses
-  tunnel metrics              - View route analytics
-
-UTILITIES:
-  help                        - Show this help
-  clear                       - Clear terminal
-  history                     - Show command history
-  echo <text>                 - Echo text`;
-  };
+    appendLine(output);
+  }, [appendLine, browserManager, crawlerService, networkManager, history]);
 
   return (
-    <div className={`terminal-panel ${isOpen ? 'open' : 'closed'}`}>
+    <div className={`terminal-panel ${isOpen ? 'terminal-panel--open' : ''}`}>
       <button
-        className="terminal-toggle"
-        onClick={() => setIsOpen(!isOpen)}
+        className="terminal-panel__toggle"
+        onClick={() => setIsOpen(o => !o)}
         title="Toggle Terminal"
       >
-        {isOpen ? '▼ ZENO Terminal' : '▲ ZENO Terminal'}
+        {isOpen ? '▼ Terminal' : '▲ Terminal'}
       </button>
 
       {isOpen && (
-        <div className="terminal-container">
+        <div className="terminal-panel__body">
           <Terminal
-            name="ZENO OSINT Dashboard"
+            name="ZENO Terminal"
             colorMode={ColorMode.Dark}
             onInput={executeCommand}
           >
@@ -216,3 +180,5 @@ UTILITIES:
     </div>
   );
 };
+
+export default TerminalPanel;

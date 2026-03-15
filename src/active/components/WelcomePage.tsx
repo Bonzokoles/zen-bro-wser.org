@@ -1,13 +1,9 @@
-import * as React from 'react';
-import { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import UnifiedSearch from './UnifiedSearch';
-import FloatingWindow from './FloatingWindow';
-import '../../components/RetroMotifs.css';
 
 const WelcomePage: React.FC = () => {
   const [showMoreSites, setShowMoreSites] = useState(false);
   const [activeTab, setActiveTab] = useState<'popular' | 'niche'>('popular');
-  const [activeMotifs, setActiveMotifs] = useState(['synthwave', 'matrix', 'cosmic']);
 
   // Inject keyframes for logo pulse animation
   useEffect(() => {
@@ -82,80 +78,7 @@ const WelcomePage: React.FC = () => {
   };
 
   return (
-    <div className="page-content" style={{ height: '100%', overflow: 'auto', paddingTop: '120px', paddingBottom: '90px', position: 'relative' }}>
-        {/* Motif Toggles (Optional UI) */}
-        <div style={{ position: 'absolute', top: '20px', left: '20px', zIndex: 10, display: 'flex', gap: '8px' }}>
-             {['synthwave', 'matrix', 'cosmic'].map(motif => (
-                <button 
-                  key={motif}
-                  onClick={() => setActiveMotifs(prev => prev.includes(motif) ? prev.filter(m => m !== motif) : [...prev, motif])}
-                  style={{
-                      padding: '4px 8px', fontSize: '10px', textTransform: 'uppercase', 
-                      background: activeMotifs.includes(motif) ? 'rgba(96, 165, 250, 0.3)' : 'rgba(0,0,0,0.5)',
-                      border: '1px solid rgba(96, 165, 250, 0.3)', color: '#fff', cursor: 'pointer',
-                      borderRadius: '4px'
-                  }}
-                >
-                  {motif}
-                </button>
-             ))}
-        </div>
-
-        {/* Resizable Floating Motif Windows */}
-        {activeMotifs.includes('synthwave') && (
-            <FloatingWindow
-                title="Synthwave Node"
-                initialX={-50} initialY={100}
-                initialWidth={320} initialHeight={200}
-                onClose={() => setActiveMotifs(prev => prev.filter(m => m !== 'synthwave'))}
-            >
-                <div className="motif motif-synthwave">
-                    <div className="synthwave-sun"></div>
-                </div>
-            </FloatingWindow>
-        )}
-
-        {activeMotifs.includes('matrix') && (
-            <FloatingWindow
-                title="Cyber Rain Sequence"
-                initialX={-50} initialY={400}
-                initialWidth={320} initialHeight={200}
-                onClose={() => setActiveMotifs(prev => prev.filter(m => m !== 'matrix'))}
-            >
-                <div className="motif motif-matrix">
-                    <div className="matrix-container" style={{ width: '100%', height: '100%', fontSize: '1.2rem', padding: '10px' }}>
-                        01 10 11 00 01 10 11 01 00 10 11 01 10 10 01 10<br/>
-                        10 01 10 11 00 01 11 00 10 01 11 00 01 11 00 01<br/>
-                        11 00 01 10 11 00 01 10 11 00 01 10 11 00 10 11<br/>
-                        00 10 11 00 01 10 11 00 01 10 11 00 01 01 11 00<br/>
-                        01 11 00 01 10 11 00 01 10 11 00 10 11 10 01 10<br/>
-                        10 01 10 11 00 01 11 00 10 01 11 00 01 11 00 01<br/>
-                        11 00 01 10 11 00 01 10 11 00 01 10 11 00 10 11<br/>
-                        00 10 11 00 01 10 11 00 01 10 11 00 01 01 11 00<br/>
-                        01 11 00 01 10 11 00 01 10 11 00 10 11 10 01 10
-                    </div>
-                </div>
-            </FloatingWindow>
-        )}
-
-        {activeMotifs.includes('cosmic') && (
-            <FloatingWindow
-                title="Cosmic Flight Engine"
-                initialX={window.innerWidth ? window.innerWidth - 370 : 1000} initialY={200}
-                initialWidth={320} initialHeight={200}
-                onClose={() => setActiveMotifs(prev => prev.filter(m => m !== 'cosmic'))}
-            >
-                <div className="motif motif-cosmic">
-                    <div className="cosmic-layer1"></div>
-                    <div className="cosmic-layer2"></div>
-                    <div className="cosmic-layer3"></div>
-                    <div className="cosmic-layer1" style={{ top: '100%' }}></div>
-                    <div className="cosmic-layer2" style={{ top: '100%' }}></div>
-                    <div className="cosmic-layer3" style={{ top: '100%' }}></div>
-                </div>
-            </FloatingWindow>
-        )}
-
+    <div className="page-content" style={{ height: '100%', overflow: 'auto', paddingTop: '120px', paddingBottom: '90px' }}>
       <div className="page-header" style={{
         textAlign: 'center',
         margin: '2rem 0 3rem 0'

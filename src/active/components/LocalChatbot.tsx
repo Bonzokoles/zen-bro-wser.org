@@ -1,4 +1,3 @@
-import { getProviderKey } from '../utils/apiKeys';
 /*
  * Local Model Chatbot
  * Chatbot interface for communication with local LLM models (HuggingFace, Ollama, etc.)

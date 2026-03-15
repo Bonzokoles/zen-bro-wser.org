@@ -12,7 +12,7 @@ export const SecurityMonitor: React.FC<SecurityMonitorProps> = ({ onClose }) => 
   const [logs, setLogs] = useState<any[]>([]);
   const [report, setReport] = useState<any>(null);
 
-  const electronAPI = (typeof window !== 'undefined') ? (window as any).electronAPI : undefined;
+  const electronAPI = (window as any).electronAPI;
 
   useEffect(() => {
     loadLogs();

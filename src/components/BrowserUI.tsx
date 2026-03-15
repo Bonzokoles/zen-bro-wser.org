@@ -1,17 +1,13 @@
 /**
  * Browser UI - Main React Component
- * ZENO Premium Theme & Platform Architecture (K.R.A.F.T. v3)
+ * Handles tab management, navigation, and AI integration
  */
 
-import * as React from 'react';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AIPanel } from './AIPanel';
-import { TabBar } from './TabBar';
-import { AddressBar } from './AddressBar';
+import TabBar from './TabBar';
+import AddressBar from './AddressBar';
 import { SecurityMonitor } from './SecurityMonitor';
-import { TerminalPanel } from './TerminalPanel';
-import WebView from './WebView';
-import './BrowserUI.css';
 
 interface Tab {
   id: string;
@@ -19,6 +15,7 @@ interface Tab {
   url: string;
   favicon?: string;
   isActive: boolean;
+  isLoading: boolean;
 }
 
 export const BrowserUI: React.FC = () => {
@@ -28,8 +25,7 @@ export const BrowserUI: React.FC = () => {
   const [showSecurityPanel, setShowSecurityPanel] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Guard against SSR – window is not available during Astro server-side rendering
-  const electronAPI = (typeof window !== 'undefined') ? (window as any).electronAPI : undefined;
+  const electronAPI = (window as any).electronAPI;
 
   useEffect(() => {
     loadTabs();
@@ -37,12 +33,8 @@ export const BrowserUI: React.FC = () => {
 
   const loadTabs = async () => {
     try {
-      if (electronAPI) {
-        const loadedTabs = await electronAPI.browser.getTabs();
-        setTabs(loadedTabs);
-      } else {
-        setTabs([{ id: 'mock-1', title: 'Start Page', url: 'about:blank', isActive: true }]);
-      }
+      const loadedTabs = await electronAPI.browser.getTabs();
+      setTabs(loadedTabs);
     } catch (error) {
       console.error('Failed to load tabs:', error);
     }
@@ -50,13 +42,8 @@ export const BrowserUI: React.FC = () => {
 
   const handleNewTab = async () => {
     try {
-      if (electronAPI) {
-        const newTab = await electronAPI.browser.newTab();
-        setTabs([...tabs, newTab]);
-      } else {
-        const newTab = { id: `mock-${Date.now()}`, title: 'New Tab', url: 'about:blank', isActive: true };
-        setTabs(tabs.map(t => ({...t, isActive: false })).concat(newTab));
-      }
+      const newTab = await electronAPI.browser.newTab();
+      setTabs([...tabs, newTab]);
     } catch (error) {
       console.error('Failed to create tab:', error);
     }
@@ -64,9 +51,7 @@ export const BrowserUI: React.FC = () => {
 
   const handleCloseTab = async (tabId: string) => {
     try {
-      if (electronAPI) {
-        await electronAPI.browser.closeTab(tabId);
-      }
+      await electronAPI.browser.closeTab(tabId);
       setTabs(tabs.filter(t => t.id !== tabId));
     } catch (error) {
       console.error('Failed to close tab:', error);
@@ -78,9 +63,7 @@ export const BrowserUI: React.FC = () => {
       const activeTab = tabs.find(t => t.isActive);
       if (activeTab) {
         setLoading(true);
-        if (electronAPI) {
-          await electronAPI.browser.navigate(activeTab.id, url);
-        }
+        await electronAPI.browser.navigate(activeTab.id, url);
         setCurrentUrl(url);
       }
     } catch (error) {
@@ -105,97 +88,75 @@ export const BrowserUI: React.FC = () => {
 
   return (
     <div className="browser-container">
-      {/* Header Bar */}
+      {/* Header */}
       <header className="browser-header">
         <div className="controls">
-          <button className="zeno-btn" onClick={() => handleNavigate('about:blank')} title="Back">
-            <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5"></path><path d="M12 19l-7-7 7-7"></path></svg>
+          <button className="btn-icon" onClick={() => handleNavigate('about:blank')}>
+            ←
           </button>
-          <button className="zeno-btn" onClick={() => handleNavigate(currentUrl)} title="Forward">
-            <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"></path><path d="M12 5l7 7-7 7"></path></svg>
+          <button className="btn-icon" onClick={() => handleNavigate(currentUrl)}>
+            →
           </button>
-          <button className="zeno-btn" onClick={() => loadTabs()} title="Reload">
-            <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 109-9 9.75 9.75 0 00-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+          <button className="btn-icon" onClick={() => loadTabs()}>
+            ⟳
           </button>
         </div>
 
-        {/* Scalable Address Bar */}
-        <div style={{ flex: 1, margin: '0 12px' }}>
-          <AddressBar
-            url={currentUrl}
-            onNavigate={handleNavigate}
-            loading={loading}
-          />
-        </div>
+        {/* Address Bar */}
+        <AddressBar
+          url={currentUrl}
+          onNavigate={handleNavigate}
+          isLoading={loading}
+        />
 
         <div className="header-controls">
           <button
-            className={`zeno-btn ${showAIPanel ? 'primary' : ''}`}
+            className="btn-icon"
             onClick={() => setShowAIPanel(!showAIPanel)}
-            title="ZENO Intelligence AI"
+            title="AI Assistant"
           >
-            <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"></path></svg> AI
+            🤖
           </button>
           <button
-            className={`zeno-btn ${showSecurityPanel ? 'primary' : ''}`}
+            className="btn-icon"
             onClick={() => setShowSecurityPanel(!showSecurityPanel)}
-            title="Sandbox & Security Panel"
+            title="Security"
           >
-            <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0110 0v4"></path></svg>
+            🔒
           </button>
-          <button className="zeno-btn" onClick={() => handleNewTab()} title="New Sandbox Tab">
-            <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"></path></svg>
+          <button className="btn-icon" onClick={() => handleNewTab()} title="New Tab">
+            +
           </button>
         </div>
       </header>
 
-      {/* Tabs Row */}
+      {/* Tab Bar */}
       <TabBar
         tabs={tabs}
-        onTabClick={handleTabClick}
-        onTabClose={handleCloseTab}
-        onNewTab={handleNewTab}
+        onSwitchTab={handleTabClick}
+        onCloseTab={handleCloseTab}
+        onCreateTab={handleNewTab}
       />
 
-      {/* Main Content Area */}
-      <main className="browser-main zeno-glass-panel" style={{ borderRadius: 0, borderRight: 0, borderLeft: 0, borderBottom: 0 }}>
-        
-        {/* Web View Placeholder (Sandbox/Classic Dual Engine) */}
-        <section className="web-view">
-          <WebView
-             url={currentUrl || 'about:blank'}
-             isLoading={loading}
-             title={tabs.find(t => t.isActive)?.title || 'ZENO'}
-             topOffset={0}
-             onNavigate={handleNavigate}
-             onToggleAI={() => setShowAIPanel(prev => !prev)}
-             onToggleSecurity={() => setShowSecurityPanel(prev => !prev)}
-          />
-        </section>
-
-        {/* Floating Tool Panels Layer */}
-        <div className="floating-overlay">
-          {showAIPanel && (
-            <div className="zeno-glass-panel animate-slide-up">
-              <AIPanel onClose={() => setShowAIPanel(false)} />
-            </div>
-          )}
-          
-          {showSecurityPanel && (
-            <div className="zeno-glass-panel animate-slide-up">
-              <SecurityMonitor onClose={() => setShowSecurityPanel(false)} />
-            </div>
-          )}
+      {/* Main Content */}
+      <main className="browser-main">
+        {/* Web View Placeholder */}
+        <div className="web-view">
+          <p>Browser window would render here</p>
+          <p>Current URL: {currentUrl}</p>
         </div>
+
+        {/* Floating Panels */}
+        {showAIPanel && <AIPanel onClose={() => setShowAIPanel(false)} />}
+        {showSecurityPanel && (
+          <SecurityMonitor onClose={() => setShowSecurityPanel(false)} />
+        )}
       </main>
 
-      {/* Terminal Console Panel at Bottom */}
-      <TerminalPanel />
-
-      {/* Status Footer */}
+      {/* Status Bar */}
       <footer className="browser-footer">
-        <span>ZENO Base Node Online</span>
-        <span style={{ color: 'var(--zeno-primary)' }}>{tabs.length} Instances Isolated</span>
+        <span>Ready</span>
+        <span>{tabs.length} tab(s)</span>
       </footer>
     </div>
   );

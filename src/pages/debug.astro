@@ -1,25 +1,23 @@
 ---
-import Layout from "../layouts/Layout.astro";
+import Layout from '../layouts/Layout.astro';
 ---
 
-<Layout title="MCP Debug Page" description="Debug page for MCP service testing">
-  <main class="container mx-auto p-8">
-    <h1 class="text-3xl font-bold mb-4">MCP Service Debug Page</h1>
-    <p class="mb-6">
-      Use this page to test AI provider connections and chat functionality.
-    </p>
+<Layout title="MCP Debug Page"
+  description="Debug page for MCP service testing"
+>
+  <main className="container mx-auto p-8">
+    <h1 className="text-3xl font-bold mb-4">MCP Service Debug Page</h1>
+    <p className="mb-6">Use this page to test AI provider connections and chat functionality.</p>
 
-    <div class="space-y-4">
-      <div class="bg-gray-800 p-4 rounded-lg">
-        <h2 class="text-xl font-semibold mb-2">Debug Console</h2>
-        <p class="text-gray-400">
-          Open browser console (F12) to see debug logs
-        </p>
+    <div className="space-y-4">
+      <div className="bg-gray-800 p-4 rounded-lg">
+        <h2 className="text-xl font-semibold mb-2">Debug Console</h2>
+        <p className="text-gray-400">Open browser console (F12) to see debug logs</p>
       </div>
 
-      <div class="bg-gray-800 p-4 rounded-lg">
-        <h2 class="text-xl font-semibold mb-2">Status</h2>
-        <p class="text-green-400">System operational</p>
+      <div className="bg-gray-800 p-4 rounded-lg">
+        <h2 className="text-xl font-semibold mb-2">Status</h2>
+        <p className="text-green-400">System operational</p>
       </div>
     </div>
   </main>
@@ -34,38 +32,31 @@ import Layout from "../layouts/Layout.astro";
 <script>
   import { createRoot } from "react-dom/client";
   import { createElement } from "react";
-  import {
-    InstructionsPanel,
-    type Instruction,
-  } from "../components/InstructionsPanel";
+  import { InstructionsPanel, type Instruction } from "../components/InstructionsPanel";
 
   document.addEventListener("DOMContentLoaded", () => {
     const instructions: Instruction[] = [
       {
         step: 1,
         title: "Open Browser Console",
-        description:
-          "Press F12 or Ctrl+Shift+I (Cmd+Option+I on Mac) to open the browser developer tools console for detailed debug logs.",
-        shortcut: "F12",
+        description: "Press F12 or Ctrl+Shift+I (Cmd+Option+I on Mac) to open the browser developer tools console for detailed debug logs.",
+        shortcut: "F12"
       },
       {
         step: 2,
         title: "Monitor System Status",
-        description:
-          "Check the system operational status displayed on this page. Green indicates all services are running correctly.",
+        description: "Check the system operational status displayed on this page. Green indicates all services are running correctly."
       },
       {
         step: 3,
         title: "View Debug Logs",
-        description:
-          "All debug information, errors, and system messages are logged to the browser console. Use console filters to focus on specific message types.",
+        description: "All debug information, errors, and system messages are logged to the browser console. Use console filters to focus on specific message types."
       },
       {
         step: 4,
         title: "Test MCP Services",
-        description:
-          "This page allows testing AI provider connections and chat functionality. Monitor console for connection status and error messages.",
-      },
+        description: "This page allows testing AI provider connections and chat functionality. Monitor console for connection status and error messages."
+      }
     ];
 
     const instructionsContainer = document.createElement("div");
@@ -75,8 +66,8 @@ import Layout from "../layouts/Layout.astro";
       createElement(InstructionsPanel, {
         title: "Debug Console Guide",
         instructions,
-        defaultOpen: false,
-      }),
+        defaultOpen: false
+      })
     );
   });
 </script>

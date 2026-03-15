@@ -35,8 +35,8 @@ export interface MCPTool {
 	id: string;
 	name: string;
 	description: string;
-	server: string;
-	status: 'connected' | 'disconnected' | 'error';
+	server?: string;
+	status?: 'connected' | 'disconnected' | 'error';
 }
 
 interface Bookmark {
@@ -268,7 +268,7 @@ const Browser: React.FC = () => {
 		const initMCP = async () => {
 			// Check if already connected
 			if (mcpService.isConnected()) {
-				setMcpTools(mcpService.getTools() as unknown as MCPTool[]);
+				setMcpTools(mcpService.getTools());
 				addConsoleMessage('✅ MCP Service already connected');
 				return;
 			}
@@ -281,7 +281,7 @@ const Browser: React.FC = () => {
 					addConsoleMessage('🔄 Initializing MCP from saved config...');
 					const success = await mcpService.initialize(config);
 					if (success) {
-						setMcpTools(mcpService.getTools() as unknown as MCPTool[]);
+						setMcpTools(mcpService.getTools());
 						addConsoleMessage(`✅ MCP connected to ${config.provider}`);
 					} else {
 						addConsoleMessage('⚠️ MCP connection failed - check Settings');
@@ -306,7 +306,7 @@ const Browser: React.FC = () => {
 							model: 'gemini-1.5-pro'
 						});
 						if (success) {
-							setMcpTools(mcpService.getTools() as unknown as MCPTool[]);
+							setMcpTools(mcpService.getTools());
 							addConsoleMessage('✅ MCP auto-connected with Gemini');
 							// Save config
 							localStorage.setItem('mcp_config', JSON.stringify({

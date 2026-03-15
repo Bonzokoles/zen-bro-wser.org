@@ -61,8 +61,8 @@ const FloatingWindow: React.FC<FloatingWindowProps> = ({
 		const handleMouseMove = (e: MouseEvent) => {
 			if (isDragging) {
 				setPosition({
-					x: Math.max(0, Math.min(window.innerWidth - size.width, e.clientX - dragOffset.x)),
-					y: Math.max(0, Math.min(window.innerHeight - size.height, e.clientY - dragOffset.y))
+					x: e.clientX - dragOffset.x,
+					y: e.clientY - dragOffset.y
 				});
 			}
 
@@ -147,7 +147,7 @@ const FloatingWindow: React.FC<FloatingWindowProps> = ({
 
 	// Get window classes based on state
 	const getWindowClasses = () => {
-		const baseClasses = "fixed bg-slate-800 rounded-xl shadow-2xl flex flex-col overflow-hidden border border-slate-700/30";
+		const baseClasses = "fixed bg-slate-800 rounded-xl shadow-2xl flex flex-col z-[1000] overflow-hidden border border-slate-700/30";
 
 		if (windowState === 'maximized') {
 			return `${baseClasses} top-[80px] left-0 w-full h-[calc(100%-150px)] rounded-none`;
@@ -183,12 +183,14 @@ const FloatingWindow: React.FC<FloatingWindowProps> = ({
 		);
 	};
 
+	const isResizable = windowState === 'normal' || windowState === 'pip';
+
 	if (windowState === 'minimized') {
 		return (
 			<div
 				className={getWindowClasses()}
 				onClick={toggleMinimize}
-				style={windowState !== 'maximized' && windowState !== 'minimized' ? {
+				style={isResizable ? {
 					top: `${position.y}px`,
 					left: `${position.x}px`,
 					width: `${size.width}px`,
@@ -209,13 +211,13 @@ const FloatingWindow: React.FC<FloatingWindowProps> = ({
 		<div
 			ref={windowRef}
 			className={getWindowClasses()}
-			style={windowState !== 'maximized' ? {
+			style={isResizable ? {
 				top: `${position.y}px`,
 				left: `${position.x}px`,
 				width: `${size.width}px`,
 				height: `${size.height}px`,
-				zIndex: zIndex ?? 1000,
-			} : { zIndex: zIndex ?? 1000 }}
+				...(zIndex ? { zIndex } : {})
+			} : undefined}
 		>
 			{/* Title Bar */}
 			<div

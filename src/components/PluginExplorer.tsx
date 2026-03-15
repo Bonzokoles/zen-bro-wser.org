@@ -70,7 +70,7 @@ export const PluginExplorer: React.FC<PluginExplorerProps> = ({ onClose, onInsta
       </div>
 
       <div className="plugin-tags">
-        {plugin.tags.slice(0, 3).map((tag) => (
+        {plugin.tags.slice(0, 3).map((tag: string) => (
           <span key={tag} className="tag">
             {tag}
           </span>

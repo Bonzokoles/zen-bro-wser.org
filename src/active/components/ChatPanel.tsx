@@ -54,7 +54,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       const webContext = currentUrl && currentTitle ? {
         url: currentUrl,
         title: currentTitle,
-        content: webContent
+        content: webContent ?? undefined
       } : undefined;
 
       const response = await mcpService.sendMessage(userMessage, webContext);

@@ -3,7 +3,7 @@
  * Defines what features are available for each plan tier
  */
 
-export type PlanType = 'free' | 'pro' | 'enterprise';
+export type PlanType = 'free' | 'pro' | 'enterprise' | 'monthly' | 'yearly' | 'lifetime';
 
 /**
  * Tab limits per plan
@@ -11,7 +11,10 @@ export type PlanType = 'free' | 'pro' | 'enterprise';
 export const TAB_LIMITS: Record<PlanType, number> = {
     free: 5,
     pro: 50,
-    enterprise: 999
+    enterprise: 999,
+    monthly: 30,
+    yearly: 100,
+    lifetime: 999
 };
 
 /**
@@ -55,7 +58,7 @@ export function hasFeatureAccess(feature: FeatureName, plan: PlanType): boolean 
         console.warn(`[Features] Unknown feature: ${feature}`);
         return false;
     }
-    return allowedPlans.includes(plan);
+    return (allowedPlans as unknown as string[]).includes(plan);
 }
 
 /**
@@ -70,7 +73,7 @@ export function getMaxTabs(plan: PlanType): number {
  */
 export function getAvailableFeatures(plan: PlanType): FeatureName[] {
     return Object.entries(FEATURES)
-        .filter(([_, allowedPlans]) => allowedPlans.includes(plan))
+        .filter(([_, allowedPlans]) => (allowedPlans as unknown as string[]).includes(plan))
         .map(([feature]) => feature as FeatureName);
 }
 
@@ -80,13 +83,19 @@ export function getAvailableFeatures(plan: PlanType): FeatureName[] {
 export const PLAN_NAMES: Record<PlanType, string> = {
     free: 'Free',
     pro: 'Pro',
-    enterprise: 'Enterprise'
+    enterprise: 'Enterprise',
+    monthly: 'Monthly',
+    yearly: 'Yearly',
+    lifetime: 'Lifetime'
 };
 
 /**
  * Plan descriptions
  */
 export const PLAN_DESCRIPTIONS: Record<PlanType, string> = {
+    monthly: 'Monthly subscription',
+    yearly: 'Yearly subscription - save 20%',
+    lifetime: 'One-time payment, forever',
     free: 'Perfect for getting started',
     pro: 'For power users and professionals',
     enterprise: 'For teams and organizations'
@@ -97,6 +106,9 @@ export const PLAN_DESCRIPTIONS: Record<PlanType, string> = {
  */
 export const PLAN_PRICING: Record<PlanType, number> = {
     free: 0,
+    monthly: 9.99,
+    yearly: 99.99,
+    lifetime: 299.99,
     pro: 9.99,
     enterprise: 49.99
 };
@@ -107,6 +119,17 @@ export const PLAN_PRICING: Record<PlanType, number> = {
 export const PRICING: Record<PlanType, { label: string; savings?: string }> = {
     free: {
         label: 'Free Forever'
+    },
+    monthly: {
+        label: '$9.99/month'
+    },
+    yearly: {
+        label: '$99.99/year',
+        savings: 'Save 17%'
+    },
+    lifetime: {
+        label: '$299.99 once',
+        savings: 'Best value'
     },
     pro: {
         label: '$9.99/month',
@@ -152,7 +175,7 @@ export function getUpgradeMessage(feature: FeatureName, currentPlan: PlanType): 
     const allowedPlans = FEATURES[feature];
     if (!allowedPlans) return 'Feature not found';
 
-    if (allowedPlans.includes(currentPlan)) {
+    if ((allowedPlans as unknown as string[]).includes(currentPlan)) {
         return 'You already have access to this feature';
     }
 

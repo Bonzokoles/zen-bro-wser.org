@@ -103,7 +103,10 @@ class LicenseManager {
         const features: Record<PlanType, string[]> = {
             free: ['basic_tabs', 'basic_chat', 'basic_search'],
             pro: ['unlimited_tabs', 'advanced_chat', 'advanced_search', 'mcp_tools', 'custom_themes'],
-            enterprise: ['unlimited_tabs', 'advanced_chat', 'advanced_search', 'mcp_tools', 'custom_themes', 'priority_support', 'custom_branding', 'team_features']
+            enterprise: ['unlimited_tabs', 'advanced_chat', 'advanced_search', 'mcp_tools', 'custom_themes', 'priority_support', 'custom_branding', 'team_features'],
+            monthly: ['unlimited_tabs', 'advanced_chat', 'mcp_tools'],
+            yearly: ['unlimited_tabs', 'advanced_chat', 'advanced_search', 'mcp_tools', 'custom_themes', 'music_player'],
+            lifetime: ['unlimited_tabs', 'advanced_chat', 'advanced_search', 'mcp_tools', 'custom_themes', 'music_player', 'video_player', 'widgets', 'priority_support']
         };
 
         return features[plan] || features.free;
@@ -176,8 +179,11 @@ export function getLicensePlan(): PlanType {
 export function hasMinimumPlan(requiredPlan: PlanType): boolean {
     const planHierarchy: Record<PlanType, number> = {
         free: 0,
+        monthly: 1,
+        yearly: 2,
         pro: 1,
-        enterprise: 2
+        enterprise: 3,
+        lifetime: 3
     };
 
     const currentPlan = licenseManager.getPlan();

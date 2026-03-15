@@ -23,9 +23,6 @@ import { licenseManager, getLicensePlan } from '../services/security/licenseMana
 import { hasFeatureAccess, TAB_LIMITS, FEATURES, type PlanType } from '../config/features';
 import { useWindowManager, type WindowType } from '../hooks/useWindowManager';
 import { FeatureDock } from './FeatureDock';
-import { TerminalPanel } from '../../tools/terminal-panel';
-import { WebTunnelMonitor } from '../../tools/web-tunnel-monitor';
-import { AiSandbox } from '../../tools/ai-sandbox';
 
 // New Components
 import { BrowserHeader } from './browser/BrowserHeader';
@@ -45,7 +42,7 @@ export interface Tab {
 
 export type { MCPTool } from '../services/mcpService';
 
-interface Bookmark {
+export interface Bookmark {
 	id: string;
 	title: string;
 	url: string;
@@ -54,13 +51,15 @@ interface Bookmark {
 	createdAt?: number;
 }
 
-interface HistoryItem {
+export interface HistoryEntry {
 	id: string;
 	url: string;
 	title: string;
 	visitedAt: Date;
 	favicon: string;
 }
+/** @deprecated Use HistoryEntry */
+type HistoryItem = HistoryEntry;
 
 type Theme = 'dark' | 'light';
 
@@ -213,7 +212,6 @@ const Browser: React.FC = () => {
 		openWindow,
 		closeWindow,
 		isOpen: isManagedOpen,
-		sendMessage,
 	} = useWindowManager();
 
 	// Listen for navigation events from WebView
@@ -672,7 +670,7 @@ const Browser: React.FC = () => {
 			case 'music-widget': setIsMusicWidgetOpen(v => !v); break;
 			case 'settings':     setIsSettingsOpen(v => !v); break;
 			default:
-				// 'ai-chat', 'local-ai', 'terminal', 'tunnels', 'ai-sandbox', 'iframe' → managed floating windows
+				// 'ai-chat', 'local-ai', 'iframe' → managed floating windows
 				openWindow(type);
 		}
 	};
@@ -699,7 +697,7 @@ const Browser: React.FC = () => {
 	};
 
 	return (
-		<div className={`relative min-h-screen pb-20 ${theme === 'dark' ? 'bg-slate-950' : 'bg-slate-50'}`}>
+		<div className={`relative min-h-screen ${theme === 'dark' ? 'bg-slate-950' : 'bg-slate-50'}`}>
 			<BrowserHeader
 				theme={theme}
 				toggleTheme={toggleTheme}
@@ -761,7 +759,7 @@ const Browser: React.FC = () => {
 			/>
 
 			{isConsoleOpen && (
-				<div className="fixed bottom-[80px] left-0 right-0 h-[200px] bg-slate-900 border-t border-slate-700 z-[1001] text-white p-4 overflow-auto">
+				<div className="fixed bottom-[80px] left-0 right-0 h-[200px] bg-slate-900 border-t border-slate-700 z-[101] text-white p-4 overflow-auto">
 					<h3>MCP Console</h3>
 					<div className="bg-slate-800 p-2 rounded mt-2 font-mono text-xs">
 						{consoleOutput.map((line, i) => (
@@ -839,28 +837,6 @@ const Browser: React.FC = () => {
 						<OllamaChatbot
 							embedded
 							onClose={() => closeWindow(win.id)}
-						/>
-					)}
-					{win.type === 'terminal' && (
-						<TerminalPanel
-							embedded
-							onClose={() => closeWindow(win.id)}
-							sandboxId={win.id}
-							onResult={(data) => sendMessage(win.id, 'ai-chat', 'result', data)}
-						/>
-					)}
-					{win.type === 'tunnels' && (
-						<WebTunnelMonitor
-							embedded
-							onClose={() => closeWindow(win.id)}
-						/>
-					)}
-					{win.type === 'ai-sandbox' && (
-						<AiSandbox
-							embedded
-							onClose={() => closeWindow(win.id)}
-							sandboxId={win.id}
-							onResult={(data) => sendMessage(win.id, 'terminal', 'result', data)}
 						/>
 					)}
 				</FloatingWindow>

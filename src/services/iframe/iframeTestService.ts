@@ -15,7 +15,7 @@ import { PostMessageService } from './postMessageService';
 
 export class IframeTestService {
   private config: IframeTestConfig;
-  private postMessageService: any; // PostMessageService (lazy-initialized per iframe)
+  private postMessageService: PostMessageService;
   private activeTests: Map<string, AbortController> = new Map();
 
   constructor(config?: Partial<IframeTestConfig>) {
@@ -31,7 +31,7 @@ export class IframeTestService {
       ...config,
     };
 
-    this.postMessageService = null;
+    this.postMessageService = null as unknown as PostMessageService;
   }
 
   /**
@@ -251,21 +251,10 @@ export class IframeTestService {
    * Capture network metrics from iframe
    */
   private async captureNetworkMetrics(
-    iframe: HTMLIFrameElement
+    _iframe: HTMLIFrameElement
   ): Promise<NetworkMetrics | undefined> {
-    try {
-      // Request performance data via postMessage
-      const data = await this.postMessageService.sendRequest(
-        iframe,
-        'REQUEST_DATA',
-        { type: 'performance' },
-        2000
-      );
-
-      return data.metrics;
-    } catch {
-      return undefined;
-    }
+    // sendRequest not implemented in PostMessageService
+    return undefined;
   }
 
   /**

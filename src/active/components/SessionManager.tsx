@@ -40,7 +40,7 @@ const SessionManager: React.FC<SessionManagerProps> = ({ isOpen, onClose, onRest
       onRestoreSession(tabs);
       onClose();
     } catch (error) {
-      alert(`Error restoring session: ${error.message}`);
+      alert(`Error restoring session: ${(error as Error).message}`);
     }
   };
 

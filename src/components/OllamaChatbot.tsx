@@ -9,10 +9,9 @@ interface Message {
 
 interface OllamaChatbotProps {
     onClose: () => void;
-    embedded?: boolean;
 }
 
-const OllamaChatbot: React.FC<OllamaChatbotProps> = ({ onClose, embedded }) => {
+const OllamaChatbot: React.FC<OllamaChatbotProps> = ({ onClose }) => {
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -135,216 +134,212 @@ const OllamaChatbot: React.FC<OllamaChatbotProps> = ({ onClose, embedded }) => {
             zIndex: 10000,
             fontFamily: 'monospace'
         }}>
-            {!embedded && (
-                <>
-                    {/* Header */}
+            {/* Header */}
+            <div style={{
+                padding: '16px',
+                borderBottom: '1px solid #10b981',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                backgroundColor: '#0a0a0a'
+            }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <span style={{ fontSize: '24px' }}>🤖</span>
+                    <h3 style={{ margin: 0, color: '#10b981' }}>Ollama Chatbot</h3>
+                </div>
+                <button
+                    onClick={onClose}
+                    style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#10b981',
+                        fontSize: '24px',
+                        cursor: 'pointer',
+                        padding: '0 8px'
+                    }}
+                >
+                    ×
+                </button>
+            </div>
+
+            {/* Model Selector */}
+            <div style={{
+                padding: '12px 16px',
+                borderBottom: '1px solid #333',
+                display: 'flex',
+                gap: '12px',
+                alignItems: 'center'
+            }}>
+                <label style={{ color: '#10b981', fontSize: '12px' }}>Model:</label>
+                <select
+                    value={model}
+                    onChange={(e) => setModel(e.target.value)}
+                    disabled={isLoading}
+                    style={{
+                        padding: '6px 12px',
+                        backgroundColor: '#0a0a0a',
+                        color: '#10b981',
+                        border: '1px solid #10b981',
+                        borderRadius: '4px',
+                        fontSize: '12px',
+                        cursor: 'pointer'
+                    }}
+                >
+                    {availableModels.length > 0 ? (
+                        availableModels.map(m => (
+                            <option key={m} value={m}>{m}</option>
+                        ))
+                    ) : (
+                        <option value={model}>{model}</option>
+                    )}
+                </select>
+                <span style={{ color: '#666', fontSize: '11px' }}>
+                    {availableModels.length} modeli dostępnych
+                </span>
+            </div>
+
+            {/* Messages */}
+            <div style={{
+                flex: 1,
+                overflowY: 'auto',
+                padding: '16px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px'
+            }}>
+                {messages.length === 0 && (
                     <div style={{
-                        padding: '16px',
-                        borderBottom: '1px solid #10b981',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        backgroundColor: '#0a0a0a'
+                        textAlign: 'center',
+                        color: '#666',
+                        marginTop: '80px',
+                        fontSize: '14px'
                     }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                            <span style={{ fontSize: '24px' }}>🤖</span>
-                            <h3 style={{ margin: 0, color: '#10b981' }}>Ollama Chatbot</h3>
+                        <div style={{ fontSize: '48px', marginBottom: '16px' }}>🤖</div>
+                        <p style={{ fontWeight: 'bold', color: '#10b981' }}>Ollama + MCP Tools</p>
+                        <p style={{ fontSize: '12px', marginTop: '8px' }}>Model: {model}</p>
+                        <div style={{
+                            marginTop: '20px',
+                            padding: '12px',
+                            backgroundColor: '#1a1a2e',
+                            borderRadius: '8px',
+                            fontSize: '11px',
+                            textAlign: 'left',
+                            maxWidth: '400px',
+                            margin: '20px auto 0'
+                        }}>
+                            <div style={{ fontWeight: 'bold', marginBottom: '8px', color: '#60a5fa' }}>🛠️ Dostępne narzędzia MCP:</div>
+                            <div style={{ lineHeight: '1.8' }}>
+                                🔍 Web Search - "szukaj AI w internecie"<br />
+                                📊 Content Analysis - "przeanalizuj https://..."<br />
+                                📑 Bookmark Manager - "dodaj bookmark https://..."<br />
+                                📝 Page Summarizer - "podsumuj https://..."<br />
+                                🔗 Link Extractor - "wyciągnij linki z https://..."<br />
+                                🌐 Web Navigation - "otwórz https://..."
+                            </div>
                         </div>
-                        <button
-                            onClick={onClose}
-                            style={{
-                                background: 'none',
-                                border: 'none',
-                                color: '#10b981',
-                                fontSize: '24px',
-                                cursor: 'pointer',
-                                padding: '0 8px'
-                            }}
-                        >
-                            ×
-                        </button>
                     </div>
+                )}
 
-                    {/* Model Selector */}
-                    <div style={{
-                        padding: '12px 16px',
-                        borderBottom: '1px solid #333',
-                        display: 'flex',
-                        gap: '12px',
-                        alignItems: 'center'
-                    }}>
-                        <label style={{ color: '#10b981', fontSize: '12px' }}>Model:</label>
-                        <select
-                            value={model}
-                            onChange={(e) => setModel(e.target.value)}
-                            disabled={isLoading}
-                            style={{
-                                padding: '6px 12px',
-                                backgroundColor: '#0a0a0a',
-                                color: '#10b981',
-                                border: '1px solid #10b981',
-                                borderRadius: '4px',
-                                fontSize: '12px',
-                                cursor: 'pointer'
-                            }}
-                        >
-                            {availableModels.length > 0 ? (
-                                availableModels.map(m => (
-                                    <option key={m} value={m}>{m}</option>
-                                ))
-                            ) : (
-                                <option value={model}>{model}</option>
-                            )}
-                        </select>
-                        <span style={{ color: '#666', fontSize: '11px' }}>
-                            {availableModels.length} modeli dostępnych
-                        </span>
-                    </div>
-
-                    {/* Messages */}
-                    <div style={{
-                        flex: 1,
-                        overflowY: 'auto',
-                        padding: '16px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '12px'
-                    }}>
-                        {messages.length === 0 && (
-                            <div style={{
-                                textAlign: 'center',
-                                color: '#666',
-                                marginTop: '80px',
-                                fontSize: '14px'
-                            }}>
-                                <div style={{ fontSize: '48px', marginBottom: '16px' }}>🤖</div>
-                                <p style={{ fontWeight: 'bold', color: '#10b981' }}>Ollama + MCP Tools</p>
-                                <p style={{ fontSize: '12px', marginTop: '8px' }}>Model: {model}</p>
-                                <div style={{
-                                    marginTop: '20px',
-                                    padding: '12px',
-                                    backgroundColor: '#1a1a2e',
-                                    borderRadius: '8px',
-                                    fontSize: '11px',
-                                    textAlign: 'left',
-                                    maxWidth: '400px',
-                                    margin: '20px auto 0'
+                {messages.map((msg, idx) => (
+                    <div
+                        key={idx}
+                        style={{
+                            alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
+                            maxWidth: '80%',
+                            padding: '12px 16px',
+                            borderRadius: '12px',
+                            backgroundColor: msg.role === 'user' ? '#064e3b' : msg.role === 'system' ? '#1a1a2e' : '#022c22',
+                            border: `1px solid ${msg.role === 'user' ? '#10b981' : msg.toolUsed ? '#3b82f6' : '#047857'}`,
+                            color: msg.toolUsed ? '#60a5fa' : '#10b981',
+                            fontSize: '13px',
+                            lineHeight: '1.5',
+                            whiteSpace: 'pre-wrap',
+                            wordBreak: 'break-word'
+                        }}
+                    >
+                        <div style={{ fontSize: '10px', opacity: 0.7, marginBottom: '4px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span>{msg.role === 'user' ? '👤 Ty' : msg.role === 'system' ? '🔧 System' : '🤖 Ollama'}</span>
+                            {msg.toolUsed && (
+                                <span style={{
+                                    backgroundColor: '#1e40af',
+                                    color: '#93c5fd',
+                                    padding: '2px 8px',
+                                    borderRadius: '10px',
+                                    fontSize: '9px',
+                                    fontWeight: 'bold'
                                 }}>
-                                    <div style={{ fontWeight: 'bold', marginBottom: '8px', color: '#60a5fa' }}>🛠️ Dostępne narzędzia MCP:</div>
-                                    <div style={{ lineHeight: '1.8' }}>
-                                        🔍 Web Search - "szukaj AI w internecie"<br />
-                                        📊 Content Analysis - "przeanalizuj https://..."<br />
-                                        📑 Bookmark Manager - "dodaj bookmark https://..."<br />
-                                        📝 Page Summarizer - "podsumuj https://..."<br />
-                                        🔗 Link Extractor - "wyciągnij linki z https://..."<br />
-                                        🌐 Web Navigation - "otwórz https://..."
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {messages.map((msg, idx) => (
-                            <div
-                                key={idx}
-                                style={{
-                                    alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
-                                    maxWidth: '80%',
-                                    padding: '12px 16px',
-                                    borderRadius: '12px',
-                                    backgroundColor: msg.role === 'user' ? '#064e3b' : msg.role === 'system' ? '#1a1a2e' : '#022c22',
-                                    border: `1px solid ${msg.role === 'user' ? '#10b981' : msg.toolUsed ? '#3b82f6' : '#047857'}`,
-                                    color: msg.toolUsed ? '#60a5fa' : '#10b981',
-                                    fontSize: '13px',
-                                    lineHeight: '1.5',
-                                    whiteSpace: 'pre-wrap',
-                                    wordBreak: 'break-word'
-                                }}
-                            >
-                                <div style={{ fontSize: '10px', opacity: 0.7, marginBottom: '4px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <span>{msg.role === 'user' ? '👤 Ty' : msg.role === 'system' ? '🔧 System' : '🤖 Ollama'}</span>
-                                    {msg.toolUsed && (
-                                        <span style={{
-                                            backgroundColor: '#1e40af',
-                                            color: '#93c5fd',
-                                            padding: '2px 8px',
-                                            borderRadius: '10px',
-                                            fontSize: '9px',
-                                            fontWeight: 'bold'
-                                        }}>
-                                            🛠️ MCP: {msg.toolUsed}
-                                        </span>
-                                    )}
-                                </div>
-                                {msg.content}
-                            </div>
-                        ))}
-
-                        {isLoading && (
-                            <div style={{
-                                alignSelf: 'flex-start',
-                                padding: '12px 16px',
-                                borderRadius: '12px',
-                                backgroundColor: '#022c22',
-                                border: '1px solid #047857',
-                                color: '#10b981',
-                                fontSize: '13px'
-                            }}>
-                                <div style={{ fontSize: '10px', opacity: 0.7, marginBottom: '4px' }}>
-                                    🤖 Ollama
-                                </div>
-                                Myślę<span className="dots">...</span>
-                            </div>
-                        )}
-
-                        <div ref={messagesEndRef} />
+                                    🛠️ MCP: {msg.toolUsed}
+                                </span>
+                            )}
+                        </div>
+                        {msg.content}
                     </div>
+                ))}
 
-                    {/* Input */}
+                {isLoading && (
                     <div style={{
-                        padding: '16px',
-                        borderTop: '1px solid #10b981',
-                        display: 'flex',
-                        gap: '8px',
-                        backgroundColor: '#0a0a0a'
+                        alignSelf: 'flex-start',
+                        padding: '12px 16px',
+                        borderRadius: '12px',
+                        backgroundColor: '#022c22',
+                        border: '1px solid #047857',
+                        color: '#10b981',
+                        fontSize: '13px'
                     }}>
-                        <input
-                            type="text"
-                            value={input}
-                            onChange={(e) => setInput(e.target.value)}
-                            onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-                            disabled={isLoading}
-                            placeholder="Wpisz wiadomość..."
-                            style={{
-                                flex: 1,
-                                padding: '12px',
-                                backgroundColor: '#1a1a1a',
-                                color: '#10b981',
-                                border: '1px solid #10b981',
-                                borderRadius: '6px',
-                                fontSize: '13px',
-                                outline: 'none'
-                            }}
-                        />
-                        <button
-                            onClick={sendMessage}
-                            disabled={isLoading || !input.trim()}
-                            style={{
-                                padding: '12px 24px',
-                                backgroundColor: isLoading || !input.trim() ? '#064e3b' : '#10b981',
-                                color: isLoading || !input.trim() ? '#047857' : '#000',
-                                border: 'none',
-                                borderRadius: '6px',
-                                cursor: isLoading || !input.trim() ? 'not-allowed' : 'pointer',
-                                fontSize: '13px',
-                                fontWeight: 'bold',
-                                fontFamily: 'monospace'
-                            }}
-                        >
-                            {isLoading ? '⏳' : '➤'}
-                        </button>
+                        <div style={{ fontSize: '10px', opacity: 0.7, marginBottom: '4px' }}>
+                            🤖 Ollama
+                        </div>
+                        Myślę<span className="dots">...</span>
                     </div>
-                </>
-            )}
+                )}
+
+                <div ref={messagesEndRef} />
+            </div>
+
+            {/* Input */}
+            <div style={{
+                padding: '16px',
+                borderTop: '1px solid #10b981',
+                display: 'flex',
+                gap: '8px',
+                backgroundColor: '#0a0a0a'
+            }}>
+                <input
+                    type="text"
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                    disabled={isLoading}
+                    placeholder="Wpisz wiadomość..."
+                    style={{
+                        flex: 1,
+                        padding: '12px',
+                        backgroundColor: '#1a1a1a',
+                        color: '#10b981',
+                        border: '1px solid #10b981',
+                        borderRadius: '6px',
+                        fontSize: '13px',
+                        outline: 'none'
+                    }}
+                />
+                <button
+                    onClick={sendMessage}
+                    disabled={isLoading || !input.trim()}
+                    style={{
+                        padding: '12px 24px',
+                        backgroundColor: isLoading || !input.trim() ? '#064e3b' : '#10b981',
+                        color: isLoading || !input.trim() ? '#047857' : '#000',
+                        border: 'none',
+                        borderRadius: '6px',
+                        cursor: isLoading || !input.trim() ? 'not-allowed' : 'pointer',
+                        fontSize: '13px',
+                        fontWeight: 'bold',
+                        fontFamily: 'monospace'
+                    }}
+                >
+                    {isLoading ? '⏳' : '➤'}
+                </button>
+            </div>
         </div>
     );
 };

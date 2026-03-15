@@ -23,15 +23,66 @@ const { title, description = "ZENO Web Browser with MCP Integration" } =
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;600;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-    
-    <!-- Premium ZENO Core Theme -->
-    <link rel="stylesheet" href="/src/styles/zeno-theme.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 
     <title>{title}</title>
 
     <!-- Analytics & Monitoring -->
-    <!-- Removed Analytics (CORS Issue / Local Dev) -->
+    <script is:inline>
+      // Zen Browser Analytics - Cloudflare Metrics Gateway
+      (function() {
+        const METRICS_BASE = 'https://zen-metrics-gateway.stolarnia-ams.workers.dev';
+
+        function getSessionId() {
+          let sessionId = sessionStorage.getItem('zen_session_id');
+          if (!sessionId) {
+            sessionId = crypto.randomUUID();
+            sessionStorage.setItem('zen_session_id', sessionId);
+          }
+          return sessionId;
+        }
+
+        function trackPageView() {
+          fetch(METRICS_BASE + '/metrics/track', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              type: 'pageview',
+              data: {
+                path: window.location.pathname,
+                title: document.title,
+                referrer: document.referrer,
+                screenWidth: window.innerWidth,
+                screenHeight: window.innerHeight
+              },
+              session: getSessionId(),
+              timestamp: Date.now()
+            })
+          }).catch(() => {});
+        }
+
+        // Track na załadowanie strony
+        if (document.readyState === 'complete') {
+          trackPageView();
+        } else {
+          window.addEventListener('load', trackPageView);
+        }
+
+        // Expose dla innych komponentów
+        window.zenTrack = function(type, data) {
+          fetch(METRICS_BASE + '/metrics/track', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              type: type,
+              data: data,
+              session: getSessionId(),
+              timestamp: Date.now()
+            })
+          }).catch(() => {});
+        };
+      })();
+    </script>
   </head>
   <body class="zeno-background">
     <div class="background-effects"></div>
@@ -54,9 +105,10 @@ const { title, description = "ZENO Web Browser with MCP Integration" } =
     height: 100vh;
     overflow-x: hidden; /* Prevent horizontal scroll */
     position: relative;
-    background-color: var(--zeno-bg-base, #030712);
-    color: var(--zeno-text-main, #f0f0f0);
-    font-family: 'Inter', sans-serif;
+    background-color: #000;
+    color: #f0f0f0;
+    font-family: 'Share Tech Mono', monospace;
+    font-style: italic;
   }
 
   .background-effects {
@@ -113,9 +165,22 @@ const { title, description = "ZENO Web Browser with MCP Integration" } =
     z-index: 1;
   }
 
-  /* Remove rounded corners globally (max 2px per instructions) */
-  * {
-    border-radius: var(--zeno-radius) !important;
+  /* Remove rounded corners and add hover effect */
+  a,
+  button,
+  .card {
+    border-radius: 0 !important; /* No rounded corners */
+    transition:
+      background-color 0.3s ease,
+      box-shadow 0.3s ease,
+      transform 0.2s ease;
+  }
+
+  a:hover,
+  button:hover {
+    background-color: rgba(59, 130, 246, 0.1); /* Subtle blue highlight */
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
+    transform: translateY(-2px);
   }
 
   /* Pulse animation for icon */

@@ -23,7 +23,7 @@ const UpgradePrompt: React.FC<UpgradePromptProps> = ({
   onUpgrade,
   showInline = false
 }) => {
-  const pricing = PRICING[requiredPlan as keyof typeof PRICING];
+  const pricing = PRICING[requiredPlan];
 
   if (showInline) {
     // Inline banner version

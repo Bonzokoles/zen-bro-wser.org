@@ -46,7 +46,7 @@ export const POST: APIRoute = async ({ request }) => {
     } catch (parseError) {
       return new Response(JSON.stringify({
         error: 'Invalid JSON in request body',
-        details: (parseError as Error).message ?? String(parseError)
+        details: (parseError as Error).message
       }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' }

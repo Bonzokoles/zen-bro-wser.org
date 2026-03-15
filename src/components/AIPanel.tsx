@@ -14,7 +14,7 @@ export const AIPanel: React.FC<AIPanelProps> = ({ onClose }) => {
   const [loading, setLoading] = useState(false);
   const [providers, setProviders] = useState<any[]>([]);
 
-  const electronAPI = (typeof window !== 'undefined') ? (window as any).electronAPI : undefined;
+  const electronAPI = (window as any).electronAPI;
 
   const handleSubmit = async () => {
     if (!input.trim()) return;

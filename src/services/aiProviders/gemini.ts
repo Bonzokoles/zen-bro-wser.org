@@ -78,7 +78,7 @@ export class GeminiProvider {
 
       return assistantMessage;
     } catch (error) {
-      throw new Error(`Gemini API error: ${(error as Error).message ?? String(error)}`);
+      throw new Error(`Gemini API error: ${(error as Error).message}`);
     }
   }
 
@@ -125,7 +125,7 @@ If no tool is needed, just respond to the user's command directly.
     } catch (error) {
       return {
         success: false,
-        error: `MCP execution failed: ${(error as Error).message ?? String(error)}`
+        error: `MCP execution failed: ${(error as Error).message}`
       };
     }
   }
@@ -157,7 +157,7 @@ Keep the analysis concise but comprehensive.
         timestamp: new Date()
       };
     } catch (error) {
-      throw new Error(`Content analysis failed: ${(error as Error).message ?? String(error)}`);
+      throw new Error(`Content analysis failed: ${(error as Error).message}`);
     }
   }
 

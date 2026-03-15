@@ -17,10 +17,7 @@ export type WindowType =
   | 'clock'
   | 'shortcuts'
   | 'music-widget'
-  | 'iframe'
-  | 'terminal'
-  | 'tunnels'
-  | 'ai-sandbox';
+  | 'iframe';
 
 export interface ManagedWindow {
   id: string;
@@ -61,9 +58,6 @@ const CONFIGS: Record<WindowType, { title: string; icon: string; w: number; h: n
   'shortcuts':    { title: 'Skróty',             icon: '⌨️', w: 420,  h: 460 },
   'music-widget': { title: 'Music Widget',       icon: '🎼', w: 360,  h: 240 },
   'iframe':       { title: 'Browser Window',     icon: '🌐', w: 920,  h: 690 },
-  'terminal':     { title: 'Terminal',            icon: '⌨️', w: 680,  h: 480 },
-  'tunnels':      { title: 'CF Tunnel Monitor',  icon: '🔗', w: 600,  h: 520 },
-  'ai-sandbox':   { title: 'AI Sandbox',          icon: '🧪', w: 620,  h: 580 },
 };
 
 let globalZ = 1010;

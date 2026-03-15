@@ -33,6 +33,7 @@ export default function LocalLibrarySearch({ query = '' }: LocalLibrarySearchPro
     const [totalResults, setTotalResults] = useState(0);
     const [selectedCategory, setSelectedCategory] = useState<string>('all');
     const [minQuality, setMinQuality] = useState(0);
+    const [iframeLoaded, setIframeLoaded] = useState(false);
 
     useEffect(() => {
         // Check if JIMBO server is running (port 6040 = main Library API)

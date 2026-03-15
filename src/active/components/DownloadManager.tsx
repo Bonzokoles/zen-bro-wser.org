@@ -1,6 +1,5 @@
 // src/active/components/DownloadManager.tsx
 import React, { useState, useEffect, useMemo } from 'react';
-// [TS-FIX] Import type-only Download
 import type { Download } from '../services/download-manager';
 import { DownloadManager as DownloadManagerClass } from '../services/download-manager';
 
