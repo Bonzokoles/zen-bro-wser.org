@@ -9,6 +9,9 @@ on:
       - main
   workflow_dispatch:
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -24,18 +27,16 @@ jobs:
           node-version: "22.x"
           cache: "npm"
 
-      - name: Install dependencies (ZENO_WEB_CORE_APP)
-        working-directory: ZENO_WEB_CORE_APP
+      - name: Install dependencies
         run: npm ci
 
-      - name: Build Astro (ZENO_WEB_CORE_APP)
-        working-directory: ZENO_WEB_CORE_APP
+      - name: Build Astro
         run: npm run build
         env:
           NODE_ENV: production
 
       - name: Deploy to Cloudflare Pages
-        run: npx wrangler pages deploy ZENO_WEB_CORE_APP/dist --project-name=zen-bro-wser-org --commit-dirty=true
+        run: npx wrangler pages deploy dist --project-name=zen-bro-wser-org --commit-dirty=true
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
