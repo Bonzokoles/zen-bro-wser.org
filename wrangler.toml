@@ -1,9 +1,93 @@
+# ═══════════════════════════════════════════════════════════════
+#  ZENO Browser — Cloudflare Pages (main app)
+#  Wdrożenie: CF Pages (Astro SSR via @astrojs/cloudflare)
+#  URL: https://zeno-browser.pages.dev
+#  Dev: npx astro dev --port 4378
+# ═══════════════════════════════════════════════════════════════
+
 name = "zeno-browser"
 pages_build_output_dir = "ZENO_WEB_CORE_APP/dist"
 compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
 
+# ───────────────────────────────────────────────────────────────
+#  KV Namespaces
+# ───────────────────────────────────────────────────────────────
+
+# Sesje użytkowników (wymagane przez @astrojs/cloudflare sesje)
+[[kv_namespaces]]
+binding = "SESSION"
+id = ""                          # uzupełnij: wrangler kv:namespace create SESSION
+preview_id = ""                  # uzupełnij: wrangler kv:namespace create SESSION --preview
+
+# Cache AI (odpowiedzi modeli, search results)
+[[kv_namespaces]]
+binding = "AI_CACHE"
+id = ""                          # uzupełnij: wrangler kv:namespace create AI_CACHE
+preview_id = ""
+
+# Cache CAYD Search results
+[[kv_namespaces]]
+binding = "SEARCH_CACHE"
+id = ""                          # uzupełnij: wrangler kv:namespace create SEARCH_CACHE
+preview_id = ""
+
+# ───────────────────────────────────────────────────────────────
+#  D1 Database (SQLite na edge)
+# ───────────────────────────────────────────────────────────────
+
 [[d1_databases]]
 binding = "DB"
 database_name = "zeno-browser-db"
 database_id = "ddac77ec-fe9e-4b5b-b3f5-ba0793152917"
+
+# ───────────────────────────────────────────────────────────────
+#  R2 Buckets (object storage)
+# ───────────────────────────────────────────────────────────────
+
+# Storage dla zakładek, eksportów, ustawień użytkownika
+[[r2_buckets]]
+binding = "USER_STORAGE"
+bucket_name = "zeno-browser-user-storage"
+preview_bucket_name = "zeno-browser-user-storage-preview"
+
+# ───────────────────────────────────────────────────────────────
+#  Workers AI (Cloudflare AI modele na edge — opcjonalne)
+# ───────────────────────────────────────────────────────────────
+
+[ai]
+binding = "AI"
+# Dostępne modele: @cf/meta/llama-3.1-8b-instruct, @cf/mistral/mistral-7b-instruct-v0.1
+# Użycie: env.AI.run('@cf/meta/llama-3.1-8b-instruct', { messages })
+
+# ───────────────────────────────────────────────────────────────
+#  Queues (kolejki zadań — background jobs)
+# ───────────────────────────────────────────────────────────────
+
+# Kolejka dla AI enrichment (indeksowanie, analiza stron)
+[[queues.producers]]
+binding = "AI_QUEUE"
+queue = "zeno-ai-enrichment"
+
+[[queues.consumers]]
+queue = "zeno-ai-enrichment"
+max_batch_size = 10
+max_batch_timeout = 30
+
+# ───────────────────────────────────────────────────────────────
+#  Environment Variables (dev / prod)
+# ───────────────────────────────────────────────────────────────
+
+[vars]
+ENVIRONMENT = "development"
+ASTRO_PORT = "4378"
+CAYD_PORT = "6040"
+
+[env.production.vars]
+ENVIRONMENT = "production"
+# Sekrety (nie tutaj! — dodaj przez: wrangler secret put GEMINI_API_KEY)
+# GEMINI_API_KEY       — wrangler secret put GEMINI_API_KEY
+# OPENROUTER_API_KEY   — wrangler secret put OPENROUTER_API_KEY
+# ANTHROPIC_API_KEY    — wrangler secret put ANTHROPIC_API_KEY
+# TAVILY_API_KEY       — wrangler secret put TAVILY_API_KEY
+# STRIPE_SECRET_KEY    — wrangler secret put STRIPE_SECRET_KEY

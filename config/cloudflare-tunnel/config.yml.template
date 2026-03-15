@@ -12,6 +12,124 @@
 #    - {USER} → twoja nazwa użytkownika Windows
 #    - {DOMAIN} → twoja domena (np. zen-bro-wser.org)
 #
+# Komendy zarządzania tunelem:
+#   cloudflared tunnel create {TUNNEL_NAME}
+#   cloudflared tunnel list
+#   cloudflared tunnel run {TUNNEL_NAME}
+#   cloudflared tunnel route dns {TUNNEL_NAME} {subdomain}.{DOMAIN}
+#
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# Podstawowa konfiguracja tunelu
+tunnel: {TUNNEL_NAME}
+credentials-file: C:\Users\{USER}\.cloudflared\{TUNNEL_ID}.json
+
+# Ingress rules - routing subdomen do lokalnych serwisów
+ingress:
+  # ┌─────────────────────────────────────────────────────┐
+  # │  Frontend — Astro Dev Server                        │
+  # │  Uruchom: npm run dev:astro (port 4378)             │
+  # └─────────────────────────────────────────────────────┘
+  - hostname: zeno-app.{DOMAIN}
+    service: http://localhost:4378
+    originRequest:
+      noTLSVerify: true
+      connectTimeout: 30s
+      disableChunkedEncoding: false
+
+  # ┌─────────────────────────────────────────────────────┐
+  # │  API Gateway Worker (local dev)                     │
+  # │  Uruchom: wrangler dev --config wrangler.api.toml   │
+  # │           --port 8787                               │
+  # └─────────────────────────────────────────────────────┘
+  - hostname: api.{DOMAIN}
+    service: http://localhost:8787
+    originRequest:
+      noTLSVerify: true
+      connectTimeout: 10s
+
+  # ┌─────────────────────────────────────────────────────┐
+  # │  CAYD Search Engine                                 │
+  # │  Uruchom: cd CAYD_SEARCH_ENG && node main.js        │
+  # │           (port 6040)                               │
+  # └─────────────────────────────────────────────────────┘
+  - hostname: cayd.{DOMAIN}
+    service: http://localhost:6040
+    originRequest:
+      noTLSVerify: true
+      connectTimeout: 20s
+
+  # ┌─────────────────────────────────────────────────────┐
+  # │  Iframe Proxy Worker (local dev)                    │
+  # │  Uruchom: wrangler dev --config wrangler.proxy.toml │
+  # │           --port 8788                               │
+  # └─────────────────────────────────────────────────────┘
+  - hostname: proxy.{DOMAIN}
+    service: http://localhost:8788
+    originRequest:
+      noTLSVerify: true
+
+  # ┌─────────────────────────────────────────────────────┐
+  # │  Gemma 2B (containerized AI — Polish language)      │
+  # │  Uruchom: docker-compose up gemma                   │
+  # │           (port 11434)                              │
+  # └─────────────────────────────────────────────────────┘
+  - hostname: ai-gemma.{DOMAIN}
+    service: http://localhost:11434
+    originRequest:
+      noTLSVerify: true
+      connectTimeout: 60s
+
+  # ┌─────────────────────────────────────────────────────┐
+  # │  Phi-3 Nano (containerized AI — multilingual)       │
+  # │  Uruchom: docker-compose up phi                     │
+  # │           (port 11435)                              │
+  # └─────────────────────────────────────────────────────┘
+  - hostname: ai-phi.{DOMAIN}
+    service: http://localhost:11435
+    originRequest:
+      noTLSVerify: true
+      connectTimeout: 60s
+
+  # ┌─────────────────────────────────────────────────────┐
+  # │  WebSocket / Real-time (Socket.IO)                  │
+  # │  Port zarezerwowany (CAYD 6043)                     │
+  # └─────────────────────────────────────────────────────┘
+  - hostname: ws.{DOMAIN}
+    service: http://localhost:6043
+    originRequest:
+      noTLSVerify: true
+
+  # ┌─────────────────────────────────────────────────────┐
+  # │  Catch-all Rule (WYMAGANE jako ostatnie!)           │
+  # └─────────────────────────────────────────────────────┘
+  - service: http_status:404
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+#  OPCJONALNE USTAWIENIA
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# Metrics endpoint (monitoring)
+# metrics: localhost:2000
+
+# Log level (debug, info, warn, error)
+# loglevel: info
+
+# Grace period (czas na graceful shutdown)
+# grace-period: 30s
+#
+# Ten plik to SZABLON konfiguracji Cloudflare Tunnel
+#
+# UŻYCIE:
+# 1. Uruchom: .\setup.ps1
+#    → Automatycznie wygeneruje config.yml z poprawnymi wartościami
+#
+# 2. LUB skopiuj ten plik jako config.yml i zamień:
+#    - {TUNNEL_NAME} → nazwa tunelu (np. zen-browser)
+#    - {TUNNEL_ID} → ID tunelu (z: cloudflared tunnel list)
+#    - {USER} → twoja nazwa użytkownika Windows
+#    - {DOMAIN} → twoja domena (np. zen-bro-wser.org)
+#
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 # Podstawowa konfiguracja tunelu

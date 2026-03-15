@@ -1,0 +1,112 @@
+# ═══════════════════════════════════════════════════════════════
+#  ZENO Browser — API Gateway Worker
+#  Wdrożenie: Cloudflare Workers (standalone)
+#  URL produkcja: https://api.zen-bro-wser.org
+#  Dev:          wrangler dev --config wrangler.api.toml --port 8787
+#
+#  Odpowiada za:
+#  - Proxy do AI providerów (klucze API bezpieczne na edge)
+#  - Rate limiting i quota użytkowników
+#  - Cachowanie odpowiedzi AI w KV
+#  - Routing do CAYD search engine
+# ═══════════════════════════════════════════════════════════════
+
+name = "zeno-api-gateway"
+main = "src-workers/api-gateway/index.ts"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+# Entrypoint Worker — nasłuchuje na ścieżkach /api/*
+[build]
+command = "npx tsc -p tsconfig.workers.json"
+
+# ───────────────────────────────────────────────────────────────
+#  Routes (przypisz do domeny po wdrożeniu)
+# ───────────────────────────────────────────────────────────────
+
+# Produkcja — odkomentuj po skonfigurowaniu domeny:
+# [[routes]]
+# pattern = "api.zen-bro-wser.org/*"
+# zone_name = "zen-bro-wser.org"
+
+# ───────────────────────────────────────────────────────────────
+#  KV Namespaces
+# ───────────────────────────────────────────────────────────────
+
+# Cache odpowiedzi AI (TTL: 1h dla identycznych promptów)
+[[kv_namespaces]]
+binding = "AI_CACHE"
+id = ""                          # uzupełnij: wrangler kv:namespace create AI_CACHE --config wrangler.api.toml
+preview_id = ""
+
+# Rate limit store (liczniki per IP per model)
+[[kv_namespaces]]
+binding = "RATE_LIMIT"
+id = ""                          # uzupełnij: wrangler kv:namespace create RATE_LIMIT --config wrangler.api.toml
+preview_id = ""
+
+# Session / auth tokens
+[[kv_namespaces]]
+binding = "SESSION"
+id = ""
+preview_id = ""
+
+# ───────────────────────────────────────────────────────────────
+#  D1 Database (logi requestów, quota użytkowników)
+# ───────────────────────────────────────────────────────────────
+
+[[d1_databases]]
+binding = "DB"
+database_name = "zeno-browser-db"
+database_id = "ddac77ec-fe9e-4b5b-b3f5-ba0793152917"
+
+# ───────────────────────────────────────────────────────────────
+#  Workers AI (fallback gdy zewnętrzne API niedostępne)
+# ───────────────────────────────────────────────────────────────
+
+[ai]
+binding = "AI"
+
+# ───────────────────────────────────────────────────────────────
+#  Queues
+# ───────────────────────────────────────────────────────────────
+
+[[queues.producers]]
+binding = "AI_QUEUE"
+queue = "zeno-ai-enrichment"
+
+# ───────────────────────────────────────────────────────────────
+#  Service Bindings (połączenia między Workers bez HTTP)
+# ───────────────────────────────────────────────────────────────
+
+# Binding do proxy Worker (iframe sandboxing)
+[[services]]
+binding = "PROXY_WORKER"
+service = "zeno-iframe-proxy"
+entrypoint = "ProxyWorker"
+
+# ───────────────────────────────────────────────────────────────
+#  Environment Variables
+# ───────────────────────────────────────────────────────────────
+
+[vars]
+ENVIRONMENT = "development"
+# Porty lokalnych serwisów (dev only — w prod używaj Service Bindings)
+CAYD_URL = "http://localhost:6040"
+GEMMA_URL = "http://localhost:11434"
+PHI_URL   = "http://localhost:11435"
+
+# Limity requestów per IP per minutę
+RATE_LIMIT_GEMINI      = "60"
+RATE_LIMIT_OPENROUTER  = "30"
+RATE_LIMIT_CLAUDE      = "20"
+
+[env.production.vars]
+ENVIRONMENT  = "production"
+CAYD_URL     = "https://cayd.zen-bro-wser.org"
+# Sekrety — ustaw przez wrangler secret put:
+# GEMINI_API_KEY        — wrangler secret put GEMINI_API_KEY       --config wrangler.api.toml
+# OPENROUTER_API_KEY    — wrangler secret put OPENROUTER_API_KEY   --config wrangler.api.toml
+# ANTHROPIC_API_KEY     — wrangler secret put ANTHROPIC_API_KEY    --config wrangler.api.toml
+# TAVILY_API_KEY        — wrangler secret put TAVILY_API_KEY       --config wrangler.api.toml
+# STRIPE_WEBHOOK_SECRET — wrangler secret put STRIPE_WEBHOOK_SECRET --config wrangler.api.toml

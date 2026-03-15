@@ -1,0 +1,84 @@
+# ═══════════════════════════════════════════════════════════════
+#  ZENO Browser — Iframe Proxy Worker
+#  Wdrożenie: Cloudflare Workers (standalone)
+#  URL produkcja: https://proxy.zen-bro-wser.org
+#  Dev:          wrangler dev --config wrangler.proxy.toml --port 8788
+#
+#  Odpowiada za:
+#  - Bezpieczne proxy dla iframe (obejście X-Frame-Options)
+#  - Dodawanie nagłówków CSP / security headers
+#  - Blokowanie złośliwych domen (allowlist)
+#  - Sanityzacja HTML przed wstrzyknięciem do sandboxed iframe
+# ═══════════════════════════════════════════════════════════════
+
+name = "zeno-iframe-proxy"
+main = "src-workers/iframe-proxy/index.ts"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+[build]
+command = "npx tsc -p tsconfig.workers.json"
+
+# ───────────────────────────────────────────────────────────────
+#  Routes
+# ───────────────────────────────────────────────────────────────
+
+# Produkcja — odkomentuj po skonfigurowaniu domeny:
+# [[routes]]
+# pattern = "proxy.zen-bro-wser.org/*"
+# zone_name = "zen-bro-wser.org"
+
+# ───────────────────────────────────────────────────────────────
+#  KV Namespaces
+# ───────────────────────────────────────────────────────────────
+
+# Allowlist domen (jakie URL mogą być proxowane)
+[[kv_namespaces]]
+binding = "DOMAIN_ALLOWLIST"
+id = ""                          # uzupełnij: wrangler kv:namespace create DOMAIN_ALLOWLIST --config wrangler.proxy.toml
+preview_id = ""
+
+# Cache zproxowanych stron (TTL: 5 minut)
+[[kv_namespaces]]
+binding = "PAGE_CACHE"
+id = ""
+preview_id = ""
+
+# Blocklist (znane złośliwe domeny — OWASP top 10)
+[[kv_namespaces]]
+binding = "DOMAIN_BLOCKLIST"
+id = ""
+preview_id = ""
+
+# ───────────────────────────────────────────────────────────────
+#  Environment Variables
+# ───────────────────────────────────────────────────────────────
+
+[vars]
+ENVIRONMENT          = "development"
+# Maksymalny rozmiar proxowanej strony (bajty)
+MAX_RESPONSE_SIZE    = "5242880"   # 5MB
+# Timeout requestu do origin (ms)
+REQUEST_TIMEOUT_MS   = "10000"
+# Domeny zawsze dozwolone (CSP whitelist)
+TRUSTED_ORIGINS      = "https://zeno-browser.pages.dev,https://zen-bro-wser.org"
+# Włącz sanityzację HTML (usuwa <script>, inline event handlers)
+ENABLE_HTML_SANITIZE = "true"
+# Włącz blokowanie trackerów (EasyList compatible)  
+ENABLE_AD_BLOCK      = "false"
+
+[env.production.vars]
+ENVIRONMENT       = "production"
+TRUSTED_ORIGINS   = "https://zeno-browser.pages.dev,https://zen-bro-wser.org,https://api.zen-bro-wser.org"
+ENABLE_AD_BLOCK   = "true"
+
+# ───────────────────────────────────────────────────────────────
+#  Wbudowane nagłówki bezpieczeństwa (dodawane do każdej odpowiedzi)
+#
+#  Worker powinien ustawiać:
+#  Content-Security-Policy: sandbox allow-scripts allow-forms allow-same-origin
+#  X-Frame-Options: SAMEORIGIN
+#  X-Content-Type-Options: nosniff
+#  Referrer-Policy: no-referrer
+#  Permissions-Policy: camera=(), microphone=(), geolocation=()
+# ───────────────────────────────────────────────────────────────
