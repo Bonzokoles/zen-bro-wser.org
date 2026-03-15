@@ -35,7 +35,6 @@ jobs:
 
       - name: Lint
         run: npm run lint
-        continue-on-error: true # ESLint config missing - TODO: add .eslintrc
 
       - name: Test
         run: npm run test:unit -- --forceExit --verbose
