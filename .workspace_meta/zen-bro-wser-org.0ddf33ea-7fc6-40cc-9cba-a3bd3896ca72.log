@@ -1,0 +1,36 @@
+2026-03-15T12:39:27.041624Z	Cloning repository...
+2026-03-15T12:39:28.59806Z	From https://github.com/Bonzokoles/zen-bro-wser.org
+2026-03-15T12:39:28.598433Z	 * branch            1847d4c5aeb69e57bf973d836727fac64d28e622 -> FETCH_HEAD
+2026-03-15T12:39:28.598501Z	
+2026-03-15T12:39:28.960245Z	HEAD is now at 1847d4c fix(cf): add [build] command to wrangler.toml
+2026-03-15T12:39:28.960773Z	
+2026-03-15T12:39:29.003781Z	
+2026-03-15T12:39:29.004105Z	Using v2 root directory strategy
+2026-03-15T12:39:29.026812Z	Success: Finished cloning repository files
+2026-03-15T12:39:31.034331Z	Checking for configuration in a Wrangler configuration file (BETA)
+2026-03-15T12:39:31.035055Z	
+2026-03-15T12:39:31.035477Z	Found wrangler.toml file. Reading build configuration...
+2026-03-15T12:39:31.148766Z	[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mProcessing ../../../buildhome/repo/wrangler.toml configuration:[0m
+2026-03-15T12:39:31.149123Z	
+2026-03-15T12:39:31.149185Z	  
+2026-03-15T12:39:31.149222Z	    - "env.production" environment configuration
+2026-03-15T12:39:31.149277Z	      - "vars.ASTRO_PORT" exists at the top level, but not on "env.production.vars".
+2026-03-15T12:39:31.149355Z	        This is not what you probably want, since "vars" configuration is not inherited by environments.
+2026-03-15T12:39:31.149425Z	        Please add "vars.ASTRO_PORT" to "env.production".
+2026-03-15T12:39:31.149731Z	      - "vars.CAYD_PORT" exists at the top level, but not on "env.production.vars".
+2026-03-15T12:39:31.149839Z	        This is not what you probably want, since "vars" configuration is not inherited by environments.
+2026-03-15T12:39:31.149907Z	        Please add "vars.CAYD_PORT" to "env.production".
+2026-03-15T12:39:31.149961Z	      - "d1_databases" exists at the top level, but not on "env.production".
+2026-03-15T12:39:31.150007Z	        This is not what you probably want, since "d1_databases" is not inherited by environments.
+2026-03-15T12:39:31.150045Z	        Please add "d1_databases" to "env.production".
+2026-03-15T12:39:31.150088Z	
+2026-03-15T12:39:31.150136Z	
+2026-03-15T12:39:31.195418Z	
+2026-03-15T12:39:31.197397Z	[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mRunning configuration file validation for Pages:[0m
+2026-03-15T12:39:31.197588Z	
+2026-03-15T12:39:31.197712Z	    - Configuration file for Pages projects does not support "build"
+2026-03-15T12:39:31.197772Z	
+2026-03-15T12:39:31.197892Z	
+2026-03-15T12:39:31.243427Z	🪵  Logs were written to "/root/.config/.wrangler/logs/wrangler-2026-03-15_12-39-30_711.log"
+2026-03-15T12:39:31.322923Z	Failed: unable to read the Wrangler configuration file with code: 1
+2026-03-15T12:39:37.072964Z	Failed: an internal error occurred. If this continues, contact support: https://cfl.re/3WgEyrH
