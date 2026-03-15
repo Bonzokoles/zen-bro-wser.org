@@ -21,19 +21,21 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22.x'
-          cache: 'npm'
+          node-version: "22.x"
+          cache: "npm"
 
-      - name: Install dependencies
+      - name: Install dependencies (ZENO_WEB_CORE_APP)
+        working-directory: ZENO_WEB_CORE_APP
         run: npm ci
 
-      - name: Build Astro
+      - name: Build Astro (ZENO_WEB_CORE_APP)
+        working-directory: ZENO_WEB_CORE_APP
         run: npm run build
         env:
           NODE_ENV: production
 
       - name: Deploy to Cloudflare Pages
-        run: npx wrangler pages deploy dist --project-name=zeno-browser --commit-dirty=true
+        run: npx wrangler pages deploy ZENO_WEB_CORE_APP/dist --project-name=zeno-browser --commit-dirty=true
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
