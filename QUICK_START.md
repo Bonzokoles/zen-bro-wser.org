@@ -10,7 +10,7 @@
 
 - [Główna aplikacja ZENO](#główna-aplikacja-zeno)
 - [CAYD Search Engine](#cayd-search-engine)
-- [Bielik AI Agent](#bielik-ai-agent)
+- [AI Models - API Based](#ai-models---api-based)
 - [Cloudflare Tunnels](#cloudflare-tunnels)
 - [Konfiguracja API Keys](#konfiguracja-api-keys)
 - [Porty i adresy](#porty-i-adresy)
@@ -106,36 +106,44 @@ node server.js
 
 ---
 
-## 🤖 Bielik AI Agent
+## 🤖 AI Models - Hybrid Architecture
 
-### Business Orchestration Agent
+### Modele AI dostępne (terminal support)
 
-```powershell
-cd U:\WWW_Zen_BRo_wser_org\BIELIK_THE_whitie
-npm install
-npm run dev
+**API Models (główna praca):**
+- **Gemini:** Działający przez `@google/generative-ai`
+- **OpenRouter:** 8 modeli dostępnych
+- **Claude:** Planowany, `@anthropic-ai/sdk`
+
+**Lokalnie (TYLKO terminal/komendy, małe):**
+- **Gemma 2B:** Google model z polskim (lekki)
+- **Phi Nano 0.5B:** Microsoft ultra-lekki (terminal tylko)
+- **Wybór:** Zależnie od zasobów - Nano najlżejszy
+
+### Uruchomienie modeli kontenerowych
+
+```bash
+# Gemma 2B (Google, lekki do terminala)
+podman compose up -d gemma-light
+
+# Phi Nano 0.5B (Microsoft ultra-lekki)
+podman compose up -d phi-nano
+
+# UWAGA: To są MAŁE modele tylko do terminala!
+# Główna praca = API modele!
 ```
 
-**Funkcje:**
-- Multi-model support (Bielik, Gemma, Ollama)
-- MCP Server integration
-- Cloudflare Worker adapter
-- Task management
-- Agent Manager
-- Tool Factory
+### Konfiguracja .env.local
 
-### Konfiguracja
+```bash
+# API Models (główna praca)
+GOOGLE_API_KEY=your_gemini_key
+OPENROUTER_API_KEY=your_openrouter_key
+ANTHROPIC_API_KEY=your_claude_key
 
-Plik: `src/config/agents.config.ts`
-
-```typescript
-export const agentsConfig = {
-  bielik: {
-    modelProvider: 'ollama',
-    modelName: 'bielik:11b',
-    // ...
-  }
-}
+# Lokalne (terminal only, lekkie)
+GEMMA_LIGHT_ENDPOINT=http://localhost:11434  # 2B terminal support
+PHI_NANO_ENDPOINT=http://localhost:11435     # 0.5B ultra-lekki
 ```
 
 ---
@@ -262,22 +270,34 @@ cd U:\WWW_Zen_BRo_wser_org\system_startup
 
 ## 💡 Wskazówki
 
-### Ollama (opcjonalnie)
+### Dlaczego nie Ollama?
 
-Jeśli chcesz używać lokalnych modeli:
+**Problem:** Ollama NIE obsługuje polskiego języka! 🚫
+
+**✅ Rozwiązanie:** Bezpośrednie modele AI z polskim:
 
 ```powershell
-# Zainstaluj Ollama
-winget install Ollama.Ollama
+# ✅ Gemma 2B (Google) - lekki do terminala
+podman compose up -d gemma-light
 
-# Uruchom serwis
-ollama serve
+# ✅ Phi Nano 0.5B (Microsoft) - ultra-lekki do podstawowych zadań
+podman compose up -d phi-nano
 
-# Pobierz modele
-ollama pull gemma:2b
-ollama pull bielik:11b
-ollama pull llama3.2
+# ❌ NIE używaj Ollama:
+# - Słaba obsługa polskiego
+# - Za duży dla terminala
+# - API modele są lepsze do głównej pracy
 ```
+
+### Status modeli:
+
+✅ **Gemma 2B** - Google, lekki terminal support (port 11434)
+✅ **Phi Nano 0.5B** - Microsoft, ultra-lekki (port 11435)  
+🚫 **Ollama** - USUNIĘTY - nie obsługuje polskiego
+✅ **API modele** - Gemini/OpenRouter/Claude (główna praca)
+
+**UWAGA:** Lokalne modele to TYLKO terminal support!
+**Główna praca AI = API modele (Gemini, OpenRouter, Claude)**
 
 ### MCP Servers
 

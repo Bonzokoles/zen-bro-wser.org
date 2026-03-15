@@ -42,5 +42,5 @@ export function getSearchUrl(query: string, engine = 'google'): string {
     brave: 'https://search.brave.com/search?q='
   };
 
-  return engines[engine] + encodeURIComponent(query);
+  return (engines as Record<string, string>)[engine] + encodeURIComponent(query);
 }

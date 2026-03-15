@@ -78,6 +78,8 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ onClose, initialSkin = 'moder
   const [position, setPosition] = useState({ x: 100, y: 100 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [currentSkin, setCurrentSkin] = useState<string | null>(null);
+  const [showSkinSelector, setShowSkinSelector] = useState(false);
 
   const theme = WIDGET_SKINS[skin];
 

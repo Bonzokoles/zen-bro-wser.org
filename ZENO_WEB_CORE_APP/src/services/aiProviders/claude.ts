@@ -159,6 +159,33 @@ export class ClaudeProvider {
 
     return pricing[model] || { input: 0, output: 0 };
   }
+
+  async testConnection(): Promise<boolean> {
+    try {
+      await this.sendMessage([{ role: 'user', content: 'hi' }]);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async executeMCPCommand(command: string): Promise<{ success: boolean; data?: any; error?: string; toolsUsed?: string[] }> {
+    try {
+      const result = await this.sendMessage([{ role: 'user', content: command }]);
+      return { success: true, data: { analysis: result } };
+    } catch (e) {
+      return { success: false, error: (e as Error).message };
+    }
+  }
+
+  async analyzeWebContent(url: string, content: string): Promise<{ role: 'assistant'; content: string; timestamp: Date }> {
+    const result = await this.sendMessage([{ role: 'user', content: `Analyze: ${url}\n${content.substring(0, 2000)}` }]);
+    return { role: 'assistant', content: result, timestamp: new Date() };
+  }
+
+  clearChatHistory(): void {
+    // Claude provider is stateless per call
+  }
 }
 
 // Singleton instance management

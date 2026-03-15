@@ -136,6 +136,73 @@ export class ClaudeProvider {
     return Math.ceil(text.length / 4);
   }
 
+    // Test API connection
+    async testConnection(): Promise<boolean> {
+      try {
+        const response: Message = await this.client.messages.create({
+          model: 'claude-3-haiku-20240307',
+          max_tokens: 10,
+          temperature: 0.1,
+          messages: [{ role: 'user', content: 'ping' }]
+        });
+        return !!response && response.content.length > 0;
+      } catch (error) {
+        const err = error as Error;
+        console.error('Claude testConnection failed:', err.message);
+        return false;
+      }
+    }
+
+    // Execute MCP command
+    async executeMCPCommand(command: string, tools: any[]): Promise<any> {
+      try {
+        const toolList = tools && tools.length ? tools.map(t => t.name).join(', ') : 'none';
+        const prompt = `You are an AI assistant. User command: "${command}". Available tools: ${toolList}`;
+        const response: Message = await this.client.messages.create({
+          model: this.model,
+          max_tokens: this.maxTokens,
+          temperature: this.temperature,
+          messages: [{ role: 'user', content: prompt }]
+        });
+        const textContent = response.content.find(block => block.type === 'text');
+        return {
+          success: true,
+          result: textContent?.type === 'text' ? textContent.text : '',
+          toolsUsed: tools ? tools.map(t => t.name) : []
+        };
+      } catch (error) {
+        const err = error as Error;
+        return {
+          success: false,
+          error: err.message
+        };
+      }
+    }
+
+    // Analyze web content
+    async analyzeWebContent(url: string, content: string): Promise<string> {
+      try {
+        const prompt = `Analyze this web content from URL: ${url}\n\nContent preview:\n${content.substring(0, 2000)}${content.length > 2000 ? '...' : ''}`;
+        const response: Message = await this.client.messages.create({
+          model: this.model,
+          max_tokens: this.maxTokens,
+          temperature: this.temperature,
+          messages: [{ role: 'user', content: prompt }]
+        });
+        const textContent = response.content.find(block => block.type === 'text');
+        return textContent?.type === 'text' ? textContent.text : '';
+      } catch (error) {
+        const err = error as Error;
+        throw new Error(`Claude analyzeWebContent failed: ${err.message}`);
+      }
+    }
+
+    // Clear chat history
+    clearChatHistory(): void {
+      // No explicit chat history in ClaudeProvider, but can add if needed
+      // For now, just a placeholder
+    }
+
   // Get available models
   static getAvailableModels(): string[] {
     return [

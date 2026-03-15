@@ -58,7 +58,7 @@ export function hasFeatureAccess(feature: FeatureName, plan: PlanType): boolean 
         console.warn(`[Features] Unknown feature: ${feature}`);
         return false;
     }
-    return allowedPlans.includes(plan);
+    return (allowedPlans as unknown as string[]).includes(plan);
 }
 
 /**
@@ -73,7 +73,7 @@ export function getMaxTabs(plan: PlanType): number {
  */
 export function getAvailableFeatures(plan: PlanType): FeatureName[] {
     return Object.entries(FEATURES)
-        .filter(([_, allowedPlans]) => allowedPlans.includes(plan))
+        .filter(([_, allowedPlans]) => (allowedPlans as unknown as string[]).includes(plan))
         .map(([feature]) => feature as FeatureName);
 }
 
@@ -175,7 +175,7 @@ export function getUpgradeMessage(feature: FeatureName, currentPlan: PlanType): 
     const allowedPlans = FEATURES[feature];
     if (!allowedPlans) return 'Feature not found';
 
-    if (allowedPlans.includes(currentPlan)) {
+    if ((allowedPlans as unknown as string[]).includes(currentPlan)) {
         return 'You already have access to this feature';
     }
 

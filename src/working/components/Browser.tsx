@@ -8,6 +8,7 @@
  * - Added CAYD Library integration (📚 Biblioteka panel)
  * - Imported CatalogBrowser and MetadataEditor components
  * - Added isLibraryOpen state and toggle button
+ * - Added WindowManager and FeatureDock
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -17,6 +18,9 @@ import ProviderSettings from './ProviderSettings';
 import { mcpService } from '../services/mcpService';
 import CatalogBrowser from './CAYD/CatalogBrowser';
 import MetadataEditor from './CAYD/MetadataEditor';
+import { useWindowManager, WindowType } from '../hooks/useWindowManager';
+import { FeatureDock } from './FeatureDock';
+import { FloatingWindow } from './FloatingWindow';
 
 export interface Tab {
 	id: string;
@@ -90,6 +94,8 @@ const Browser: React.FC = () => {
 	]);
 
 	const [history, setHistory] = useState<HistoryItem[]>([]);
+
+	const { windows, openWindow, closeWindow } = useWindowManager();
 
 	// Initialize MCP tools
 	useEffect(() => {
@@ -743,342 +749,15 @@ const Browser: React.FC = () => {
 				)}
 			</div>
 
-			{/* Bottom Navigation Bar */}
-			<div style={{
-				position: 'fixed',
-				bottom: 0,
-				left: 0,
-				right: 0,
-				height: '70px',
-				background: `linear-gradient(135deg, ${colors.primary}20, ${colors.secondary}20)`,
-				backdropFilter: 'blur(20px)',
-				borderTop: `1px solid ${colors.border}`,
-				display: 'flex',
-				alignItems: 'center',
-				justifyContent: 'space-around',
-				padding: '0 20px',
-				zIndex: 1000,
-				boxShadow: `0 -4px 20px ${colors.primary}10`
-			}}>
-				{/* MCP Tools Button */}
-				<button
-					onClick={() => setIsConsoleOpen(!isConsoleOpen)}
-					style={{
-						background: isConsoleOpen
-							? `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`
-							: `linear-gradient(135deg, ${colors.primary}40, ${colors.secondary}40)`,
-						border: 'none',
-						borderRadius: '15px',
-						padding: '12px 16px',
-						color: 'white',
-						cursor: 'pointer',
-						display: 'flex',
-						flexDirection: 'column',
-						alignItems: 'center',
-						gap: '4px',
-						fontSize: '11px',
-						fontWeight: '500',
-						minWidth: '80px',
-						transition: 'all 0.3s ease',
-						backdropFilter: 'blur(10px)',
-						boxShadow: isConsoleOpen ? `0 4px 15px ${colors.primary}40` : 'none'
-					}}
-					onMouseEnter={(e) => {
-						e.currentTarget.style.transform = 'translateY(-2px)';
-						e.currentTarget.style.boxShadow = `0 6px 20px ${colors.primary}60`;
-					}}
-					onMouseLeave={(e) => {
-						e.currentTarget.style.transform = 'translateY(0)';
-						e.currentTarget.style.boxShadow = isConsoleOpen ? `0 4px 15px ${colors.primary}40` : 'none';
-					}}
-				>
-					<span style={{ fontSize: '16px' }}>🔧</span>
-					<span>MCP Tools</span>
-				</button>
-
-				{/* Bookmarks Button */}
-				<button
-					onClick={() => setShowBookmarks(!showBookmarks)}
-					style={{
-						background: showBookmarks
-							? `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`
-							: `linear-gradient(135deg, ${colors.primary}40, ${colors.secondary}40)`,
-						border: 'none',
-						borderRadius: '15px',
-						padding: '12px 16px',
-						color: 'white',
-						cursor: 'pointer',
-						display: 'flex',
-						flexDirection: 'column',
-						alignItems: 'center',
-						gap: '4px',
-						fontSize: '11px',
-						fontWeight: '500',
-						minWidth: '80px',
-						transition: 'all 0.3s ease',
-						backdropFilter: 'blur(10px)',
-						boxShadow: showBookmarks ? `0 4px 15px ${colors.primary}40` : 'none'
-					}}
-					onMouseEnter={(e) => {
-						e.currentTarget.style.transform = 'translateY(-2px)';
-						e.currentTarget.style.boxShadow = `0 6px 20px ${colors.primary}60`;
-					}}
-					onMouseLeave={(e) => {
-						e.currentTarget.style.transform = 'translateY(0)';
-						e.currentTarget.style.boxShadow = showBookmarks ? `0 4px 15px ${colors.primary}40` : 'none';
-					}}
-				>
-					<span style={{ fontSize: '16px' }}>⭐</span>
-					<span>Bookmarks</span>
-				</button>
-
-				{/* History Button */}
-				<button
-					onClick={() => setShowHistory(!showHistory)}
-					style={{
-						background: showHistory
-							? `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`
-							: `linear-gradient(135deg, ${colors.primary}40, ${colors.secondary}40)`,
-						border: 'none',
-						borderRadius: '15px',
-						padding: '12px 16px',
-						color: 'white',
-						cursor: 'pointer',
-						display: 'flex',
-						flexDirection: 'column',
-						alignItems: 'center',
-						gap: '4px',
-						fontSize: '11px',
-						fontWeight: '500',
-						minWidth: '80px',
-						transition: 'all 0.3s ease',
-						backdropFilter: 'blur(10px)',
-						boxShadow: showHistory ? `0 4px 15px ${colors.primary}40` : 'none'
-					}}
-					onMouseEnter={(e) => {
-						e.currentTarget.style.transform = 'translateY(-2px)';
-						e.currentTarget.style.boxShadow = `0 6px 20px ${colors.primary}60`;
-					}}
-					onMouseLeave={(e) => {
-						e.currentTarget.style.transform = 'translateY(0)';
-						e.currentTarget.style.boxShadow = showHistory ? `0 4px 15px ${colors.primary}40` : 'none';
-					}}
-				>
-					<span style={{ fontSize: '16px' }}>📜</span>
-					<span>History</span>
-				</button>
-
-				{/* Add Bookmark Button */}
-				<button
-					onClick={addBookmark}
-					style={{
-						background: `linear-gradient(135deg, #10b981, #059669)`,
-						border: 'none',
-						borderRadius: '15px',
-						padding: '12px 16px',
-						color: 'white',
-						cursor: 'pointer',
-						display: 'flex',
-						flexDirection: 'column',
-						alignItems: 'center',
-						gap: '4px',
-						fontSize: '11px',
-						fontWeight: '500',
-						minWidth: '80px',
-						transition: 'all 0.3s ease',
-						backdropFilter: 'blur(10px)'
-					}}
-					onMouseEnter={(e) => {
-						e.currentTarget.style.transform = 'translateY(-2px)';
-						e.currentTarget.style.boxShadow = '0 6px 20px #10b98160';
-					}}
-					onMouseLeave={(e) => {
-						e.currentTarget.style.transform = 'translateY(0)';
-						e.currentTarget.style.boxShadow = 'none';
-					}}
-				>
-					<span style={{ fontSize: '16px' }}>➕</span>
-					<span>Add Bookmark</span>
-				</button>
-
-				{/* CAYD Library Button */}
-				<button
-					onClick={() => setIsLibraryOpen(!isLibraryOpen)}
-					style={{
-						background: isLibraryOpen
-							? `linear-gradient(135deg, #f59e0b, #d97706)`
-							: `linear-gradient(135deg, #f59e0b40, #d9770640)`,
-						border: 'none',
-						borderRadius: '15px',
-						padding: '12px 16px',
-						color: 'white',
-						cursor: 'pointer',
-						display: 'flex',
-						flexDirection: 'column',
-						alignItems: 'center',
-						gap: '4px',
-						fontSize: '11px',
-						fontWeight: '500',
-						minWidth: '80px',
-						transition: 'all 0.3s ease',
-						backdropFilter: 'blur(10px)',
-						boxShadow: isLibraryOpen ? `0 4px 15px #f59e0b40` : 'none'
-					}}
-					onMouseEnter={(e) => {
-						e.currentTarget.style.transform = 'translateY(-2px)';
-						e.currentTarget.style.boxShadow = `0 6px 20px #f59e0b60`;
-					}}
-					onMouseLeave={(e) => {
-						e.currentTarget.style.transform = 'translateY(0)';
-						e.currentTarget.style.boxShadow = isLibraryOpen ? `0 4px 15px #f59e0b40` : 'none';
-					}}
-				>
-					<span style={{ fontSize: '16px' }}>📚</span>
-					<span>Biblioteka</span>
-				</button>
-
-				{/* AI Chat Button */}
-				<button
-					onClick={() => {
-						console.log('AI Chat button clicked, current state:', isChatOpen);
-						setIsChatOpen(!isChatOpen);
-					}}
-					style={{
-						background: isChatOpen
-							? `linear-gradient(135deg, #6366f1, #8b5cf6)`
-							: `linear-gradient(135deg, #6366f140, #8b5cf640)`,
-						border: 'none',
-						borderRadius: '15px',
-						padding: '12px 16px',
-						color: 'white',
-						cursor: 'pointer',
-						display: 'flex',
-						flexDirection: 'column',
-						alignItems: 'center',
-						gap: '4px',
-						fontSize: '11px',
-						fontWeight: '500',
-						minWidth: '80px',
-						transition: 'all 0.3s ease',
-						backdropFilter: 'blur(10px)',
-						boxShadow: isChatOpen ? `0 4px 15px #6366f140` : 'none'
-					}}
-					onMouseEnter={(e) => {
-						e.currentTarget.style.transform = 'translateY(-2px)';
-						e.currentTarget.style.boxShadow = `0 6px 20px #6366f160`;
-					}}
-					onMouseLeave={(e) => {
-						e.currentTarget.style.transform = 'translateY(0)';
-						e.currentTarget.style.boxShadow = isChatOpen ? `0 4px 15px #6366f140` : 'none';
-					}}
-				>
-					<span style={{ fontSize: '16px' }}>🤖</span>
-					<span>AI Chat</span>
-				</button>
-
-				{/* Settings Button */}
-				<button
-					onClick={() => {
-						console.log('Settings button clicked');
-						setIsSettingsOpen(true);
-					}}
-					style={{
-						background: `linear-gradient(135deg, ${colors.accent}, ${colors.primary})`,
-						border: 'none',
-						borderRadius: '15px',
-						padding: '12px 16px',
-						color: 'white',
-						cursor: 'pointer',
-						display: 'flex',
-						flexDirection: 'column',
-						alignItems: 'center',
-						gap: '4px',
-						fontSize: '11px',
-						fontWeight: '500',
-						minWidth: '80px',
-						transition: 'all 0.3s ease',
-						backdropFilter: 'blur(10px)'
-					}}
-					onMouseEnter={(e) => {
-						e.currentTarget.style.transform = 'translateY(-2px)';
-						e.currentTarget.style.boxShadow = `0 6px 20px ${colors.accent}60`;
-					}}
-					onMouseLeave={(e) => {
-						e.currentTarget.style.transform = 'translateY(0)';
-						e.currentTarget.style.boxShadow = 'none';
-					}}
-				>
-					<span style={{ fontSize: '16px' }}>⚙️</span>
-					<span>Settings</span>
-				</button>
-			</div>
-
-			{/* AI Components */}
-			<ChatPanel
-				isOpen={isChatOpen}
-				onClose={() => setIsChatOpen(false)}
-				currentUrl={currentUrl}
-				currentTitle={activeTab?.title}
-				webContent={activeTab?.url ? `Content from ${activeTab.url}` : undefined}
-			/>
-
-			<ProviderSettings
-				isOpen={isSettingsOpen}
-				onClose={() => setIsSettingsOpen(false)}
-				onConfigured={() => {
-					// Refresh MCP status after configuration
-					setConsoleOutput(prev => [...prev, 'MCP service configured successfully']);
-				}}
-			/>
-
-			{/* CAYD Library Panel */}
-			{isLibraryOpen && (
-				<div
-					style={{
-						position: 'fixed',
-						top: 0,
-						right: 0,
-						width: '80%',
-						height: '100vh',
-						background: 'linear-gradient(135deg, #1e293b, #0f172a)',
-						boxShadow: '-4px 0 20px rgba(0, 0, 0, 0.5)',
-						zIndex: 1000,
-						overflowY: 'auto',
-						padding: '20px',
-						borderLeft: '2px solid #f59e0b'
-					}}
-				>
-					<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-						<h2 style={{ color: '#f59e0b', margin: 0 }}>📚 Biblioteka CAYD</h2>
-						<button
-							onClick={() => setIsLibraryOpen(false)}
-							style={{
-								background: 'transparent',
-								border: '2px solid #f59e0b',
-								borderRadius: '8px',
-								padding: '8px 16px',
-								color: '#f59e0b',
-								cursor: 'pointer',
-								fontSize: '14px',
-								fontWeight: 'bold'
-							}}
-						>
-							✕ Zamknij
-						</button>
-					</div>
-
-					<div style={{ display: 'flex', gap: '20px', height: 'calc(100vh - 120px)' }}>
-						<div style={{ flex: '1', background: '#0f172a', borderRadius: '10px', padding: '15px' }}>
-							<h3 style={{ color: 'white', marginTop: 0 }}>📂 Przeglądarka katalogów</h3>
-							<CatalogBrowser />
-						</div>
-						<div style={{ flex: '1', background: '#0f172a', borderRadius: '10px', padding: '15px' }}>
-							<h3 style={{ color: 'white', marginTop: 0 }}>✏️ Edytor metadanych</h3>
-							<MetadataEditor />
-						</div>
-					</div>
-				</div>
-			)}
+			{/* Feature Dock */}
+			<FeatureDock onOpenWindow={openWindow} />
+			{windows.map(w => (
+				<FloatingWindow key={w.type} title={w.title} onClose={() => closeWindow(w.type)}>
+					{w.type === 'chat' && <ChatPanel embedded />}
+					{w.type === 'music' && <MusicPlayer embedded />}
+					{/* ... */}
+				</FloatingWindow>
+			))}
 		</div>
 	);
 };

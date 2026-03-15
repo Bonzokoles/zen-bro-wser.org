@@ -35,8 +35,8 @@ export interface MCPTool {
 	id: string;
 	name: string;
 	description: string;
-	server: string;
-	status: 'connected' | 'disconnected' | 'error';
+	server?: string;
+	status?: 'connected' | 'disconnected' | 'error';
 }
 
 interface Bookmark {

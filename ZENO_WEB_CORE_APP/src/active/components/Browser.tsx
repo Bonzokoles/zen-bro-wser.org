@@ -21,11 +21,12 @@ import { mcpService, type MCPTool } from '../services/mcpService';
 import { analytics } from '../services/analytics';
 import { licenseManager, getLicensePlan } from '../services/security/licenseManager';
 import { hasFeatureAccess, TAB_LIMITS, FEATURES, type PlanType } from '../config/features';
+import { useWindowManager, type WindowType } from '../hooks/useWindowManager';
+import { FeatureDock } from './FeatureDock';
 
 // New Components
 import { BrowserHeader } from './browser/BrowserHeader';
 import { BrowserTabs } from './browser/BrowserTabs';
-import { BrowserBottomNav } from './browser/BrowserBottomNav';
 import { BrowserBookmarksPanel } from './browser/BrowserBookmarksPanel';
 import { BrowserHistoryPanel } from './browser/BrowserHistoryPanel';
 import { BrowserToolsPanel } from './browser/BrowserToolsPanel';
@@ -41,7 +42,7 @@ export interface Tab {
 
 export type { MCPTool } from '../services/mcpService';
 
-interface Bookmark {
+export interface Bookmark {
 	id: string;
 	title: string;
 	url: string;
@@ -50,13 +51,15 @@ interface Bookmark {
 	createdAt?: number;
 }
 
-interface HistoryItem {
+export interface HistoryEntry {
 	id: string;
 	url: string;
 	title: string;
 	visitedAt: Date;
 	favicon: string;
 }
+/** @deprecated Use HistoryEntry */
+type HistoryItem = HistoryEntry;
 
 type Theme = 'dark' | 'light';
 
@@ -195,13 +198,21 @@ const Browser: React.FC = () => {
 		checkLicense();
 	}, []);
 
-	// Floating windows state
+	// Floating windows state (external URLs opened via navigation)
 	interface FloatingWindowData {
 		id: string;
 		url: string;
 		title: string;
 	}
 	const [floatingWindows, setFloatingWindows] = useState<FloatingWindowData[]>([]);
+
+	// Feature windows managed by WindowManager (AI Chat, Local AI, etc.)
+	const {
+		windows: managedWindows,
+		openWindow,
+		closeWindow,
+		isOpen: isManagedOpen,
+	} = useWindowManager();
 
 	// Listen for navigation events from WebView
 	useEffect(() => {
@@ -640,6 +651,51 @@ const Browser: React.FC = () => {
 		handleCreateTab(url);
 	};
 
+	// ── FeatureDock handlers ──────────────────────────────────────────────────────
+	/** Route dock button click: floating windows go to WindowManager, panels use local state */
+	const handleDockOpen = (type: WindowType) => {
+		switch (type) {
+			case 'bookmarks':    setShowBookmarks(v => !v); break;
+			case 'history':      setShowHistory(v => !v); break;
+			case 'tools':        setShowTools(v => !v); break;
+			case 'mcp-console':  setIsConsoleOpen(v => !v); break;
+			case 'music':        setIsMusicPlayerOpen(v => !v); break;
+			case 'video':        setIsVideoPlayerOpen(v => !v); break;
+			case 'admin':        setIsAdminPanelOpen(true); break;
+			case 'wikipedia':    setIsWikipediaOpen(v => !v); break;
+			case 'on-this-day':  setIsOnThisDayOpen(v => !v); break;
+			case 'birthday':     setIsBirthdaySongOpen(v => !v); break;
+			case 'clock':        setIsClockWidgetOpen(v => !v); break;
+			case 'shortcuts':    setIsShortcutsWidgetOpen(v => !v); break;
+			case 'music-widget': setIsMusicWidgetOpen(v => !v); break;
+			case 'settings':     setIsSettingsOpen(v => !v); break;
+			default:
+				// 'ai-chat', 'local-ai', 'iframe' → managed floating windows
+				openWindow(type);
+		}
+	};
+
+	/** Returns whether a given dock item is currently active/open */
+	const handleDockIsOpen = (type: WindowType): boolean => {
+		switch (type) {
+			case 'bookmarks':    return showBookmarks;
+			case 'history':      return showHistory;
+			case 'tools':        return showTools;
+			case 'mcp-console':  return isConsoleOpen;
+			case 'music':        return isMusicPlayerOpen;
+			case 'video':        return isVideoPlayerOpen;
+			case 'admin':        return isAdminPanelOpen;
+			case 'settings':     return isSettingsOpen;
+			case 'wikipedia':    return isWikipediaOpen;
+			case 'on-this-day':  return isOnThisDayOpen;
+			case 'birthday':     return isBirthdaySongOpen;
+			case 'clock':        return isClockWidgetOpen;
+			case 'shortcuts':    return isShortcutsWidgetOpen;
+			case 'music-widget': return isMusicWidgetOpen;
+			default:             return isManagedOpen(type);
+		}
+	};
+
 	return (
 		<div className={`relative min-h-screen ${theme === 'dark' ? 'bg-slate-950' : 'bg-slate-50'}`}>
 			<BrowserHeader
@@ -713,66 +769,14 @@ const Browser: React.FC = () => {
 				</div>
 			)}
 
-			<BrowserBottomNav
+			<FeatureDock
 				theme={theme}
-				states={{
-					isConsoleOpen,
-					showBookmarks,
-					showHistory,
-					showTools,
-					isLocalChatOpen,
-					isWikipediaOpen,
-					isOnThisDayOpen,
-					isBirthdaySongOpen,
-					isChatOpen,
-					isMusicPlayerOpen,
-					isVideoPlayerOpen,
-					isAdminPanelOpen,
-					isSettingsOpen
-				}}
-				actions={{
-					toggleConsole: () => setIsConsoleOpen(!isConsoleOpen),
-					toggleBookmarks: () => setShowBookmarks(!showBookmarks),
-					toggleHistory: () => setShowHistory(!showHistory),
-					toggleTools: () => setShowTools(!showTools),
-					toggleLocalChat: () => {
-						if (!checkFeatureAccess('ollama_integration')) {
-							promptUpgrade('Local Ollama Models', '🦙', 'monthly');
-							return;
-						}
-						setIsLocalChatOpen(!isLocalChatOpen);
-					},
-					toggleWikipedia: () => setIsWikipediaOpen(!isWikipediaOpen),
-					toggleOnThisDay: () => setIsOnThisDayOpen(!isOnThisDayOpen),
-					toggleBirthdaySong: () => setIsBirthdaySongOpen(!isBirthdaySongOpen),
-					toggleChat: () => {
-						if (!checkFeatureAccess('ai_assistant')) {
-							promptUpgrade('AI Assistant', '🤖', 'monthly');
-							return;
-						}
-						setIsChatOpen(!isChatOpen);
-					},
-					toggleMusicPlayer: () => setIsMusicPlayerOpen(!isMusicPlayerOpen),
-					toggleVideoPlayer: () => setIsVideoPlayerOpen(!isVideoPlayerOpen),
-					openAdminPanel: () => setIsAdminPanelOpen(true),
-					openWidgets: () => {
-						setIsClockWidgetOpen(true);
-						setIsShortcutsWidgetOpen(true);
-						setIsMusicWidgetOpen(true);
-					},
-					openSettings: () => setIsSettingsOpen(true),
-					addBookmark: addBookmark
-				}}
+				onOpen={handleDockOpen}
+				isOpen={handleDockIsOpen}
+				onAddBookmark={addBookmark}
 			/>
 
-			<ChatPanel
-				isOpen={isChatOpen}
-				onClose={() => setIsChatOpen(false)}
-				currentUrl={currentUrl}
-				currentTitle={activeTab?.title}
-				webContent={activeTab?.url ? `Content from ${activeTab.url}` : undefined}
-			/>
-
+			{/* Settings panel (slide-in) */}
 			<ProviderSettings
 				isOpen={isSettingsOpen}
 				onClose={() => setIsSettingsOpen(false)}
@@ -781,20 +785,14 @@ const Browser: React.FC = () => {
 				}}
 			/>
 
-			{isLocalChatOpen && <OllamaChatbot onClose={() => setIsLocalChatOpen(false)} />}
+			{/* Widget overlays */}
 			{isWikipediaOpen && <WikipediaWidget onClose={() => setIsWikipediaOpen(false)} />}
 			{isOnThisDayOpen && <OnThisDayWidget onClose={() => setIsOnThisDayOpen(false)} />}
 			{isBirthdaySongOpen && <BirthdaySongWidget onClose={() => setIsBirthdaySongOpen(false)} />}
 
-			{isLocalChatOpen && (
-				<div
-					onClick={() => setIsLocalChatOpen(false)}
-					className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[9999]"
-				/>
-			)}
-
 			{isMusicPlayerOpen && <MusicPlayer onClose={() => setIsMusicPlayerOpen(false)} />}
 
+			{/* External URL floating windows (opened via navigation bar) */}
 			{floatingWindows.map(window => (
 				<FloatingWindow
 					key={window.id}
@@ -809,6 +807,39 @@ const Browser: React.FC = () => {
 					initialX={100 + (floatingWindows.findIndex(w => w.id === window.id) * 30)}
 					initialY={120 + (floatingWindows.findIndex(w => w.id === window.id) * 30)}
 				/>
+			))}
+
+			{/* Feature floating windows managed by WindowManager */}
+			{managedWindows.map(win => (
+				<FloatingWindow
+					key={win.id}
+					title={win.title}
+					icon={win.icon}
+					url={win.type === 'iframe' ? win.url : undefined}
+					zIndex={win.zIndex}
+					onClose={() => closeWindow(win.id)}
+					initialWidth={win.initialWidth}
+					initialHeight={win.initialHeight}
+					initialX={win.initialX}
+					initialY={win.initialY}
+				>
+					{win.type === 'ai-chat' && (
+						<ChatPanel
+							isOpen
+							embedded
+							onClose={() => closeWindow(win.id)}
+							currentUrl={currentUrl}
+							currentTitle={activeTab?.title}
+							webContent={activeTab?.url ? `Content from ${activeTab.url}` : undefined}
+						/>
+					)}
+					{win.type === 'local-ai' && (
+						<OllamaChatbot
+							embedded
+							onClose={() => closeWindow(win.id)}
+						/>
+					)}
+				</FloatingWindow>
 			))}
 
 			<AdminPanel

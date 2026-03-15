@@ -8,6 +8,8 @@ interface ChatPanelProps {
   currentUrl?: string;
   currentTitle?: string;
   webContent?: string | null;
+  /** When true, renders inline (fills parent container) instead of as a fixed sidebar */
+  embedded?: boolean;
 }
 
 const ChatPanel: React.FC<ChatPanelProps> = ({
@@ -15,7 +17,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   onClose,
   currentUrl,
   currentTitle,
-  webContent
+  webContent,
+  embedded = false
 }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputMessage, setInputMessage] = useState('');
@@ -61,7 +64,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       // Add error message to chat
       const errorMessage: ChatMessage = {
         role: 'assistant',
-        content: `❌ Error: ${error.message}`,
+        content: `❌ Error: ${error instanceof Error ? error.message : String(error)}`,
         timestamp: new Date()
       };
       setMessages(prev => [...prev, errorMessage]);
@@ -94,22 +97,32 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       .replace(/\n/g, '<br>');
   };
 
-  if (!isOpen) return null;
+  if (!isOpen && !embedded) return null;
+
+  const containerStyle: React.CSSProperties = embedded
+    ? {
+        position: 'relative',
+        height: '100%',
+        backgroundColor: '#1e293b',
+        display: 'flex',
+        flexDirection: 'column',
+      }
+    : {
+        position: 'fixed',
+        top: 0,
+        right: 0,
+        width: '400px',
+        height: '100vh',
+        backgroundColor: '#1e293b',
+        borderLeft: '2px solid #94a3b8',
+        display: 'flex',
+        flexDirection: 'column',
+        zIndex: 1000,
+        boxShadow: '-4px 0 20px rgba(0,0,0,0.3)'
+      };
 
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      right: 0,
-      width: '400px',
-      height: '100vh',
-      backgroundColor: '#1e293b',
-      borderLeft: '2px solid #94a3b8',
-      display: 'flex',
-      flexDirection: 'column',
-      zIndex: 1000,
-      boxShadow: '-4px 0 20px rgba(0,0,0,0.3)'
-    }}>
+    <div style={containerStyle}>
       {/* Header */}
       <div style={{
         padding: '16px',

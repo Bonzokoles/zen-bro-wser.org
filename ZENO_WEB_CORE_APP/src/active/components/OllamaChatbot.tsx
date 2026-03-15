@@ -9,9 +9,11 @@ interface Message {
 
 interface OllamaChatbotProps {
     onClose: () => void;
+    /** When true, renders inline (fills parent container) instead of a fixed centered modal */
+    embedded?: boolean;
 }
 
-const OllamaChatbot: React.FC<OllamaChatbotProps> = ({ onClose }) => {
+const OllamaChatbot: React.FC<OllamaChatbotProps> = ({ onClose, embedded = false }) => {
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -116,7 +118,15 @@ const OllamaChatbot: React.FC<OllamaChatbotProps> = ({ onClose }) => {
     };
 
     return (
-        <div style={{
+        <div style={embedded ? {
+            position: 'relative',
+            width: '100%',
+            height: '100%',
+            backgroundColor: '#1a1a1a',
+            display: 'flex',
+            flexDirection: 'column',
+            fontFamily: 'monospace'
+        } : {
             position: 'fixed',
             top: '50%',
             left: '50%',

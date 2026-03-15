@@ -120,7 +120,7 @@ const ProviderSettings: React.FC<ProviderSettingsProps> = ({
         setConnectionStatus('❌ Connection failed');
       }
     } catch (error) {
-      setConnectionStatus(`❌ Error: ${error.message}`);
+      setConnectionStatus(`❌ Error: ${(error as Error).message}`);
     } finally {
       setIsConnecting(false);
     }

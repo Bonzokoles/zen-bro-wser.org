@@ -3,7 +3,7 @@
  * W produkcji: zamień na Supabase/MongoDB/PostgreSQL
  */
 
-import type { IframeSite } from '../../../types/iframe/core.types';
+import type { IframeSite } from '../../types/iframe/core.types';
 
 // Simulated database storage
 let sitesDb: IframeSite[] = [

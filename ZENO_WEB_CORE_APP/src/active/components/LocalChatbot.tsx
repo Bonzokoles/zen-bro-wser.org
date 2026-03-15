@@ -5,7 +5,7 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { getProviderKey } from '../active/utils/apiKeys';
+import { getProviderKey } from '../utils/apiKeys';
 
 interface Message {
   id: string;

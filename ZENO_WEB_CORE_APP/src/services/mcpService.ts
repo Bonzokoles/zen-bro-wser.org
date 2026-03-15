@@ -30,6 +30,8 @@ export interface MCPTool {
   description: string;
   category: 'browser' | 'search' | 'analysis' | 'utility';
   enabled: boolean;
+  status?: 'connected' | 'disconnected' | 'error';
+  server?: string;
 }
 
 export interface MCPSession {
@@ -251,7 +253,7 @@ class MCPService {
     } catch (error) {
       return {
         success: false,
-        error: `Command execution failed: ${error.message}`
+        error: `Command execution failed: ${(error as Error).message}`
       };
     }
   }
@@ -270,7 +272,7 @@ class MCPService {
 
       return analysis;
     } catch (error) {
-      throw new Error(`Page analysis failed: ${error.message}`);
+      throw new Error(`Page analysis failed: ${(error as Error).message}`);
     }
   }
 
@@ -322,6 +324,3 @@ class MCPService {
 
 // Export singleton instance
 export const mcpService = new MCPService();
-
-// Export types for use in components
-export type { ChatMessage, MCPResponse, MCPTool, MCPSession, MCPServiceConfig };

@@ -232,6 +232,27 @@ export const TAB_LIMITS: Record<PlanType, number> = {
  * Pricing information
  */
 export const PRICING = {
+  free: {
+    price: 0,
+    currency: 'USD',
+    interval: 'forever',
+    label: 'Free Forever',
+    savings: null
+  },
+  pro: {
+    price: 9.99,
+    currency: 'USD',
+    interval: 'month',
+    label: '$9.99/month',
+    savings: null
+  },
+  enterprise: {
+    price: 49.99,
+    currency: 'USD',
+    interval: 'month',
+    label: '$49.99/month',
+    savings: null
+  },
   monthly: {
     price: 5,
     currency: 'USD',

@@ -1,6 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import type { Message } from '@anthropic-ai/sdk/resources/messages';
-import { AppError, createAuthError, createRateLimitError, createNetworkError, handleError } from '../../utils/AppError';
+import { AppError, createAuthError, createRateLimitError, createNetworkError, handleError } from '../../../utils/AppError';
 
 export interface ClaudeConfig {
   apiKey: string;

@@ -46,7 +46,7 @@ export const POST: APIRoute = async ({ request }) => {
     } catch (parseError) {
       return new Response(JSON.stringify({
         error: 'Invalid JSON in request body',
-        details: parseError.message
+        details: (parseError as Error).message
       }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' }
@@ -76,7 +76,7 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
-    const modelPath = AVAILABLE_MODELS[model] || AVAILABLE_MODELS['llama-3.2-3b'];
+    const modelPath = AVAILABLE_MODELS[model as keyof typeof AVAILABLE_MODELS] || AVAILABLE_MODELS['llama-3.2-3b'];
 
     // Call Cloudflare Workers AI
     const aiResponse = await fetch(

@@ -1,3 +1,4 @@
+import { getProviderKey } from '../utils/apiKeys';
 /*
  * Local Model Chatbot
  * Chatbot interface for communication with local LLM models (HuggingFace, Ollama, etc.)
@@ -5,7 +6,7 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { getProviderKey } from '../active/utils/apiKeys';
+import { getProviderKey } from '../utils/apiKeys';
 
 interface Message {
   id: string;

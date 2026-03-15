@@ -1,6 +1,7 @@
 // src/active/components/ReaderMode.tsx
 import React, { useState, useEffect } from 'react';
-import { ReaderMode as ReaderModeService, ReaderContent } from '../services/reader-mode';
+import type { ReaderContent } from '../services/reader-mode';
+import { ReaderMode as ReaderModeService } from '../services/reader-mode';
 
 interface ReaderModeProps {
   isOpen: boolean;

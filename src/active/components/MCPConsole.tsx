@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import type { MCPTool } from './Browser.tsx';
+import type { MCPTool } from '../services/mcpService';
 
 interface MCPConsoleProps {
 	output: string[];
-	tools: MCPTool[];
+	tools: (MCPTool & { status?: 'connected' | 'disconnected' | 'error'; server?: string })[];
 	onCommand: (command: string) => void;
 	onClose: () => void;
 }

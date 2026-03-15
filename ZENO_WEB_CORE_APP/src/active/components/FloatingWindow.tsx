@@ -1,9 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 
 interface FloatingWindowProps {
-	url: string;
+	url?: string;
+	children?: React.ReactNode;
 	title: string;
+	icon?: string;
 	onClose: () => void;
+	zIndex?: number;
 	initialWidth?: number;
 	initialHeight?: number;
 	initialX?: number;
@@ -14,8 +17,11 @@ type WindowState = 'normal' | 'minimized' | 'maximized' | 'pip';
 
 const FloatingWindow: React.FC<FloatingWindowProps> = ({
 	url,
+	children,
 	title,
+	icon,
 	onClose,
+	zIndex,
 	initialWidth = 800,
 	initialHeight = 600,
 	initialX = 100,
@@ -177,12 +183,14 @@ const FloatingWindow: React.FC<FloatingWindowProps> = ({
 		);
 	};
 
+	const isResizable = windowState === 'normal' || windowState === 'pip';
+
 	if (windowState === 'minimized') {
 		return (
 			<div
 				className={getWindowClasses()}
 				onClick={toggleMinimize}
-				style={windowState !== 'maximized' && windowState !== 'minimized' ? {
+				style={isResizable ? {
 					top: `${position.y}px`,
 					left: `${position.x}px`,
 					width: `${size.width}px`,
@@ -190,7 +198,7 @@ const FloatingWindow: React.FC<FloatingWindowProps> = ({
 				} : undefined}
 			>
 				<div className="px-4 py-3 flex items-center gap-3 cursor-pointer">
-					<span className="text-xl">🌐</span>
+					<span className="text-xl">{icon ?? '🌐'}</span>
 					<span className="text-white text-sm font-medium truncate">
 						{title}
 					</span>
@@ -203,11 +211,12 @@ const FloatingWindow: React.FC<FloatingWindowProps> = ({
 		<div
 			ref={windowRef}
 			className={getWindowClasses()}
-			style={windowState !== 'maximized' && windowState !== 'minimized' ? {
+			style={isResizable ? {
 				top: `${position.y}px`,
 				left: `${position.x}px`,
 				width: `${size.width}px`,
-				height: `${size.height}px`
+				height: `${size.height}px`,
+				...(zIndex ? { zIndex } : {})
 			} : undefined}
 		>
 			{/* Title Bar */}
@@ -217,14 +226,16 @@ const FloatingWindow: React.FC<FloatingWindowProps> = ({
 					${windowState === 'maximized' ? 'cursor-default' : 'cursor-move'}`}
 			>
 				<div className="flex items-center gap-3 flex-1 overflow-hidden">
-					<span className="text-xl">🌐</span>
+					<span className="text-xl">{icon ?? '🌐'}</span>
 					<div className="flex-1 overflow-hidden">
 						<div className="text-white text-sm font-medium truncate">
 							{title}
 						</div>
-						<div className="text-slate-400 text-[11px] truncate mt-0.5">
-							{url}
-						</div>
+						{url && (
+							<div className="text-slate-400 text-[11px] truncate mt-0.5">
+								{url}
+							</div>
+						)}
 					</div>
 				</div>
 
@@ -283,13 +294,19 @@ const FloatingWindow: React.FC<FloatingWindowProps> = ({
 			</div>
 
 			{/* Content Area */}
-			<div className="flex-1 relative bg-white overflow-hidden">
-				<iframe
-					src={url}
-					className="w-full h-full border-none"
-					title={title}
-					sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"
-				/>
+			<div className="flex-1 relative overflow-hidden" style={{ background: children ? undefined : 'white' }}>
+				{children ? (
+					<div className="w-full h-full overflow-auto">
+						{children}
+					</div>
+				) : (
+					<iframe
+						src={url}
+						className="w-full h-full border-none"
+						title={title}
+						sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"
+					/>
+				)}
 			</div>
 
 			{/* Resize Handles (only in normal state) */}

@@ -165,7 +165,7 @@ class MCPService {
 
       return response;
     } catch (error) {
-      throw new Error(`Failed to send message: ${error.message}`);
+      throw new Error(`Failed to send message: ${(error as Error).message}`);
     }
   }
 
@@ -214,7 +214,7 @@ class MCPService {
     } catch (error) {
       return {
         success: false,
-        error: `Command execution failed: ${error.message}`
+        error: `Command execution failed: ${(error as Error).message}`
       };
     }
   }
@@ -233,7 +233,7 @@ class MCPService {
 
       return analysis;
     } catch (error) {
-      throw new Error(`Page analysis failed: ${error.message}`);
+      throw new Error(`Page analysis failed: ${(error as Error).message}`);
     }
   }
 
@@ -287,4 +287,4 @@ class MCPService {
 export const mcpService = new MCPService();
 
 // Export types for use in components
-export type { ChatMessage, MCPResponse, MCPTool, MCPSession, MCPServiceConfig };
+// Export types for use in components (type re-export)

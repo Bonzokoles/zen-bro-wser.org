@@ -9,10 +9,10 @@ This directory contains scripts to run different parts of the ZENO_web_CORE proj
 
 Starts the main Astro web application. The application will be available at `http://localhost:4378`.
 
-### `start_bielik_agent.bat`
-**_Dodatki / Add-ons_**
+### `start_buch_agent.bat`
+**_Modele AI / AI Models_**
 
-Starts the BIELIK AI agent system in development mode.
+Shows available AI models with Polish language support (Gemma, Phi) and startup instructions for containerized models.
 
 ### `run_dev_tools.bat`
 **_Narzędzia / Tools_**

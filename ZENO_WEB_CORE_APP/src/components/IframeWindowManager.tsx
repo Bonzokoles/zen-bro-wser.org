@@ -674,7 +674,7 @@ export const IframeWindowManager: React.FC<IframeWindowManagerProps> = ({
                     {window.error}
                   </div>
                   <button
-                    onClick={() => window.location.reload()}
+                    onClick={() => globalThis.location.reload()}
                     style={{
                       marginTop: '16px',
                       padding: '8px 16px',

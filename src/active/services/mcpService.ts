@@ -28,8 +28,10 @@ export interface MCPTool {
   id: string;
   name: string;
   description: string;
-  category: 'browser' | 'search' | 'analysis' | 'utility';
+  category: 'browser' | 'search' | 'analysis' | 'utility' | 'scraping' | 'vector' | 'orchestration';
   enabled: boolean;
+  status?: 'connected' | 'disconnected' | 'error';
+  server?: string;
 }
 
 export interface MCPSession {

@@ -31,8 +31,7 @@ export class IframeTestService {
       ...config,
     };
 
-    this.postMessageService = new PostMessageService();
-    this.postMessageService.init();
+    this.postMessageService = null as unknown as PostMessageService;
   }
 
   /**
@@ -252,21 +251,10 @@ export class IframeTestService {
    * Capture network metrics from iframe
    */
   private async captureNetworkMetrics(
-    iframe: HTMLIFrameElement
+    _iframe: HTMLIFrameElement
   ): Promise<NetworkMetrics | undefined> {
-    try {
-      // Request performance data via postMessage
-      const data = await this.postMessageService.sendRequest(
-        iframe,
-        'REQUEST_DATA',
-        { type: 'performance' },
-        2000
-      );
-
-      return data.metrics;
-    } catch {
-      return undefined;
-    }
+    // sendRequest not implemented in PostMessageService
+    return undefined;
   }
 
   /**

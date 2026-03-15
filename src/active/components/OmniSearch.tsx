@@ -68,9 +68,9 @@ const OmniSearch: React.FC<OmniSearchProps> = ({ isOpen, onClose, onNavigate, se
                 onClick={() => handleResultClick(result.url)}
                 style={{
                   padding: '12px', borderRadius: '8px', display: 'flex',
-                  alignItems: 'center', gap: '12px', cursor: 'pointer',
-                  hover: { background: '#334155' }
+                  alignItems: 'center', gap: '12px', cursor: 'pointer'
                 }}
+                className="omni-search-result"
               >
                 <img src={result.favicon} style={{ width: '20px', height: '20px' }} alt="" />
                 <div>

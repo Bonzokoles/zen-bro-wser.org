@@ -36,7 +36,7 @@ export class GeminiProvider {
 
     this.genAI = new GoogleGenerativeAI(this.config.apiKey);
     this.model = this.genAI.getGenerativeModel({ 
-      model: this.config.model,
+      model: this.config.model ?? 'gemini-1.5-flash',
       generationConfig: {
         temperature: 0.7,
         topK: 40,
@@ -78,7 +78,8 @@ export class GeminiProvider {
 
       return assistantMessage;
     } catch (error) {
-      throw new Error(`Gemini API error: ${error.message}`);
+      const err = error as Error;
+      throw new Error(`Gemini API error: ${err.message}`);
     }
   }
 
@@ -123,9 +124,10 @@ If no tool is needed, just respond to the user's command directly.
         toolsUsed: ['gemini_analysis']
       };
     } catch (error) {
+      const err = error as Error;
       return {
         success: false,
-        error: `MCP execution failed: ${error.message}`
+        error: `MCP execution failed: ${err.message}`
       };
     }
   }
@@ -157,7 +159,8 @@ Keep the analysis concise but comprehensive.
         timestamp: new Date()
       };
     } catch (error) {
-      throw new Error(`Content analysis failed: ${error.message}`);
+      const err = error as Error;
+      throw new Error(`Content analysis failed: ${err.message}`);
     }
   }
 
@@ -182,8 +185,9 @@ Keep the analysis concise but comprehensive.
       console.log('Gemini response:', text);
       return text && text.length > 0;
     } catch (error) {
-      console.error('Gemini connection test failed:', error.message || error);
-      throw error; // Re-throw to get more specific error info
+      const err = error as Error;
+      console.error('Gemini connection test failed:', err.message || err);
+      throw err; // Re-throw to get more specific error info
     }
   }
 }

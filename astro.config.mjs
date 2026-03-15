@@ -20,10 +20,10 @@ export default defineConfig({
     imageService: 'compile', // Fix: passthrough nie działa w Cloudflare SSR
     // Uwaga: domyślnie adapter oczekuje KV o nazwie 'SESSION'. Dodaj binding w Pages lub zmień nazwę przez sessionKVBindingName.
   }),
-  server: {
-    port: 4367,
-    host: true
-  },
+    server: {
+      port: 4378,
+      host: 'localhost'
+    },
   integrations: [mdx(), sitemap(), react(), tailwind({
     applyBaseStyles: false,
   })],
@@ -44,6 +44,19 @@ export default defineConfig({
     ssr: {
       external: ['node:async_hooks', 'webamp'],
       noExternal: ['crypto-js']
+    },
+  },
+  // Security headers for all routes (Cloudflare Workers / SSR)
+  // CSP is set per-route in src/pages via middleware or _headers file
+  // Vite dev-server headers:
+  server: {
+    headers: {
+      // Prevent clickjacking
+      'X-Frame-Options': 'SAMEORIGIN',
+      // Basic XSS protection (legacy browsers)
+      'X-XSS-Protection': '1; mode=block',
+      // Prevent MIME sniffing
+      'X-Content-Type-Options': 'nosniff',
     },
   },
 });
