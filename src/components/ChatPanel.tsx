@@ -113,7 +113,6 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       boxShadow: '-4px 0 20px rgba(0,0,0,0.3)'
     }}>
       {!embedded && (
-        {/* Header */}
         <div style={{
           padding: '16px',
           borderBottom: '1px solid #334155',
@@ -148,9 +147,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
         </div>
       )}
 
-      {!embedded && (
-        {/* Current Page Info */}
-        {currentUrl && (
+      {!embedded && currentUrl && (
           <div style={{
             padding: '12px 16px',
             backgroundColor: '#0f172a',
@@ -178,11 +175,9 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
               {isLoading ? 'Analyzing...' : '🔍 Analyze Page'}
             </button>
           </div>
-        )}
       )}
 
       {!embedded && (
-        {/* Messages Area */}
         <div style={{
           flex: 1,
           padding: '16px',
@@ -291,9 +286,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
         </div>
       )}
 
-      {!embedded && (
-        {/* Input Area */}
-        {isConnected && (
+      {!embedded && isConnected && (
           <div style={{
             padding: '16px',
             borderTop: '1px solid #334155',
@@ -342,7 +335,6 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
               </div>
             </form>
           </div>
-        )}
       )}
     </div>
   );
