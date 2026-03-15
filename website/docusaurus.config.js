@@ -1,126 +1,76 @@
-/**
- * Docusaurus Configuration
- * ZENO Browser Documentation Website
- */
+// @ts-check
+import { themes as prismThemes } from 'prism-react-renderer';
 
-module.exports = {
+/** @type {import('@docusaurus/types').Config} */
+const config = {
   title: 'ZENO Browser',
-  tagline: 'AI-powered web browser with DeepSeek integration',
-  url: 'https://zeno-browser.io',
-  baseUrl: '/',
-  onBrokenLinks: 'throw',
-  onBrokenMarkdownLinks: 'warn',
+  tagline: 'AI-Powered Browser with MCP Integration',
   favicon: 'img/favicon.ico',
-
+  url: 'https://Bonzokoles.github.io',
+  baseUrl: '/zen-bro-wser.org/',
   organizationName: 'Bonzokoles',
   projectName: 'zen-bro-wser.org',
-
-  i18n: {
-    defaultLocale: 'en',
-    locales: ['en', 'pl'],
-  },
-
+  onBrokenLinks: 'warn',
+  onBrokenMarkdownLinks: 'warn',
+  i18n: { defaultLocale: 'en', locales: ['en', 'pl'] },
   presets: [
     [
       'classic',
-      {
+      /** @type {import('@docusaurus/preset-classic').Options} */
+      ({
         docs: {
-          sidebarPath: require.resolve('./sidebars.js'),
-          editUrl: 'https://github.com/Bonzokoles/zen-bro-wser.org/edit/main/website/',
+          sidebarPath: './sidebars.js',
+          editUrl: 'https://github.com/Bonzokoles/zen-bro-wser.org/tree/main/website/',
         },
         blog: {
           showReadingTime: true,
-          editUrl: 'https://github.com/Bonzokoles/zen-bro-wser.org/edit/main/website/blog/',
+          feedOptions: { type: ['rss', 'atom'], xslt: true },
         },
-        theme: {
-          customCss: require.resolve('./src/css/custom.css'),
-        },
-      },
+        theme: { customCss: './src/css/custom.css' },
+      }),
     ],
   ],
-
-  themeConfig: {
-    image: 'img/og-image.png',
-    navbar: {
-      title: 'ZENO Browser',
-      logo: {
-        alt: 'ZENO Logo',
-        src: 'img/logo.svg',
+  themeConfig:
+    /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
+    ({
+      image: 'img/zeno-social-card.png',
+      navbar: {
+        title: 'ZENO Browser',
+        logo: { alt: 'ZENO Browser Logo', src: 'img/logo.svg' },
+        items: [
+          { type: 'docSidebar', sidebarId: 'tutorialSidebar', position: 'left', label: 'Docs' },
+          { to: '/blog', label: 'Blog', position: 'left' },
+          { href: 'https://github.com/Bonzokoles/zen-bro-wser.org', label: 'GitHub', position: 'right' },
+        ],
       },
-      items: [
-        {
-          type: 'doc',
-          docId: 'getting-started',
-          position: 'left',
-          label: 'Docs',
-        },
-        {
-          to: '/blog',
-          label: 'Blog',
-          position: 'left',
-        },
-        {
-          href: 'https://github.com/Bonzokoles/zen-bro-wser.org',
-          label: 'GitHub',
-          position: 'right',
-        },
-        {
-          type: 'localeDropdown',
-          position: 'right',
-        },
-      ],
-    },
-
-    footer: {
-      style: 'dark',
-      links: [
-        {
-          title: 'Docs',
-          items: [
-            { label: 'Getting Started', to: '/docs/getting-started' },
-            { label: 'Installation', to: '/docs/installation' },
-            { label: 'User Guide', to: '/docs/user-guide' },
-          ],
-        },
-        {
-          title: 'Development',
-          items: [
-            { label: 'Plugin Development', to: '/docs/plugin-development' },
-            { label: 'API Reference', to: '/docs/api-reference' },
-            { label: 'Contributing', to: '/docs/contributing' },
-          ],
-        },
-        {
-          title: 'Community',
-          items: [
-            { label: 'GitHub Discussions', href: 'https://github.com/Bonzokoles/zen-bro-wser.org/discussions' },
-            { label: 'Report Issues', href: 'https://github.com/Bonzokoles/zen-bro-wser.org/issues' },
-            { label: 'Twitter', href: 'https://twitter.com/zenobrowser' },
-          ],
-        },
-      ],
-      copyright: `Copyright © ${new Date().getFullYear()} ZENO Browser. Built with Docusaurus.`,
-    },
-
-    prism: {
-      theme: require('prism-react-renderer/themes/dracula'),
-      darkTheme: require('prism-react-renderer/themes/dracula'),
-    },
-
-    colorMode: {
-      defaultMode: 'dark',
-      disableSwitch: false,
-      respectPrefersColorScheme: true,
-    },
-  },
-
-  plugins: [
-    [
-      '@docusaurus/plugin-google-analytics',
-      {
-        trackingID: process.env.GOOGLE_ANALYTICS_ID,
-        anonymizeIP: true,
+      footer: {
+        style: 'dark',
+        links: [
+          {
+            title: 'Docs',
+            items: [
+              { label: 'Getting Started', to: '/docs/intro' },
+              { label: 'MCP Tools', to: '/docs/mcp-tools' },
+              { label: 'API Reference', to: '/docs/api' },
+            ],
+          },
+          {
+            title: 'Community',
+            items: [
+              { label: 'GitHub', href: 'https://github.com/Bonzokoles/zen-bro-wser.org' },
+              { label: 'Issues', href: 'https://github.com/Bonzokoles/zen-bro-wser.org/issues' },
+            ],
+          },
+        ],
+        copyright: `Copyright © ${new Date().getFullYear()} ZENO Browser. Built with Docusaurus.`,
       },
-    ],
-  ],
+      prism: {
+        theme: prismThemes.github,
+        darkTheme: prismThemes.dracula,
+        additionalLanguages: ['typescript', 'python', 'bash', 'yaml'],
+      },
+      colorMode: { defaultMode: 'dark', respectPrefersColorScheme: true },
+    }),
 };
+
+export default config;

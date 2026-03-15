@@ -1,57 +1,45 @@
 #!/bin/bash
-
-###############################################################################
-# ZENO Browser - Multi-Platform Installer Builder
-# Buduje NSIS (Windows), DMG (macOS), AppImage (Linux)
-###############################################################################
-
+# ZENO Browser - Cross-Platform Installer Builder
 set -e
 
-echo "================================"
-echo "📦 ZENO Browser Installer Builder"
-echo "================================"
+echo "🚀 ZENO Browser v0.2.0 - Building All Installers"
+echo "=================================================="
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT"
+
+# Check dependencies
+command -v node >/dev/null 2>&1 || { echo "❌ Node.js required"; exit 1; }
+
 echo ""
+echo "📦 Building web application..."
+cd ZENO_WEB_CORE_APP && npm run build && cd ..
 
-# Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m'
-
-# Get version
-VERSION=$(grep '"version"' package.json | head -1 | awk -F'"' '{print $4}')
-echo -e "${BLUE}Building version: $VERSION${NC}"
 echo ""
+echo "🏗️  Building installers..."
 
-# Determine OS
-OS=$(uname -s)
+PLATFORM="${1:-all}"
 
-case "$OS" in
-  Linux*)
-    echo -e "${YELLOW}🐧 Building for Linux...${NC}"
-    npm run build:appimage
-    echo -e "${GREEN}✅ AppImage created${NC}"
+case "$PLATFORM" in
+  win)
+    echo "🪟 Building Windows NSIS installer..."
+    node scripts/build-nsis.js
     ;;
-  Darwin*)
-    echo -e "${YELLOW}🍎 Building for macOS...${NC}"
-    npm run build:dmg
-    echo -e "${GREEN}✅ DMG created${NC}"
+  mac)
+    echo "🍎 Building macOS DMG..."
+    node scripts/build-dmg.js
     ;;
-  MINGW*|MSYS*|CYGWIN*)
-    echo -e "${YELLOW}🪟 Building for Windows...${NC}"
-    npm run build:nsis
-    echo -e "${GREEN}✅ NSIS Installer created${NC}"
+  linux)
+    echo "🐧 Building Linux AppImage..."
+    node scripts/build-appimage.js
     ;;
-  *)
-    echo -e "${RED}❌ Unknown OS: $OS${NC}"
-    exit 1
+  all|*)
+    echo "Building all platforms..."
+    node scripts/build-nsis.js || echo "⚠️  Windows build failed (requires Windows)"
+    node scripts/build-dmg.js || echo "⚠️  macOS build failed (requires macOS)"
+    node scripts/build-appimage.js || echo "⚠️  Linux build requires AppImageTool"
     ;;
 esac
 
 echo ""
-echo "Build artifacts:"
-ls -lh dist/ | grep -E '\.(exe|dmg|AppImage)$'
-
-echo ""
-echo -e "${GREEN}✅ Installer build complete!${NC}"
+echo "✅ Build complete! Check dist-electron/ for output."

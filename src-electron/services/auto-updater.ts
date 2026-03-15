@@ -1,181 +1,82 @@
 /**
- * Auto-Updater Service
- * Handles checking for and installing updates
+ * ZENO Browser - Auto-Updater Service (Electron)
+ * Manages automatic updates via electron-updater
  */
 
-import { app, dialog, ipcMain } from 'electron';
-import { autoUpdater } from 'electron-updater';
-import * as path from 'path';
-
+// Only runs in Electron main process
 export interface UpdateInfo {
   version: string;
   releaseDate: string;
-  releaseNotes: string[];
-  isUpdateAvailable: boolean;
+  releaseNotes?: string;
+  downloadUrl?: string;
 }
 
-export class AutoUpdaterService {
-  private isCheckingForUpdate = false;
-  private updateCheckInterval: NodeJS.Timeout | null = null;
+export interface UpdaterConfig {
+  autoDownload?: boolean;
+  autoInstallOnAppQuit?: boolean;
+  allowPrerelease?: boolean;
+  feedUrl?: string;
+}
 
-  constructor() {
-    this.configureAutoUpdater();
-    this.setupIPC();
+export class AutoUpdater {
+  private config: UpdaterConfig;
+  private updateAvailable = false;
+  private currentVersion: string;
+
+  constructor(currentVersion: string, config: UpdaterConfig = {}) {
+    this.currentVersion = currentVersion;
+    this.config = {
+      autoDownload: false,
+      autoInstallOnAppQuit: true,
+      allowPrerelease: false,
+      ...config,
+    };
   }
 
-  private configureAutoUpdater() {
-    autoUpdater.logger = require('electron-log');
-    autoUpdater.checkForUpdatesAndNotify();
-
-    autoUpdater.on('checking-for-update', () => {
-      console.log('🔄 Checking for updates...');
-    });
-
-    autoUpdater.on('update-available', (info) => {
-      console.log(`✅ Update available: ${info.version}`);
-      this.notifyUpdateAvailable(info);
-    });
-
-    autoUpdater.on('update-not-available', () => {
-      console.log('✅ You are up to date');
-    });
-
-    autoUpdater.on('error', (error) => {
-      console.error('❌ Update error:', error);
-    });
-
-    autoUpdater.on('download-progress', (progress) => {
-      console.log(`📥 Download progress: ${progress.percent}%`);
-      ipcMain.emit('update-progress', progress);
-    });
-
-    autoUpdater.on('update-downloaded', () => {
-      console.log('✅ Update downloaded, will install on quit');
-      this.notifyUpdateReady();
-    });
-  }
-
-  private setupIPC() {
-    ipcMain.handle('updater:check-for-updates', async () => {
-      try {
-        const result = await autoUpdater.checkForUpdates();
-        if (!result) return { isUpdateAvailable: false };
-        return {
-          isUpdateAvailable: result.updateInfo.version !== app.getVersion(),
-          version: result.updateInfo.version,
-          releaseDate: result.updateInfo.releaseDate,
-        };
-      } catch (error: any) {
-        console.error('Failed to check for updates:', error);
-        return { isUpdateAvailable: false, error: error.message };
-      }
-    });
-
-    ipcMain.handle('updater:install-update', async () => {
-      autoUpdater.quitAndInstall();
-    });
-
-    ipcMain.handle('updater:get-current-version', async () => {
-      return app.getVersion();
-    });
-  }
-
-  private notifyUpdateAvailable(info: any) {
-    dialog
-      .showMessageBox({
-        type: 'info',
-        title: 'Update Available',
-        message: `ZENO Browser ${info.version} is available`,
-        detail: 'Downloading update in background...',
-        buttons: ['Later', 'Install Now'],
-      })
-      .then((result) => {
-        if (result.response === 1) {
-          autoUpdater.downloadUpdate();
-        }
-      });
-  }
-
-  private notifyUpdateReady() {
-    dialog
-      .showMessageBox({
-        type: 'info',
-        title: 'Update Ready',
-        message: 'Update is ready to install',
-        detail: 'Application will restart to apply update',
-        buttons: ['Later', 'Install & Restart'],
-      })
-      .then((result) => {
-        if (result.response === 1) {
-          autoUpdater.quitAndInstall();
-        }
-      });
-  }
-
-  /**
-   * Start automatic update checks
-   */
-  startAutoChecks(intervalHours: number = 1): void {
-    if (this.updateCheckInterval) {
-      clearInterval(this.updateCheckInterval);
-    }
-
-    console.log(`🔄 Starting auto-update checks every ${intervalHours}h`);
-
-    // Check immediately
-    autoUpdater.checkForUpdates();
-
-    // Then check periodically
-    this.updateCheckInterval = setInterval(() => {
-      autoUpdater.checkForUpdates();
-    }, intervalHours * 60 * 60 * 1000);
-  }
-
-  /**
-   * Stop automatic update checks
-   */
-  stopAutoChecks(): void {
-    if (this.updateCheckInterval) {
-      clearInterval(this.updateCheckInterval);
-      this.updateCheckInterval = null;
-      console.log('🛑 Auto-update checks stopped');
-    }
-  }
-
-  /**
-   * Manual check for updates
-   */
-  async checkForUpdates(): Promise<UpdateInfo> {
+  async checkForUpdates(): Promise<UpdateInfo | null> {
     try {
-      if (this.isCheckingForUpdate) {
-        return { version: '', releaseDate: '', releaseNotes: [], isUpdateAvailable: false };
+      const url = this.config.feedUrl || 
+        'https://api.github.com/repos/Bonzokoles/zen-bro-wser.org/releases/latest';
+      const response = await fetch(url, {
+        headers: { 'User-Agent': `ZENO-Browser/${this.currentVersion}` },
+      });
+      if (!response.ok) return null;
+      const release = await response.json() as { tag_name: string; published_at: string; body?: string };
+      const latestVersion = release.tag_name.replace(/^v/, '');
+      if (this.isNewerVersion(latestVersion, this.currentVersion)) {
+        this.updateAvailable = true;
+        return {
+          version: latestVersion,
+          releaseDate: release.published_at,
+          releaseNotes: release.body,
+        };
       }
-
-      this.isCheckingForUpdate = true;
-
-      const result = await autoUpdater.checkForUpdates();
-      if (!result) return { version: '', releaseDate: '', releaseNotes: [], isUpdateAvailable: false };
-
-      return {
-        version: result.updateInfo.version,
-        releaseDate: result.updateInfo.releaseDate || new Date().toISOString(),
-        releaseNotes: this.parseReleaseNotes(result.updateInfo.releaseNotes),
-        isUpdateAvailable: result.updateInfo.version !== app.getVersion(),
-      };
-    } catch (error) {
-      console.error('Error checking for updates:', error);
-      throw error;
-    } finally {
-      this.isCheckingForUpdate = false;
+      return null;
+    } catch (err) {
+      console.error('Update check failed:', err);
+      return null;
     }
   }
 
-  private parseReleaseNotes(notes: any): string[] {
-    if (!notes) return [];
-    if (Array.isArray(notes)) return notes;
-    if (typeof notes === 'string') return notes.split('\n');
-    return [];
+  private isNewerVersion(latest: string, current: string): boolean {
+    const latestParts = latest.split('.').map(Number);
+    const currentParts = current.split('.').map(Number);
+    for (let i = 0; i < 3; i++) {
+      if ((latestParts[i] || 0) > (currentParts[i] || 0)) return true;
+      if ((latestParts[i] || 0) < (currentParts[i] || 0)) return false;
+    }
+    return false;
+  }
+
+  isUpdateAvailable(): boolean {
+    return this.updateAvailable;
+  }
+
+  getConfig(): UpdaterConfig {
+    return { ...this.config };
   }
 }
 
-export const autoUpdaterService = new AutoUpdaterService();
+export function createAutoUpdater(version: string, config?: UpdaterConfig): AutoUpdater {
+  return new AutoUpdater(version, config);
+}

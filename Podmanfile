@@ -1,0 +1,23 @@
+# ZENO Browser - Podman/Docker Image
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+COPY ZENO_WEB_CORE_APP/package*.json ./ZENO_WEB_CORE_APP/
+RUN cd ZENO_WEB_CORE_APP && npm ci --only=production
+
+COPY ZENO_WEB_CORE_APP/ ./ZENO_WEB_CORE_APP/
+RUN cd ZENO_WEB_CORE_APP && npm run build
+
+FROM node:20-alpine AS runtime
+WORKDIR /app
+COPY --from=builder /app/ZENO_WEB_CORE_APP/dist ./dist
+COPY --from=builder /app/ZENO_WEB_CORE_APP/node_modules ./node_modules
+COPY --from=builder /app/ZENO_WEB_CORE_APP/package.json ./package.json
+
+RUN apk add --no-cache curl
+
+EXPOSE 4378
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s \
+  CMD curl -f http://localhost:4378/ || exit 1
+
+CMD ["node", "./node_modules/.bin/astro", "preview", "--host", "0.0.0.0", "--port", "4378"]
