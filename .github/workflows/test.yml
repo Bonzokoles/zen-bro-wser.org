@@ -12,6 +12,7 @@ env:
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     strategy:
       matrix:
@@ -31,11 +32,9 @@ jobs:
 
       - name: Type check
         run: npm run type-check
-        continue-on-error: true
 
       - name: Lint
         run: npm run lint
-        continue-on-error: true
 
       - name: Test
         run: npm run test:unit -- --forceExit --verbose
@@ -51,6 +50,7 @@ jobs:
 
   e2e:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     steps:
       - uses: actions/checkout@v4
@@ -77,7 +77,6 @@ jobs:
           else
             echo "No Playwright config found — skipping E2E tests"
           fi
-        continue-on-error: true
 
       - name: Upload artifacts
         if: failure()
@@ -88,6 +87,7 @@ jobs:
 
   security:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     env:
       SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
@@ -98,7 +98,8 @@ jobs:
         run: npm ci
 
       - name: Run npm audit
-        run: npm audit --audit-level=critical || true
+        run: npm audit --audit-level=critical
+        continue-on-error: true
 
       - name: Run Snyk
         if: ${{ env.SNYK_TOKEN != '' }}

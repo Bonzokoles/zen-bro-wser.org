@@ -1,0 +1,18 @@
+# Default owner for everything
+* @Bonzokoles
+
+# GitHub Actions workflows
+.github/workflows/ @Bonzokoles
+
+# Core browser app
+src/ @Bonzokoles
+
+# Electron
+src-electron/ @Bonzokoles
+
+# CAYD Search Engine
+CAYD_SEARCH_ENG/ @Bonzokoles
+
+# Configuration
+*.config.* @Bonzokoles
+*.json @Bonzokoles
