@@ -42,7 +42,7 @@
     "better-sqlite3": "^12.8.0",
     "cheerio": "^1.2.0",
     "crypto-js": "^4.2.0",
-    "electron-is-dev": "^2.0.0",
+    "electron-is-dev": "^3.0.1",
     "electron-updater": "^6.8.3",
     "fs-extra": "^11.2.0",
     "lru-cache": "^10.1.0",
