@@ -5,7 +5,7 @@
 #  Dev: npx astro dev --port 4378
 # ═══════════════════════════════════════════════════════════════
 
-name = "zeno-browser"
+name = "zen-bro-wser-org"
 pages_build_output_dir = "ZENO_WEB_CORE_APP/dist"
 compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
