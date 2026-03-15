@@ -6,7 +6,7 @@
 # ═══════════════════════════════════════════════════════════════
 
 name = "zen-bro-wser-org"
-pages_build_output_dir = "ZENO_WEB_CORE_APP/dist"
+pages_build_output_dir = "dist"
 compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
 
