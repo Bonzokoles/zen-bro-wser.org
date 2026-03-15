@@ -14,7 +14,10 @@
     "DOCUMENTS_ALL",
     "INSTRUCTIONS_FOR_TRAINING",
     "LIBRARIES",
-    "ZENO_WEB_CORE_APP/src/working"
+    "ZENO_WEB_CORE_APP/src/working",
+    "src/active",
+    "src/original",
+    "src/working"
   ],
   "compilerOptions": {
     "strictNullChecks": true,
