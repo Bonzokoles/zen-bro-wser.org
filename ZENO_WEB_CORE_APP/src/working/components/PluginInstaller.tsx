@@ -3,7 +3,7 @@
  */
 
 import React, { useState } from 'react';
-import { MarketplacePlugin } from '../plugin-system/marketplace/marketplace-service';
+import { MarketplacePlugin } from '../../plugin-system/marketplace/marketplace-service';
 import './PluginInstaller.css';
 
 interface PluginInstallerProps {
