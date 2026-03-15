@@ -1,20 +1,18 @@
 {
   "extends": "astro/tsconfigs/strict",
-  "include": [".astro/types.d.ts", "src/**/*", "ZENO_WEB_CORE_APP/src/**/*"],
+  "include": [".astro/types.d.ts", "src/**/*"],
   "exclude": [
     "dist",
     "NEWfiles",
     ".workspace_meta",
     "node_modules",
     "src-electron",
-    "old_app",
     "ARCHIVES",
     "CAYD_SEARCH_ENG",
     "gemini-multi-modal-ai-suite",
     "DOCUMENTS_ALL",
     "INSTRUCTIONS_FOR_TRAINING",
     "LIBRARIES",
-    "ZENO_WEB_CORE_APP/src/working",
     "src/active",
     "src/original",
     "src/working"
