@@ -18,6 +18,10 @@ pnpm-debug.log*
 .env.local
 .env.production
 
+# Wrangler local secrets (dev only — NEVER commit)
+.dev.vars
+.dev.vars.*
+
 # workspace secrets (API keys - never commit)
 .workspace_meta/secrets/
 
